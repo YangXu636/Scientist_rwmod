@@ -1,0 +1,13 @@
+﻿{
+	"id": "xuyangjerry.Scientist",
+	"name": "Scientist",
+	"version": "0.1.0",
+	"authors": "XuYangJerry、世花",
+	"description": "A scientist for making SlugBase mods.",
+	"requirements": [
+		"slime-cubed.slugbase"
+	],
+	"requirements_names": [
+		"SlugBase"
+	]
+}

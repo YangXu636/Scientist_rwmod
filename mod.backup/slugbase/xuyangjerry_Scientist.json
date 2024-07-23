@@ -1,0 +1,27 @@
+{
+	"id": "xuyangjerry.Scientist",
+	"name": "Scientist",
+	"description": "拥有着强大的学识和求知欲，但父母被拾荒者杀害，科学家本人也被拾荒者操控饲养，以换取他发明的工具。",
+	"features": {
+		"color": "ffcdcc",
+		"custom_colors": [
+			{
+				"name": "Body",
+				"story": "cce5ff"
+			},
+			{
+				"name": "Eyes",
+				"story": "FFFFFF"
+			},
+			{
+				"name": "Cap",
+				"story": "ffcdcc"
+			}
+		],
+		"start_room": "CC_S04",
+		"food_min": 8,
+		"food_max": 12,
+		"select_menu_scene": "Slugcat_Prototype",
+		"select_menu_scene_ascended": "Ghost_Prototype"
+	}
+}
