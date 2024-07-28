@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System;
+using System.Collections.Generic;
 using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
+using System.Reflection;
 
 namespace Scientist;
 
@@ -13,6 +16,9 @@ public class ScientistSlugcat
     public static ScientistSlugcat.CraftDat[,] craftingGrid_CritterObjects;
     public static ScientistSlugcat.CraftDat[,] craftingGrid_CrittersOnly;
     public static bool showDebug;
+
+    public static Hashtable s2t = new Hashtable();
+    public static Hashtable t2s = new Hashtable();
 
     public struct CraftDat
     {
@@ -120,6 +126,7 @@ public class ScientistSlugcat
         ScientistSlugcat.craftingGrid_ObjectsOnly = new ScientistSlugcat.CraftDat[num, num];
         ScientistSlugcat.craftingGrid_CritterObjects = new ScientistSlugcat.CraftDat[num2, num];
         ScientistSlugcat.craftingGrid_CrittersOnly = new ScientistSlugcat.CraftDat[num2, num2];
+        ScientistSlugcat.InitIndex();
         ScientistSlugcat.InitCraftingLibrary();
     }
 
@@ -215,6 +222,47 @@ public class ScientistSlugcat
         return ScientistSlugcat.GetLibraryData(abstractObjectType, abstractObjectType2);
     }
 
+    public static void InitIndex()
+    {
+        ScientistSlugcat.s2t.Add("Rock", AbstractPhysicalObject.AbstractObjectType.Rock);
+        ScientistSlugcat.s2t.Add("FlareBomb", AbstractPhysicalObject.AbstractObjectType.FlareBomb);
+        ScientistSlugcat.s2t.Add("VultureMask", AbstractPhysicalObject.AbstractObjectType.VultureMask);
+        ScientistSlugcat.s2t.Add("PuffBall", AbstractPhysicalObject.AbstractObjectType.PuffBall);
+        ScientistSlugcat.s2t.Add("DangleFruit", AbstractPhysicalObject.AbstractObjectType.DangleFruit);
+        ScientistSlugcat.s2t.Add("SLOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer);
+        ScientistSlugcat.s2t.Add("SSOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer);
+        ScientistSlugcat.s2t.Add("DataPearl", AbstractPhysicalObject.AbstractObjectType.DataPearl);
+        ScientistSlugcat.s2t.Add("WaterNut", AbstractPhysicalObject.AbstractObjectType.WaterNut);
+        ScientistSlugcat.s2t.Add("JellyFish", AbstractPhysicalObject.AbstractObjectType.JellyFish);
+        ScientistSlugcat.s2t.Add("Lantern", AbstractPhysicalObject.AbstractObjectType.Lantern);
+        ScientistSlugcat.s2t.Add("KarmaFlower", AbstractPhysicalObject.AbstractObjectType.KarmaFlower);
+        ScientistSlugcat.s2t.Add("Mushroom", AbstractPhysicalObject.AbstractObjectType.Mushroom);
+        ScientistSlugcat.s2t.Add("FirecrackerPlant", AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant);
+        ScientistSlugcat.s2t.Add("SlimeMold", AbstractPhysicalObject.AbstractObjectType.SlimeMold);
+        ScientistSlugcat.s2t.Add("FlyLure", AbstractPhysicalObject.AbstractObjectType.FlyLure);
+        ScientistSlugcat.s2t.Add("ScavengerBomb", AbstractPhysicalObject.AbstractObjectType.ScavengerBomb);
+        ScientistSlugcat.s2t.Add("SporePlant", AbstractPhysicalObject.AbstractObjectType.SporePlant);
+        ScientistSlugcat.s2t.Add("EggBugEgg", AbstractPhysicalObject.AbstractObjectType.EggBugEgg);
+        ScientistSlugcat.s2t.Add("NeedleEgg", AbstractPhysicalObject.AbstractObjectType.NeedleEgg);
+        ScientistSlugcat.s2t.Add("BubbleGrass", AbstractPhysicalObject.AbstractObjectType.BubbleGrass);
+        ScientistSlugcat.s2t.Add("OverseerCarcass", AbstractPhysicalObject.AbstractObjectType.OverseerCarcass);
+        ScientistSlugcat.s2t.Add("SingularityBomb", MoreSlugcatsEnums.AbstractObjectType.SingularityBomb);
+        ScientistSlugcat.s2t.Add("FireEgg", MoreSlugcatsEnums.AbstractObjectType.FireEgg);
+        ScientistSlugcat.s2t.Add("Seed", MoreSlugcatsEnums.AbstractObjectType.Seed);
+        ScientistSlugcat.s2t.Add("GooieDuck", MoreSlugcatsEnums.AbstractObjectType.GooieDuck);
+        ScientistSlugcat.s2t.Add("LillyPuck", MoreSlugcatsEnums.AbstractObjectType.LillyPuck);
+        ScientistSlugcat.s2t.Add("GlowWeed", MoreSlugcatsEnums.AbstractObjectType.GlowWeed);
+        ScientistSlugcat.s2t.Add("DandelionPeach", MoreSlugcatsEnums.AbstractObjectType.DandelionPeach);
+        ScientistSlugcat.s2t.Add("Spear", AbstractPhysicalObject.AbstractObjectType.Spear);
+        ScientistSlugcat.s2t.Add("VultureGrub", CreatureTemplate.Type.VultureGrub);
+        ScientistSlugcat.s2t.Add("SmallCentipede", CreatureTemplate.Type.SmallCentipede);
+        ScientistSlugcat.s2t.Add("SmallNeedleWorm", CreatureTemplate.Type.SmallNeedleWorm);
+        ScientistSlugcat.s2t.Add("Hazer", CreatureTemplate.Type.Hazer);
+        ScientistSlugcat.s2t.Add("Fly", CreatureTemplate.Type.Fly);
+
+        foreach (DictionaryEntry de in ScientistSlugcat.s2t) { ScientistSlugcat.t2s[de.Value] = de.Key; }
+    }
+
     public static void InitCraftingLibrary()        //打表x2
     {
         int tableSelect = 0;
@@ -278,7 +326,6 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
 
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, null, null);
         key = AbstractPhysicalObject.AbstractObjectType.VultureMask;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
@@ -870,7 +917,7 @@ public class ScientistSlugcat
         }
         if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.VultureMask) //秃鹫面具
         {
-            return new VultureMask.AbstractVultureMask(crafter.room.world, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID(), Random.Range(0, 4000), false);
+            return new VultureMask.AbstractVultureMask(crafter.room.world, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID(), UnityEngine.Random.Range(0, 4000), false);
         }
         if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut) //泡水果
         {
@@ -898,7 +945,7 @@ public class ScientistSlugcat
         }
         if (abstractObjectType == MoreSlugcatsEnums.AbstractObjectType.FireEgg) //火虫卵
         {
-            return new FireEgg.AbstractBugEgg(crafter.room.world, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID(), Random.value);
+            return new FireEgg.AbstractBugEgg(crafter.room.world, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID(), UnityEngine.Random.value);
         }
         if (AbstractConsumable.IsTypeConsumable(abstractObjectType)) //消耗品
         {
@@ -986,7 +1033,7 @@ public class ScientistSlugcat
 
     public static AbstractPhysicalObject RandomStomachItem(PhysicalObject caller)
     {
-        float value = Random.value;
+        float value = UnityEngine.Random.value;
         AbstractPhysicalObject abstractPhysicalObject;
         if (value <= 0.32894737f)
         {
@@ -1030,19 +1077,19 @@ public class ScientistSlugcat
         }
         else if (value <= 0.93421054f)
         {
-            abstractPhysicalObject = new SporePlant.AbstractSporePlant(caller.room.world, null, caller.room.GetWorldCoordinate(caller.firstChunk.pos), caller.room.game.GetNewID(), -1, -1, null, false, (double)Random.value < 0.5);
+            abstractPhysicalObject = new SporePlant.AbstractSporePlant(caller.room.world, null, caller.room.GetWorldCoordinate(caller.firstChunk.pos), caller.room.game.GetNewID(), -1, -1, null, false, (double)UnityEngine.Random.value < 0.5);
         }
         else if (value <= 0.46710527f)
         {
             Color color;
             color = new Color(1f, 0.8f, 0.3f);
             int ownerIterator = 1;
-            if (Random.value <= 0.35f)
+            if (UnityEngine.Random.value <= 0.35f)
             {
                 color = new Color(0.44705883f, 0.9019608f, 0.76862746f);
                 ownerIterator = 0;
             }
-            else if (Random.value <= 0.05f)
+            else if (UnityEngine.Random.value <= 0.05f)
             {
                 color = new Color(0f, 1f, 0f);
                 ownerIterator = 2;
@@ -1063,7 +1110,7 @@ public class ScientistSlugcat
         }
         else if (value <= 0.8f)
         {
-            abstractPhysicalObject = new VultureMask.AbstractVultureMask(caller.room.world, null, caller.room.GetWorldCoordinate(caller.firstChunk.pos), caller.room.game.GetNewID(), caller.abstractPhysicalObject.ID.RandomSeed, (double)Random.value <= 0.05);
+            abstractPhysicalObject = new VultureMask.AbstractVultureMask(caller.room.world, null, caller.room.GetWorldCoordinate(caller.firstChunk.pos), caller.room.game.GetNewID(), caller.abstractPhysicalObject.ID.RandomSeed, (double)UnityEngine.Random.value <= 0.05);
         }
         else
         {
@@ -1075,5 +1122,25 @@ public class ScientistSlugcat
             (abstractPhysicalObject as AbstractConsumable).isConsumed = true;
         }
         return abstractPhysicalObject;
+    }
+
+    public static Hashtable GetItems(string a, string b)
+    {
+        Hashtable ans = new Hashtable();
+        if (a == null || b == null || !s2t.ContainsKey(a) || !s2t.ContainsKey(b))
+        {
+            Console.WriteLine($"Could not find object \"{(a ?? "null")}\" or \"{(b ?? "null")}\"");
+            ans["tableSelect"] = -1;
+            ans["i1"] = null;
+            ans["i2"] = null;
+            return ans;
+        }
+        bool tmpa = (s2t[a] is AbstractPhysicalObject.AbstractObjectType || s2t[a] is MoreSlugcatsEnums.AbstractObjectType);
+        bool tmpb = (s2t[b] is AbstractPhysicalObject.AbstractObjectType || s2t[b] is MoreSlugcatsEnums.AbstractObjectType);
+        ans["tableSelect"] = (tmpa ? 0 : 1) + (tmpb ? 0 : 1);
+        ans["i1"] = (tmpa && !tmpb) ? s2t[b] : s2t[a];
+        ans["i2"] = (tmpa && !tmpb) ? s2t[a] : s2t[b];
+        Console.WriteLine($"ans : tableSelect = {ans["tableSelect"]}  i1 = {ans["i1"] ?? null}  i2 = {ans["i2"] ?? null}");
+        return ans;
     }
 }

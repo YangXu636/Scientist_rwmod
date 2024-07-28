@@ -4,7 +4,7 @@ using MoreSlugcats;
 
 namespace items;
 
-sealed class ShapeSpear : Spear
+public class ShapeSpear : Spear
 {
     //这些是必要的变量，稍后对我们有用
     //public Vector2 rotation;
@@ -12,10 +12,33 @@ sealed class ShapeSpear : Spear
     public float darkness;
     public float lastDarkness;
 
-    public ShapeSpear(AbstractPhysicalObject abstr, World world) : base(abstr, world)
+    public ShapeSpear(AbstractPhysicalObject abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
-        
+        base.bodyChunks = new BodyChunk[1];
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.07f);
+        this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
+        base.airFriction = 0.999f;
+        base.gravity = 0.7f;
+        this.bounce = 0.4f;
+        this.surfaceFriction = 0.4f;
+        this.collisionLayer = 2;
+        base.waterFriction = 0.98f;
+        base.buoyancy = 0.4f;
+        this.pivotAtTip = false;
+        this.lastPivotAtTip = false;
+        this.stuckBodyPart = -1;
+        base.firstChunk.loudness = 7f;
+        this.tailPos = base.firstChunk.pos;
+        this.soundLoop = new ChunkDynamicSoundLoop(base.firstChunk);
+        this.wasHorizontalBeam = new bool[3];
+        this.spearmasterNeedle = false;
+        this.spearmasterNeedle_hasConnection = false;
+        this.spearmasterNeedle_fadecounter_max = 400;
+        this.spearmasterNeedle_fadecounter = this.spearmasterNeedle_fadecounter_max;
+        this.spearmasterNeedleType = Random.Range(0, 3);
+        this.jollyCustomColor = null;
     }
+
 
     public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
     {
@@ -61,4 +84,5 @@ sealed class ShapeSpear : Spear
             room5.AddObject(new Spear.Umbilical(this.room, this, thrownBy as Player, base.firstChunk.vel));
         }
     }
+
 }

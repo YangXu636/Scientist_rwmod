@@ -20,6 +20,7 @@ public class Temp_ChangeCrafting
     public static Dictionary<string, CreatureTemplate.Type> s2c;
 
     public static Hashtable s2t = new Hashtable();
+    public static Hashtable t2s = new Hashtable();
 
     public struct CraftDat
     {
@@ -51,115 +52,117 @@ public class Temp_ChangeCrafting
         Temp_ChangeCrafting.objectsLibrary = new Dictionary<AbstractPhysicalObject.AbstractObjectType, int>();
         s2t.Add("Null", null);
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock] = num;
-        s2t.Add("Rock", AbstractPhysicalObject.AbstractObjectType.Rock);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb] = num;
-        s2t.Add("FlareBomb", AbstractPhysicalObject.AbstractObjectType.FlareBomb);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask] = num;
-        s2t.Add("VultureMask", AbstractPhysicalObject.AbstractObjectType.VultureMask);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall] = num;
-        s2t.Add("PuffBall", AbstractPhysicalObject.AbstractObjectType.PuffBall);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DangleFruit] = num;
-        s2t.Add("DangleFruit", AbstractPhysicalObject.AbstractObjectType.DangleFruit);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer] = num;
-        s2t.Add("SLOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer] = num;
-        s2t.Add("SSOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DataPearl] = num;
-        s2t.Add("DataPearl", AbstractPhysicalObject.AbstractObjectType.DataPearl);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.WaterNut] = num;
-        s2t.Add("WaterNut", AbstractPhysicalObject.AbstractObjectType.WaterNut);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.JellyFish] = num;
-        s2t.Add("JellyFish", AbstractPhysicalObject.AbstractObjectType.JellyFish);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Lantern] = num;
-        s2t.Add("Lantern", AbstractPhysicalObject.AbstractObjectType.Lantern);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.KarmaFlower] = num;
-        s2t.Add("KarmaFlower", AbstractPhysicalObject.AbstractObjectType.KarmaFlower);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom] = num;
-        s2t.Add("Mushroom", AbstractPhysicalObject.AbstractObjectType.Mushroom);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant] = num;
-        s2t.Add("FirecrackerPlant", AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SlimeMold] = num;
-        s2t.Add("SlimeMold", AbstractPhysicalObject.AbstractObjectType.SlimeMold);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure] = num;
-        s2t.Add("FlyLure", AbstractPhysicalObject.AbstractObjectType.FlyLure);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb] = num;
-        s2t.Add("ScavengerBomb", AbstractPhysicalObject.AbstractObjectType.ScavengerBomb);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SporePlant] = num;
-        s2t.Add("SporePlant", AbstractPhysicalObject.AbstractObjectType.SporePlant);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.EggBugEgg] = num;
-        s2t.Add("EggBugEgg", AbstractPhysicalObject.AbstractObjectType.EggBugEgg);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.NeedleEgg] = num;
-        s2t.Add("NeedleEgg", AbstractPhysicalObject.AbstractObjectType.NeedleEgg);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.BubbleGrass] = num;
-        s2t.Add("BubbleGrass", AbstractPhysicalObject.AbstractObjectType.BubbleGrass);
         num++;
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.OverseerCarcass] = num;
-        s2t.Add("OverseerCarcass", AbstractPhysicalObject.AbstractObjectType.OverseerCarcass);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.SingularityBomb] = num;
-        s2t.Add("SingularityBomb", MoreSlugcatsEnums.AbstractObjectType.SingularityBomb);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.FireEgg] = num;
-        s2t.Add("FireEgg", MoreSlugcatsEnums.AbstractObjectType.FireEgg);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.Seed] = num;
-        s2t.Add("Seed", MoreSlugcatsEnums.AbstractObjectType.Seed);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GooieDuck] = num;
-        s2t.Add("GooieDuck", MoreSlugcatsEnums.AbstractObjectType.GooieDuck);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck] = num;
-        s2t.Add("LillyPuck", MoreSlugcatsEnums.AbstractObjectType.LillyPuck);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed] = num;
-        s2t.Add("GlowWeed", MoreSlugcatsEnums.AbstractObjectType.GlowWeed);
         num++;
         Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach] = num;
-        s2t.Add("DandelionPeach", MoreSlugcatsEnums.AbstractObjectType.DandelionPeach);
         num++;
         //新增物品
         Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear] = num;
-        s2t.Add("Spear", AbstractPhysicalObject.AbstractObjectType.Spear);
         num++;
 
         int num2 = 0;
         Temp_ChangeCrafting.critsLibrary = new Dictionary<CreatureTemplate.Type, int>();
         Temp_ChangeCrafting.critsLibrary[CreatureTemplate.Type.VultureGrub] = num2;
-        s2t.Add("VultureGrub", CreatureTemplate.Type.VultureGrub);
         num2++;
         Temp_ChangeCrafting.critsLibrary[CreatureTemplate.Type.SmallCentipede] = num2;
-        s2t.Add("SmallCentipede", CreatureTemplate.Type.SmallCentipede);
         num2++;
         Temp_ChangeCrafting.critsLibrary[CreatureTemplate.Type.SmallNeedleWorm] = num2;
-        s2t.Add("SmallNeedleWorm", CreatureTemplate.Type.SmallNeedleWorm);
         num2++;
         Temp_ChangeCrafting.critsLibrary[CreatureTemplate.Type.Hazer] = num2;
-        s2t.Add("Hazer", CreatureTemplate.Type.Hazer);
         num2++;
         Temp_ChangeCrafting.critsLibrary[CreatureTemplate.Type.Fly] = num2;
-        s2t.Add("Fly", CreatureTemplate.Type.Fly);
         num2++;
         //新增生物
+
+        s2t.Add("Rock", AbstractPhysicalObject.AbstractObjectType.Rock);
+        s2t.Add("FlareBomb", AbstractPhysicalObject.AbstractObjectType.FlareBomb);
+        s2t.Add("VultureMask", AbstractPhysicalObject.AbstractObjectType.VultureMask);
+        s2t.Add("PuffBall", AbstractPhysicalObject.AbstractObjectType.PuffBall);
+        s2t.Add("DangleFruit", AbstractPhysicalObject.AbstractObjectType.DangleFruit);
+        s2t.Add("SLOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer);
+        s2t.Add("SSOracleSwarmer", AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer);
+        s2t.Add("DataPearl", AbstractPhysicalObject.AbstractObjectType.DataPearl);
+        s2t.Add("WaterNut", AbstractPhysicalObject.AbstractObjectType.WaterNut);
+        s2t.Add("JellyFish", AbstractPhysicalObject.AbstractObjectType.JellyFish);
+        s2t.Add("Lantern", AbstractPhysicalObject.AbstractObjectType.Lantern);
+        s2t.Add("KarmaFlower", AbstractPhysicalObject.AbstractObjectType.KarmaFlower);
+        s2t.Add("Mushroom", AbstractPhysicalObject.AbstractObjectType.Mushroom);
+        s2t.Add("FirecrackerPlant", AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant);
+        s2t.Add("SlimeMold", AbstractPhysicalObject.AbstractObjectType.SlimeMold);
+        s2t.Add("FlyLure", AbstractPhysicalObject.AbstractObjectType.FlyLure);
+        s2t.Add("ScavengerBomb", AbstractPhysicalObject.AbstractObjectType.ScavengerBomb);
+        s2t.Add("SporePlant", AbstractPhysicalObject.AbstractObjectType.SporePlant);
+        s2t.Add("EggBugEgg", AbstractPhysicalObject.AbstractObjectType.EggBugEgg);
+        s2t.Add("NeedleEgg", AbstractPhysicalObject.AbstractObjectType.NeedleEgg);
+        s2t.Add("BubbleGrass", AbstractPhysicalObject.AbstractObjectType.BubbleGrass);
+        s2t.Add("OverseerCarcass", AbstractPhysicalObject.AbstractObjectType.OverseerCarcass);
+        s2t.Add("SingularityBomb", MoreSlugcatsEnums.AbstractObjectType.SingularityBomb);
+        s2t.Add("FireEgg", MoreSlugcatsEnums.AbstractObjectType.FireEgg);
+        s2t.Add("Seed", MoreSlugcatsEnums.AbstractObjectType.Seed);
+        s2t.Add("GooieDuck", MoreSlugcatsEnums.AbstractObjectType.GooieDuck);
+        s2t.Add("LillyPuck", MoreSlugcatsEnums.AbstractObjectType.LillyPuck);
+        s2t.Add("GlowWeed", MoreSlugcatsEnums.AbstractObjectType.GlowWeed);
+        s2t.Add("DandelionPeach", MoreSlugcatsEnums.AbstractObjectType.DandelionPeach);
+        s2t.Add("Spear", AbstractPhysicalObject.AbstractObjectType.Spear);
+        s2t.Add("VultureGrub", CreatureTemplate.Type.VultureGrub);
+        s2t.Add("SmallCentipede", CreatureTemplate.Type.SmallCentipede);
+        s2t.Add("SmallNeedleWorm", CreatureTemplate.Type.SmallNeedleWorm);
+        s2t.Add("Hazer", CreatureTemplate.Type.Hazer);
+        s2t.Add("Fly", CreatureTemplate.Type.Fly);
+        foreach (DictionaryEntry de in s2t) { t2s[de.Value] = de.Key; }
 
         Temp_ChangeCrafting.craftingGrid_ObjectsOnly = new Temp_ChangeCrafting.CraftDat[num, num];
         Temp_ChangeCrafting.craftingGrid_CritterObjects = new Temp_ChangeCrafting.CraftDat[num2, num];
@@ -259,60 +262,9 @@ public class Temp_ChangeCrafting
         return Temp_ChangeCrafting.GetLibraryData(abstractObjectType, abstractObjectType2);
     }
 
-    /*public static Hashtable GetItems(string a, string b)
-    {
-        Hashtable ans = new Hashtable();
-        if (a == null || b == null || !s2t.ContainsKey(a) || !s2t.ContainsKey(b))
-        {
-            Console.WriteLine($"Could not find object \"{a}\" or \"{b}\"");
-            ans["tableSelect"] = -1;
-            ans["i1"] = null;
-            ans["i2"] = null;
-            return ans;
-        }
-        bool tmpa1 = (s2t[a] is AbstractPhysicalObject.AbstractObjectType || s2t[a] is MoreSlugcatsEnums.AbstractObjectType);
-        bool tmpa2 = (s2t[a] is CreatureTemplate.Type);
-        bool tmpb1 = (s2t[b] is AbstractPhysicalObject.AbstractObjectType || s2t[b] is MoreSlugcatsEnums.AbstractObjectType);
-        bool tmpb2 = (s2t[b] is CreatureTemplate.Type);
-        if (tmpa1 && tmpb1)
-        {
-            ans["tableSelect"] = 0;
-            ans["i1"] = s2t[a];
-            ans["i2"] = s2t[b];
-        }
-        else if (tmpa1 && tmpb2)
-        {
-            ans["tableSelect"] = 1;
-            ans["i1"] = s2t[b];
-            ans["i2"] = s2t[a];
-        }
-        else if (tmpa2 && tmpb1)
-        {
-            ans["tableSelect"] = 1;
-            ans["i1"] = s2t[a];
-            ans["i2"] = s2t[b];
-        }
-        else if (tmpa2 && tmpb2)
-        {
-            ans["tableSelect"] = 2;
-            ans["i1"] = s2t[a];
-            ans["i2"] = s2t[b];
-        }
-        else
-        {
-            Console.WriteLine($"Could not find object \"{a}\" or \"{b}\"");
-            ans["tableSelect"] = -1;
-            ans["i1"] = null;
-            ans["i2"] = null;
-        }
-        return ans;
-    }*/
-
     public static Hashtable GetItems(string a, string b)
     {
         Hashtable ans = new Hashtable();
-
-        // 检查输入参数是否有效
         if (a == null || b == null || !s2t.ContainsKey(a) || !s2t.ContainsKey(b))
         {
             Console.WriteLine($"Could not find object \"{(a ?? "null")}\" or \"{(b ?? "null")}\"");
@@ -321,49 +273,12 @@ public class Temp_ChangeCrafting
             ans["i2"] = null;
             return ans;
         }
-
-        // 获取类型判断结果
-        bool tmpa1 = (s2t[a] is AbstractPhysicalObject.AbstractObjectType || s2t[a] is MoreSlugcatsEnums.AbstractObjectType);
-        bool tmpa2 = (s2t[a] is CreatureTemplate.Type);
-        bool tmpb1 = (s2t[b] is AbstractPhysicalObject.AbstractObjectType || s2t[b] is MoreSlugcatsEnums.AbstractObjectType);
-        bool tmpb2 = (s2t[b] is CreatureTemplate.Type);
-
-        // 根据类型判断结果设置返回值
-        /*if (tmpa1 && tmpb1)
-        {
-            ans["tableSelect"] = 0;
-        }
-        else if ((tmpa1 && !tmpb1) || (!tmpa1 && tmpb1))
-        {
-            ans["tableSelect"] = 1;
-        }
-        else if (!tmpa1 && !tmpb1)
-        {
-            ans["tableSelect"] = 2;
-        }
-        else
-        {
-            Console.WriteLine($"Could not find object \"{a}\" or \"{b}\"");
-            ans["tableSelect"] = -1;
-            ans["i1"] = null;
-            ans["i2"] = null;
-            return ans;
-        }*/
-
-        ans["tableSelect"] = (tmpa1 ? 0 : 1) + (tmpb1 ? 0 : 1);
-        ans["i1"] = (tmpa1) ? s2t[a] : s2t[b];
-        // 根据tableSelect的值设置i1和i2
-        if (ans["tableSelect"].ToString() == "0" || (ans["tableSelect"].ToString() == "1" && tmpa2) || ans["tableSelect"].ToString() == "2")
-        {
-            ans["i1"] = s2t[a];
-            ans["i2"] = s2t[b];
-        }
-        else
-        {
-            ans["i1"] = s2t[b];
-            ans["i2"] = s2t[a];
-        }
-
+        bool tmpa = (s2t[a] is AbstractPhysicalObject.AbstractObjectType || s2t[a] is MoreSlugcatsEnums.AbstractObjectType);
+        bool tmpb = (s2t[b] is AbstractPhysicalObject.AbstractObjectType || s2t[b] is MoreSlugcatsEnums.AbstractObjectType);
+        ans["tableSelect"] = (tmpa ? 0 : 1) + (tmpb ? 0 : 1);
+        ans["i1"] = (tmpa && !tmpb) ? s2t[b] : s2t[a];
+        ans["i2"] = (tmpa && !tmpb) ? s2t[a] : s2t[b];
+        Console.WriteLine($"ans : tableSelect = {ans["tableSelect"]}  i1 = {ans["i1"] ?? null}  i2 = {ans["i2"] ?? null}");
         return ans;
     }
 
@@ -400,8 +315,6 @@ public class Temp_ChangeCrafting
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.PuffBall, null);
-
-        Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.Register.ShapeSpear, null);
         key = AbstractPhysicalObject.AbstractObjectType.FlareBomb;
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb], tableSelect, null, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
@@ -430,8 +343,6 @@ public class Temp_ChangeCrafting
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
-
-        Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, null, null);
         key = AbstractPhysicalObject.AbstractObjectType.VultureMask;
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, null, null);
         Temp_ChangeCrafting.SetLibraryData(Temp_ChangeCrafting.objectsLibrary[key], Temp_ChangeCrafting.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
@@ -1136,6 +1047,7 @@ public class Temp_ChangeCrafting
         }
         return result;
     }
+
 
     public static AbstractPhysicalObject RandomStomachItem(PhysicalObject caller)
     {

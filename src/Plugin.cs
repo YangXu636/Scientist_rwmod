@@ -36,11 +36,8 @@ namespace Scientist
             
         }
 
-        // Add hooks-添加钩子
-        public void OnEnable()
+        public void Awake()
         {
-            On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
-
             //每次加载mod时，您的对象类型都会被注册
             On.RainWorld.OnModsEnabled += RainWorld_OnModsEnabled;
 
@@ -53,6 +50,12 @@ namespace Scientist
             //如果你的物品是PlayerCarryableItem，此方法确定slugcat将抓取你的物品的爪子数量
             On.Player.Grabability += Player_Grabability;
 
+        }
+
+        // Add hooks-添加钩子
+        public void OnEnable()
+        {
+            On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
 
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
@@ -62,45 +65,67 @@ namespace Scientist
 
             // On.Player.CanIPickThisUp += ;
 
-            On.Player.Update += PlayerUpdate;
+            //On.Player.Update += PlayerUpdate;
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
+            On.Player.ThrowObject += PlayerThrowObject;
+            On.Player.ThrownSpear += PlayerThrownSpear;
         }
 
         // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
         private void LoadResources(RainWorld rainWorld)
         {
+            Awake();
         }
 
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
         {
-            orig.Invoke(self, eu);
-            if (IsScientist.TryGet(self, out var isscientist) && !isscientist) { return; }
-            if (Power.TryGet(self, out var power) && power)
+            try{ orig(self, eu); } 
+            catch (Exception e) { Console.Error.WriteLine(e); }
+            
+            if (IsScientist.TryGet(self, out var isscientist) && isscientist)
             {
-                foreach (var item in self.room.updateList) 
+                if (Power.TryGet(self, out var power) && power && self.room.updateList != null)
                 {
-                    var rock = item as Rock;
-                    var spear = item as Spear;
-                    if (rock != null && rock.thrownBy == self)
+                    foreach (var item in self.room.updateList)
                     {
-                        rock.firstChunk.vel *= 10;
-                    }
-                    if(spear != null && spear.thrownBy == self)
-                    {
-                        spear.spearDamageBonus = 1000f;
+                        try
+                        {
+                            if (item is Rock rock && rock.thrownBy == self)
+                            {
+                                rock.firstChunk.vel *= 10;
+                            }
+                        }
+                        catch (Exception e) { Console.Error.WriteLine(e); }
                     }
                 }
+            }
+        }
+
+        public void PlayerThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
+        {
+            orig(self, grasp, eu);
+        }
+
+        public void PlayerThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
+        {
+            orig(self, spear);
+            if (IsScientist.TryGet(self, out var isscientist) && isscientist && Power.TryGet(self, out var power) && power)
+            {
+                spear.spearDamageBonus = 1000f;
             }
         }
 
         public void PlayerJump(On.Player.orig_Jump orig, Player self)
         {
             orig(self);
-            if (IsScientist.TryGet(self, out var isscientist) && !isscientist) { return; }
-            if (LowerJump.TryGet(self, out var power))
+            if (IsScientist.TryGet(self, out var isscientist) && isscientist)
             {
-                self.jumpBoost *= power;
+                if (LowerJump.TryGet(self, out float power))
+                {
+                    self.jumpBoost *= power;
+                }
             }
+            
         }
 
         private void RainWorld_OnModsEnabled(On.RainWorld.orig_OnModsEnabled orig, RainWorld self, ModManager.Mod[] newlyEnabledMods)
