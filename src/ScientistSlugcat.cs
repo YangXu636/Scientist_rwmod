@@ -126,7 +126,6 @@ public class ScientistSlugcat
         ScientistSlugcat.craftingGrid_ObjectsOnly = new ScientistSlugcat.CraftDat[num, num];
         ScientistSlugcat.craftingGrid_CritterObjects = new ScientistSlugcat.CraftDat[num2, num];
         ScientistSlugcat.craftingGrid_CrittersOnly = new ScientistSlugcat.CraftDat[num2, num2];
-        ScientistSlugcat.InitIndex();
         ScientistSlugcat.InitCraftingLibrary();
     }
 
@@ -265,6 +264,26 @@ public class ScientistSlugcat
 
     public static void InitCraftingLibrary()        //打表x2
     {
+        for (int i = 0; i < ScientistSlugcat.objectsLibrary.Count; i++)
+        {
+            for (int j = 0; j < ScientistSlugcat.objectsLibrary.Count; j++)
+            {
+                ScientistSlugcat.SetLibraryData(i, j, 0, null, null);
+            }
+        }
+        for (int i = 0; i < ScientistSlugcat.critsLibrary.Count; i++)
+        {
+            for (int j = 0; j < ScientistSlugcat.objectsLibrary.Count; j++)
+            {
+                ScientistSlugcat.SetLibraryData(i, j, 1, null, null);
+            }
+
+            for (int j = 0; j < ScientistSlugcat.critsLibrary.Count; j++)
+            {
+                ScientistSlugcat.SetLibraryData(i, j, 2, null, null);
+            }
+        }
+
         int tableSelect = 0;
         AbstractPhysicalObject.AbstractObjectType key = AbstractPhysicalObject.AbstractObjectType.Rock;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, null, null);

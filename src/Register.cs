@@ -1,4 +1,6 @@
-﻿namespace Scientist
+﻿using items;
+
+namespace Scientist
 {
     public static class Register
     {
@@ -7,7 +9,7 @@
 
         public static void RegisterValues()
         {
-            ShapeSpear = new AbstractPhysicalObject.AbstractObjectType("ShapeSpear", true);
+            Register.ShapeSpear = new AbstractPhysicalObject.AbstractObjectType("ShapeSpear", true);
         }
 
         public static void UnregisterValues()

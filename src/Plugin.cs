@@ -57,6 +57,8 @@ namespace Scientist
         {
             On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
 
+            On.Room.AddObject += RoomAddObject;
+
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
             //在玩家触发跳跃时执行Player_Jump
@@ -65,39 +67,37 @@ namespace Scientist
 
             // On.Player.CanIPickThisUp += ;
 
-            //On.Player.Update += PlayerUpdate;
+            On.Player.Update += PlayerUpdate;
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
             On.Player.ThrowObject += PlayerThrowObject;
             On.Player.ThrownSpear += PlayerThrownSpear;
         }
 
+        public void RoomAddObject(On.Room.orig_AddObject orig, Room self, UpdatableAndDeletable obj)
+        {
+            if (obj is items.ShapeSpear shell)
+            {
+                var tilePos = self.GetTilePosition(shell.tailPos);
+                var pos = new WorldCoordinate(self.abstractRoom.index, tilePos.x, tilePos.y, 0);
+                var abstr = new AbstractPhysicalObject(self.abstractRoom.world, Register.ShapeSpear, null, pos, self.game.GetNewID());
+                obj = new items.ShapeSpear(abstr, self.world);
+                self.abstractRoom.AddEntity(abstr);
+            }
+            orig(self, obj);
+        }
+
         // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
         private void LoadResources(RainWorld rainWorld)
         {
-            Awake();
+            
         }
 
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
         {
-            try{ orig(self, eu); } 
-            catch (Exception e) { Console.Error.WriteLine(e); }
-            
+            orig(self, eu);
             if (IsScientist.TryGet(self, out var isscientist) && isscientist)
             {
-                if (Power.TryGet(self, out var power) && power && self.room.updateList != null)
-                {
-                    foreach (var item in self.room.updateList)
-                    {
-                        try
-                        {
-                            if (item is Rock rock && rock.thrownBy == self)
-                            {
-                                rock.firstChunk.vel *= 10;
-                            }
-                        }
-                        catch (Exception e) { Console.Error.WriteLine(e); }
-                    }
-                }
+                /*if (self.input[0].pckp && self.room != null)*/
             }
         }
 
@@ -111,7 +111,7 @@ namespace Scientist
             orig(self, spear);
             if (IsScientist.TryGet(self, out var isscientist) && isscientist && Power.TryGet(self, out var power) && power)
             {
-                spear.spearDamageBonus = 1000f;
+                spear.spearDamageBonus = 10000f;
             }
         }
 
@@ -147,14 +147,15 @@ namespace Scientist
         private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
             orig(self);
+            Console.WriteLine($"self = {self}    type = {self.type}");
             if (self.type == Register.ShapeSpear)
-                self.realizedObject = new ShapeSpear(self, self.world); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
+                self.realizedObject = new items.ShapeSpear(self, self.world); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
         {
             //您还可以指定抓取对象的不同选项的条件。例如，根据物品的重量
-            if (obj is ShapeSpear)
+            if (obj is items.ShapeSpear)
                 return Player.ObjectGrabability.OneHand;
             return orig(self, obj);
         }
@@ -164,7 +165,7 @@ namespace Scientist
             if (IsScientist.TryGet(self, out var isscientist) && isscientist) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate
                 ScientistGrabUpdate(self, eu);
             }
-            else {                                                                  //不是科学家，则执行原函数（这也会导致其他mod的GrabUpdate钩子在科学家上无法生效）
+            else {                                                                  //不是科学家，则执行原函数（这也会导致其他mod的GrabUpdate钩子在科学家上无法生效）（既然叫科学家，那么能屏蔽外界干扰和更改是很正常的吧~）
                 orig(self, eu); 
             }
         }
