@@ -1,12 +1,12 @@
 ﻿using System;
 using BepInEx;
-using UnityEngine;
 using SlugBase.Features;
 using static SlugBase.Features.FeatureTypes;
 using items;
 using RWCustom;
 using Expedition;
 using MoreSlugcats;
+using UnityEngine;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖
@@ -75,13 +75,9 @@ namespace Scientist
 
         public void RoomAddObject(On.Room.orig_AddObject orig, Room self, UpdatableAndDeletable obj)
         {
-            if (obj is items.ShapeSpear shell)
+            if (obj is items.ShapeSpear)
             {
-                var tilePos = self.GetTilePosition(shell.tailPos);
-                var pos = new WorldCoordinate(self.abstractRoom.index, tilePos.x, tilePos.y, 0);
-                var abstr = new AbstractPhysicalObject(self.abstractRoom.world, Register.ShapeSpear, null, pos, self.game.GetNewID());
-                obj = new items.ShapeSpear(abstr, self.world);
-                self.abstractRoom.AddEntity(abstr);
+               Console.WriteLine("Adding a ShapeSpear!");
             }
             orig(self, obj);
         }
@@ -97,7 +93,14 @@ namespace Scientist
             orig(self, eu);
             if (IsScientist.TryGet(self, out var isscientist) && isscientist)
             {
-                /*if (self.input[0].pckp && self.room != null)*/
+                if (self.input[0].pckp && self.room != null)
+                {
+                    RainWorldGame rainWorldGame = self.room.game.rainWorld.processManager.currentMainLoop as RainWorldGame;
+                    IntVector2 tilePosition = self.room.game.cameras[0].room.GetTilePosition(new Vector2(300f, 300f) + rainWorldGame.cameras[0].pos);
+                    WorldCoordinate worldCoordinate = self.room.game.cameras[0].room.GetWorldCoordinate(tilePosition);
+                    AbstractPhysicalObject abstractPhysicalObject = new AbstractPhysicalObject(self.room.world, Register.ShapeSpear, null, worldCoordinate, self.room.game.GetNewID());
+                    self.room.AddObject(new items.ShapeSpear(abstractPhysicalObject, self.room.world));
+                }
             }
         }
 
@@ -147,9 +150,9 @@ namespace Scientist
         private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
             orig(self);
-            Console.WriteLine($"self = {self}    type = {self.type}");
+            Console.WriteLine($"self = {self}    type = {self.type}");/*
             if (self.type == Register.ShapeSpear)
-                self.realizedObject = new items.ShapeSpear(self, self.world); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
+                self.realizedObject = new items.ShapeSpear(*//*self, self.world*//*); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明*/
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)

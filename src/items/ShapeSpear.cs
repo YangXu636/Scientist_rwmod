@@ -1,89 +1,71 @@
 ﻿using MoreSlugcats;
 using RWCustom;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace items;
 
 sealed class ShapeSpear : Spear
 {
-    public float darkness;
-    public float lastDarkness;
+    
 
-    public ShapeSpear(AbstractPhysicalObject abstr, World world) : base(abstr, world)
+    public ShapeSpear(AbstractPhysicalObject abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
-        bodyChunks = new BodyChunk[] { new BodyChunk(this, 0, Vector2.zero, 4, 0.05f) };
-        //If there is only one BodyChunk, you need to create an empty array
-        bodyChunkConnections = new BodyChunkConnection[0];
-        gravity = 0.9f;
-        airFriction = 0.999f;
-        waterFriction = 0.9f;
-        surfaceFriction = 0.5f;
-        collisionLayer = 1;
-        bounce = 0.15f;
-        buoyancy = 0.9f;
+        
     }
 
-    public override void Update(bool eu)
+    /*public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
-        base.Update(eu);
-        lastRotation = rotation;
-        /*
-        if (grabbedBy.Count > 0) //如果有生物抓住了这个物体
-        {
-            //这样的数学不是必需的，但它是最正确的，它是一个模板
-            rotation = Custom.PerpendicularVector(Custom.DirVec(firstChunk.pos, grabbedBy[0].grabber.mainBodyChunk.pos));
-            //这行不允许你倒置物体
-            rotation.y = Mathf.Abs(rotation.y);
-        }
-        if (firstChunk.contactPoint.y < 0) //如果物体接触到地面
-        {
-            //自定义。垂直矢量允许您以特定速度旋转对象，归一化后矢量的长度等于1，因为旋转指示方向
-            rotation = (rotation - Custom.PerpendicularVector(rotation) * 0.1f * firstChunk.vel.x).normalized;
-            //只是降低物体的速度：乘数越小，它就越快停止
-            firstChunk.vel.x *= 0.8f;
-        }
-        */
-    }
-
-    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
-    {
-        sLeaser.sprites = new FSprite[1];
-        sLeaser.sprites[0] = new FSprite("Circle20");
-        AddToContainer(sLeaser, rCam, null);
-    }
-
-    public override void PlaceInRoom(Room placeRoom)
-    {
-        //基本方法实际上只是将一个实体添加到房间中，如果你愿意，你可以手动完成
-        base.PlaceInRoom(placeRoom);
-        //根据抽象物理对象的坐标放置对象
-        firstChunk.HardSetPosition(placeRoom.MiddleOfTile(abstractPhysicalObject.pos.Tile));
-        //Custom.RNV() 只是设置一个随机方向
-        rotation = Custom.RNV();
-        lastRotation = rotation;
-    }
-
-    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
-    {
-        newContatiner ??= rCam.ReturnFContainer("Midground");
+        *//*newContatiner ??= rCam.ReturnFContainer("Midground");
+        newContatiner.AddChild(sLeaser.sprites[0]);*//*
+        newContatiner ??= rCam.ReturnFContainer("Items");
         for (int i = sLeaser.sprites.Length - 1; i >= 0; i--)
         {
             sLeaser.sprites[i].RemoveFromContainer();
             newContatiner.AddChild(sLeaser.sprites[i]);
         }
-    }
+    }*/
 
-    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    /*public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        //You don't have to assign a value to this variable, you can specify the colors for each sprite separately
+        sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites[0] = new FSprite("SmallSpear")
+        {
+            x = 100f,
+            y = 100f
+        };
+        AddToContainer(sLeaser, rCam, null);
+    }*/
+        /*sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites[0] = new FSprite("Circle20");
+        AddToContainer(sLeaser, rCam, null);*/
+
+    /*public *//*override*//* void PlaceInRoom(Room placeRoom)
+    {
+        *//*//基本方法实际上只是将一个实体添加到房间中，如果你愿意，你可以手动完成
+        base.PlaceInRoom(placeRoom);
+        //根据抽象物理对象的坐标放置对象
+        firstChunk.HardSetPosition(placeRoom.MiddleOfTile(abstractPhysicalObject.pos.Tile));
+        //Custom.RNV() 只是设置一个随机方向
+        rotation = Custom.RNV();
+        lastRotation = rotation;*//*
+    }*/
+
+
+
+
+   /* public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    {
+        sLeaser.sprites[0].color = Color.white;
+        *//*//You don't have to assign a value to this variable, you can specify the colors for each sprite separately
         color = Color.red;
         color = Color.Lerp(color, palette.blackColor, darkness); //The darker it is (the closer the darkness value is to 1f), the darker the sprite will be
-        sLeaser.sprites[0].color = color;
-    }
+        sLeaser.sprites[0].color = color;*//*
+    }*/
 
-    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    /*public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        Vector2 pos = Vector2.Lerp(firstChunk.lastPos, firstChunk.pos, timeStacker);
+        *//*Vector2 pos = Vector2.Lerp(firstChunk.lastPos, firstChunk.pos, timeStacker);
         Vector2 rt = Vector3.Slerp(lastRotation, rotation, timeStacker);
         lastDarkness = darkness;
         //The formula for determining darkness is a template
@@ -101,8 +83,8 @@ sealed class ShapeSpear : Spear
             sLeaser.sprites[0].color = blinkColor;
         else sLeaser.sprites[0].color = color;
         if (slatedForDeletetion || rCam.room != room)
-            sLeaser.CleanSpritesAndRemove();
-    }
+            sLeaser.CleanSpritesAndRemove();*//*
+    }*/
 
     /*
     public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
