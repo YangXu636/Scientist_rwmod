@@ -3,13 +3,12 @@ using Fisobs.Items;
 using Fisobs.Properties;
 using Fisobs.Sandbox;
 
-namespace ShapeSpears;
+namespace items.ShapeSpears;
 
 sealed class ShapeSpearFisob : Fisob
 {
     public static readonly AbstractPhysicalObject.AbstractObjectType ShapeSpear = new("ShapeSpear", true);
-    public static readonly MultiplayerUnlocks.SandboxUnlockID RedShapeSpear = new("RedShapeSpear", true);
-    public static readonly MultiplayerUnlocks.SandboxUnlockID OrangeShapeSpear = new("OrangeShapeSpear", true);
+    public static readonly MultiplayerUnlocks.SandboxUnlockID ShapeSpearSbid = new("RedShapeSpear", true);
 
     public ShapeSpearFisob() : base(ShapeSpear)
     {
@@ -18,40 +17,26 @@ sealed class ShapeSpearFisob : Fisob
 
         // If you want a simple grayscale icon, you can omit the following line.
         Icon = new ShapeSpearIcon();
-
         SandboxPerformanceCost = new(linear: 0.35f, exponential: 0f);
-
-        RegisterUnlock(OrangeShapeSpear, parent: MultiplayerUnlocks.SandboxUnlockID.BigCentipede, data: 70);
-        RegisterUnlock(RedShapeSpear, parent: MultiplayerUnlocks.SandboxUnlockID.RedCentipede, data: 0);
+        RegisterUnlock(ShapeSpearSbid, parent: MultiplayerUnlocks.SandboxUnlockID.BigCentipede, data: 0);
     }
 
+#nullable enable
     public override AbstractPhysicalObject Parse(World world, EntitySaveData saveData, SandboxUnlock? unlock)
     {
         // Centi shield data is just floats separated by ; characters.
         string[] p = saveData.CustomData.Split(';');
-
-        if (p.Length < 5) {
-            p = new string[5];
+        if (p.Length < 1) {
+            p = new string[1];
         }
-
-        var result = new ShapeSpearAbstract(world, saveData.Pos, saveData.ID) {
-            hue = float.TryParse(p[0], out var h) ? h : 0,
-            saturation = float.TryParse(p[1], out var s) ? s : 1,
-            scaleX = float.TryParse(p[2], out var x) ? x : 1,
-            scaleY = float.TryParse(p[3], out var y) ? y : 1,
-            damage = float.TryParse(p[4], out var r) ? r : 0
+        var result = new ShapeSpearAbstract(world, null, saveData.Pos, saveData.ID) {
+            damageTimes = 1.5f
         };
 
         // If this is coming from a sandbox unlock, the hue and size should depend on the data value (see ShapeSpearIcon below).
-        if (unlock is SandboxUnlock u) {
-            result.hue = u.Data / 1000f;
-
-            if (u.Data == 0) {
-                result.scaleX += 0.2f;
-                result.scaleY += 0.2f;
-            }
+        if (unlock != null) {
+            result.damageTimes = (float)unlock.Data;
         }
-
         return result;
     }
 

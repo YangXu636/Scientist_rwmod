@@ -1,16 +1,19 @@
 ﻿using Fisobs.Core;
 using UnityEngine;
 
-namespace ShapeSpears;
+namespace items.ShapeSpears;
 
-sealed class ShapeSpearAbstract : AbstractPhysicalObject
+sealed class ShapeSpearAbstract : AbstractSpear
 {
-    public ShapeSpearAbstract(World world, WorldCoordinate pos, EntityID ID) : base(world, ShapeSpearFisob.ShapeSpear, null, pos, ID)
+    public ShapeSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID) : base(world, realizedObject, pos, ID, false)
     {
-        scaleX = 1;
-        scaleY = 1;
-        saturation = 0.5f;
-        hue = 1f;
+        this.type = ShapeSpearFisob.ShapeSpear;
+        this.damageTimes = 1.5f;
+    }
+
+    public ShapeSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID, float damageTimes) : base(world, realizedObject, pos, ID, false)
+    {
+        this.damageTimes = 1.5f;
     }
 
     public override void Realize()
@@ -19,14 +22,10 @@ sealed class ShapeSpearAbstract : AbstractPhysicalObject
         realizedObject ??= new ShapeSpear(this, Room.realizedRoom.MiddleOfTile(pos.Tile), Vector2.zero);
     }
 
-    public float hue;
-    public float saturation;
-    public float scaleX;
-    public float scaleY;
-    public float damage;
+    public float damageTimes;
 
     public override string ToString()
     {
-        return this.SaveToString($"{hue};{saturation};{scaleX};{scaleY};{damage}");
+        return this.SaveToString($"{damageTimes}");
     }
 }

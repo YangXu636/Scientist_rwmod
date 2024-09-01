@@ -1,13 +1,13 @@
 ﻿using Fisobs.Properties;
 using System.Linq;
 
-namespace ShapeSpears;
+namespace items.ShapeSpears;
 
 sealed class ShapeSpearProperties : ItemProperties
 {
     // TODO scavenger elite support
     public override void Throwable(Player player, ref bool throwable)
-        => throwable = false;
+        => throwable = true;
 
     public override void ScavCollectScore(Scavenger scavenger, ref int score)
         => score = 3;

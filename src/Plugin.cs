@@ -7,6 +7,8 @@ using RWCustom;
 using Expedition;
 using MoreSlugcats;
 using UnityEngine;
+using Fisobs;
+using Fisobs.Core;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖
@@ -55,9 +57,16 @@ namespace Scientist
         // Add hooks-添加钩子
         public void OnEnable()
         {
+            Content.Register(new IContent[]
+            {
+                new items.ShapeSpears.ShapeSpearFisob()
+            });
+
+            // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
             On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
 
             On.Room.AddObject += RoomAddObject;
+            On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
 
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
@@ -73,12 +82,19 @@ namespace Scientist
             On.Player.ThrownSpear += PlayerThrownSpear;
         }
 
+        private void AbstractRoomAddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
+        {
+            float value = UnityEngine.Random.value;
+            if (ent is AbstractSpear)
+            {
+                Console.WriteLine("Adding a ShapeSpear!");
+                ent = new items.ShapeSpears.ShapeSpearAbstract(ent.world, null, ent.pos, ent.ID);
+            }
+            orig(self, ent);
+        }
+
         public void RoomAddObject(On.Room.orig_AddObject orig, Room self, UpdatableAndDeletable obj)
         {
-            if (obj is items.ShapeSpear)
-            {
-               Console.WriteLine("Adding a ShapeSpear!");
-            }
             orig(self, obj);
         }
 
@@ -95,11 +111,11 @@ namespace Scientist
             {
                 if (self.input[0].pckp && self.room != null)
                 {
-                    RainWorldGame rainWorldGame = self.room.game.rainWorld.processManager.currentMainLoop as RainWorldGame;
+                    /*RainWorldGame rainWorldGame = self.room.game.rainWorld.processManager.currentMainLoop as RainWorldGame;
                     IntVector2 tilePosition = self.room.game.cameras[0].room.GetTilePosition(new Vector2(300f, 300f) + rainWorldGame.cameras[0].pos);
                     WorldCoordinate worldCoordinate = self.room.game.cameras[0].room.GetWorldCoordinate(tilePosition);
-                    AbstractPhysicalObject abstractPhysicalObject = new AbstractPhysicalObject(self.room.world, Register.ShapeSpear, null, worldCoordinate, self.room.game.GetNewID());
-                    self.room.AddObject(new items.ShapeSpear(abstractPhysicalObject, self.room.world));
+                    AbstractPhysicalObject abstractPhysicalObject = new AbstractPhysicalObject(self.room.world, items.ShapeSpears.ShapeSpearFisob.ShapeSpear, null, worldCoordinate, self.room.game.GetNewID());
+                    self.room.AddObject(new items.ShapeSpears.ShapeSpear(abstractPhysicalObject, self.room.world, new Vector2(0f, 0f)));*/
                 }
             }
         }
@@ -149,10 +165,14 @@ namespace Scientist
 
         private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
+            /*if (self.type == AbstractPhysicalObject.AbstractObjectType.Spear)
+            {
+                self.type = AbstractPhysicalObject.AbstractObjectType.DataPearl;
+            }*/
             orig(self);
-            Console.WriteLine($"self = {self}    type = {self.type}");/*
+            Console.WriteLine($"self = {self}    type = {self.type}");
             if (self.type == Register.ShapeSpear)
-                self.realizedObject = new items.ShapeSpear(*//*self, self.world*//*); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明*/
+                self.realizedObject = new items.ShapeSpear(self, self.world); //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)

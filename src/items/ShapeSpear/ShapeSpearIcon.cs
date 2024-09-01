@@ -1,7 +1,8 @@
 ﻿using Fisobs.Core;
 using UnityEngine;
+using static MonoMod.InlineRT.MonoModRule;
 
-namespace ShapeSpears;
+namespace items.ShapeSpears;
 
 sealed class ShapeSpearIcon : Icon
 {
@@ -10,12 +11,21 @@ sealed class ShapeSpearIcon : Icon
     // So, 0 is red and 70 is orange.
     public override int Data(AbstractPhysicalObject apo)
     {
-        return apo is ShapeSpearAbstract shield ? (int)(shield.hue * 1000f) : 0;
+        return 0;
     }
 
     public override Color SpriteColor(int data)
     {
-        return RWCustom.Custom.HSL2RGB(data / 1000f, 0.65f, 0.4f);
+        Color result;
+        if (data == 0)
+        {
+            result = new Color(0.5f, 0.5f, 1f);
+        }
+        else
+        {
+            result = new Color(1f, 0.5f, 0.5f);
+        }
+        return result;
     }
 
     public override string SpriteName(int data)
