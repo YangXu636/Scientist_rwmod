@@ -79,7 +79,7 @@ public class ScientistSlugcat
         num++;
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure] = num;
         num++;
-        ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb] = num;
+        ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb] = num; //手雷（炸弹）
         num++;
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SporePlant] = num;
         num++;
