@@ -182,7 +182,7 @@ public class ScientistSlugcat
     {
         AbstractPhysicalObject.AbstractObjectType abstractObjectType = graspA.grabbed.abstractPhysicalObject.type;
         AbstractPhysicalObject.AbstractObjectType abstractObjectType2 = graspB.grabbed.abstractPhysicalObject.type;
-        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspA.grabbed is WaterNut) //泡水果 -> 石头
+        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspA.grabbed is WaterNut) //未泡开泡水果 -> 石头
         {
             abstractObjectType = AbstractPhysicalObject.AbstractObjectType.Rock;
         }
@@ -632,6 +632,8 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.PuffBall, null);
+
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, AbstractPhysicalObject.AbstractObjectType.Spear, null);
         key = AbstractPhysicalObject.AbstractObjectType.SporePlant;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SporePlant], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.EggBugEgg], tableSelect, AbstractPhysicalObject.AbstractObjectType.PuffBall, null);
@@ -1161,5 +1163,28 @@ public class ScientistSlugcat
         ans["i2"] = (tmpa && !tmpb) ? s2t[a] : s2t[b];
         Console.WriteLine($"ans : tableSelect = {ans["tableSelect"]}  i1 = {ans["i1"] ?? null}  i2 = {ans["i2"] ?? null}");
         return ans;
+    }
+
+    public static bool APO_Compare(AbstractPhysicalObject grasp1, AbstractPhysicalObject grasp2, AbstractPhysicalObject.AbstractObjectType item1, AbstractPhysicalObject.AbstractObjectType item2)
+    {
+        return APO_Compare(grasp1.type, grasp2.type, item1, item2);
+    }
+
+    public static bool APO_Compare(AbstractPhysicalObject.AbstractObjectType grasp1, AbstractPhysicalObject.AbstractObjectType grasp2, AbstractPhysicalObject.AbstractObjectType item1, AbstractPhysicalObject.AbstractObjectType item2)
+    {
+        return ((grasp1 == item1 && grasp2 == item2) || (grasp1 == item2 && grasp2 == item1));
+    }
+
+    public static AbstractPhysicalObject GetSpecialCraftingResult(AbstractPhysicalObject.AbstractObjectType a, AbstractPhysicalObject.AbstractObjectType b, Player player)
+    {
+        if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.Rock))
+        {
+            return new items.AbstractPhysicalObjects.ShapeSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()); //自定义的ShapeSpearAbstract，覆写了realizedObject
+        }
+        else if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
+        {
+            return new AbstractSpear(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID(), true);
+        }
+        return null;
     }
 }

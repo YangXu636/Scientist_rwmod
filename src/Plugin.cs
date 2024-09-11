@@ -33,6 +33,7 @@ namespace Scientist
         public static readonly PlayerFeature<bool> IsScientist = PlayerBool("scientist/is_scientist");
         public static readonly PlayerFeature<bool> Power = PlayerBool("temp/power");
         public static readonly PlayerFeature<float> LowerJump = PlayerFloat("scientist/lower_jump");
+        public static readonly PlayerFeature<bool> CanPickupShapespearStuckinwall = PlayerBool("scientist/can_pickup_shapespear_stuckinwall");
 
         public Plugin()
         {
@@ -68,7 +69,7 @@ namespace Scientist
             On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
 
             //On.Room.AddObject += RoomAddObject;
-            //On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
+            On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
 
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
@@ -76,7 +77,7 @@ namespace Scientist
             //On.Player.Die += Player_Die;
             //On.Lizard.ctor += Lizard_ctor;
 
-            // On.Player.CanIPickThisUp += ;
+            On.Player.CanIPickThisUp += PlayerCanIPickThisUp;
 
             On.Player.Update += PlayerUpdate;
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
@@ -84,8 +85,21 @@ namespace Scientist
             On.Player.ThrownSpear += PlayerThrownSpear;
         }
 
-        private void AbstractRoomAddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
+        private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
         {
+            return orig(self, obj) && 
+                !( 
+                    (obj is items.ShapeSpear && (obj as items.ShapeSpear).stuckInWall != null )
+                    && !(
+                        (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted) 
+                        || (self.SlugCatClass.value == MOD_ID && CanPickupShapespearStuckinwall.TryGet(self, out var canPickup) && canPickup)
+                    )
+                );
+        }
+
+        private void AbstractRoomAddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
+        { 
+            //Console.WriteLine($"AbstractRoomAddEntity  ent = {ent}");
             orig(self, ent);
         }
 
@@ -107,25 +121,20 @@ namespace Scientist
             {
                 if (self.input[0].pckp && self.room != null)
                 {
-                    /*RainWorldGame rainWorldGame = self.room.game.rainWorld.processManager.currentMainLoop as RainWorldGame;
-                    IntVector2 tilePosition = self.room.game.cameras[0].room.GetTilePosition(new Vector2(300f, 300f) + rainWorldGame.cameras[0].pos);
-                    WorldCoordinate worldCoordinate = self.room.game.cameras[0].room.GetWorldCoordinate(tilePosition);
-                    AbstractPhysicalObject abstractPhysicalObject = new AbstractPhysicalObject(self.room.world, items.ShapeSpears.ShapeSpearFisob.ShapeSpear, null, worldCoordinate, self.room.game.GetNewID());
-                    self.room.AddObject(new items.ShapeSpears.ShapeSpear(abstractPhysicalObject, self.room.world, new Vector2(0f, 0f)));*/
+                    
                 }
             }
         }
 
         public void PlayerThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
         {
-            Console.WriteLine($"PlayerThrown  {self.grasps[grasp]}");
+            Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
             orig(self, grasp, eu);
         }
 
         public void PlayerThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
         {
             orig(self, spear);
-            Console.WriteLine($"PlayerThrown  {spear}");
             if (IsScientist.TryGet(self, out var isscientist) && isscientist && Power.TryGet(self, out var power) && power)
             {
                 spear.spearDamageBonus = 10000f;
@@ -164,16 +173,10 @@ namespace Scientist
         private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
             Console.WriteLine($"self = {self}    type = {self.type}");
-            if (self.type == AbstractPhysicalObject.AbstractObjectType.Spear && UnityEngine.Random.Range(0, 100) < 50)
-            {
-                print("realize shape spear");
-                self.realizedObject = new items.ShapeSpear(self, self.world);
-            }
             orig(self);
             if (self.type == Register.ShapeSpear)
             {
-                print("realize shape spear!");
-                self.realizedObject = new items.ShapeSpear(self, self.world);
+                self.realizedObject = new items.ShapeSpear(new items.AbstractPhysicalObjects.ShapeSpearAbstract(self.world, null, self.pos, self.ID), self.world);
             } //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
         }
 
@@ -181,7 +184,7 @@ namespace Scientist
         {
             //您还可以指定抓取对象的不同选项的条件。例如，根据物品的重量
             if (obj is items.ShapeSpear)
-                return Player.ObjectGrabability.OneHand;
+                return Player.ObjectGrabability.BigOneHand;
             return orig(self, obj);
         }
 
@@ -201,29 +204,29 @@ namespace Scientist
             player.room.PlaySound(SoundID.Slugcat_Swallow_Item, player.mainBodyChunk);
             if (player.grasps.Length == 2)
             {
-                AbstractPhysicalObject abstractPhysicalObjectOne = player.grasps[0].grabbed.abstractPhysicalObject;
-                AbstractPhysicalObject abstractPhysicalObjectTwo = player.grasps[1].grabbed.abstractPhysicalObject;
-                if ((abstractPhysicalObjectOne.type == AbstractPhysicalObject.AbstractObjectType.Spear && abstractPhysicalObjectTwo.type == AbstractPhysicalObject.AbstractObjectType.Rock)
-                    || (abstractPhysicalObjectOne.type == AbstractPhysicalObject.AbstractObjectType.Rock && abstractPhysicalObjectTwo.type == AbstractPhysicalObject.AbstractObjectType.Spear))
+                AbstractPhysicalObject ApoOne = player.grasps[0].grabbed.abstractPhysicalObject;
+                AbstractPhysicalObject ApoTwo = player.grasps[1].grabbed.abstractPhysicalObject;
+                AbstractPhysicalObject Apo = ScientistSlugcat.GetSpecialCraftingResult(ApoOne.type, ApoTwo.type, player);
+                Console.WriteLine($"Apo = {Apo}");
+                if (Apo != null)
                 {
                     player.ReleaseGrasp(0);
+                    ApoOne.realizedObject.RemoveFromRoom();
+                    player.room.abstractRoom.RemoveEntity(ApoOne);
                     player.ReleaseGrasp(1);
-                    abstractPhysicalObjectOne.realizedObject.RemoveFromRoom();
-                    abstractPhysicalObjectTwo.realizedObject.RemoveFromRoom();
-                    player.room.abstractRoom.RemoveEntity(abstractPhysicalObjectOne);
-                    player.room.abstractRoom.RemoveEntity(abstractPhysicalObjectTwo);
-                    //player.SubtractFood(1);
-                    items.AbstractPhysicalObjects.ShapeSpearAbstract abstractSpear = new ShapeSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID() ); //自定义的ShapeSpearAbstract，覆写了realizedObject
-                    player.room.abstractRoom.AddEntity(abstractSpear);
-                    abstractSpear.RealizeInRoom();
+                    ApoTwo.realizedObject.RemoveFromRoom();
+                    player.room.abstractRoom.RemoveEntity(ApoTwo);
+
+                    player.room.abstractRoom.AddEntity(Apo);
+                    Apo.RealizeInRoom();
                     if (player.FreeHand() != -1)
                     {
-                        player.SlugcatGrab(abstractSpear.realizedObject, player.FreeHand());
+                        player.SlugcatGrab(Apo.realizedObject, player.FreeHand());
                     }
                     return;
                 }
-            }
-            AbstractPhysicalObject abstractPhysicalObject2 = null;
+            }                                       //实现特殊合成（炸猫式合成）
+            AbstractPhysicalObject abstractPhysicalObject2 = null;                  //实现正常合成（胖猫式合成）
             if (ScientistSlugcat.CraftingResults_ObjectData(player.grasps[0], player.grasps[1], true) == AbstractPhysicalObject.AbstractObjectType.DangleFruit) //使用自定义的CraftingResults_ObjectData
             {
                 if (ModManager.Expedition && ModManager.MSC && Custom.rainWorld.ExpeditionMode && ExpeditionGame.activeUnlocks.Contains("unl-crafting") && player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Spear)
