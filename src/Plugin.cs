@@ -10,6 +10,7 @@ using UnityEngine;
 using Fisobs;
 using Fisobs.Core;
 using items.AbstractPhysicalObjects;
+using chats;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -25,7 +26,7 @@ namespace Scientist
     [BepInPlugin(MOD_ID, "Scientist", "0.1.0")]
     class Plugin : BaseUnityPlugin
     {
-        private const string MOD_ID = "xuyangjerry.Scientist";
+        public const string MOD_ID = "xuyangjerry.Scientist";
 
         /*public static readonly PlayerFeature<float> SuperJump = PlayerFloat("scientist/super_jump");
         public static readonly PlayerFeature<bool> ExplodeOnDeath = PlayerBool("scientist/explode_on_death");
@@ -83,7 +84,12 @@ namespace Scientist
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
             On.Player.ThrowObject += PlayerThrowObject;
             On.Player.ThrownSpear += PlayerThrownSpear;
+
+            //On.SSOracleBehavior.InitateConversation += chats.FivePebblesChats.FivePebbles_InitateConversationInitiateConversation;
+            On.SSOracleBehavior.Update += chats.FivePebblesChats.FivePebbles_Update;
+            On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
         }
+
 
         private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
         {
