@@ -13,7 +13,7 @@ namespace items;
 
 
 
-sealed class ShapeSpear : Spear
+sealed class StringShort : Spear
 {
     public new items.AbstractPhysicalObjects.ShapeSpearAbstract abstractSpear
     {
@@ -31,7 +31,7 @@ sealed class ShapeSpear : Spear
         }
     }
 
-    public ShapeSpear(items.AbstractPhysicalObjects.ShapeSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public StringShort(items.AbstractPhysicalObjects.ShapeSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.07f);
