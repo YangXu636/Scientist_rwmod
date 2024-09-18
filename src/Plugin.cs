@@ -11,6 +11,8 @@ using Fisobs;
 using Fisobs.Core;
 using items.AbstractPhysicalObjects;
 using chats;
+using SlugBase.DataTypes;
+using System.Collections.Generic;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -35,6 +37,12 @@ namespace Scientist
         public static readonly PlayerFeature<bool> Power = PlayerBool("temp/power");
         public static readonly PlayerFeature<float> LowerJump = PlayerFloat("scientist/lower_jump");
         public static readonly PlayerFeature<bool> CanPickupShapespearStuckinwall = PlayerBool("scientist/can_pickup_shapespear_stuckinwall");
+
+        public static readonly PlayerColor HatColor = new PlayerColor("Hat");
+        public static readonly PlayerColor GlassesColor = new PlayerColor("Glasses");
+
+        public static HatOnHead hat = new HatOnHead("atlases/slugcat/scientist_hat", "scientist_hat-", HatColor, IsScientist);
+        public static HatOnHead glasses = new HatOnHead("atlases/slugcat/scientist_glasses", "scientist_glasses-", GlassesColor, IsScientist, new List<HatOnHead>() { Plugin.hat });
 
         public Plugin()
         {
@@ -72,24 +80,29 @@ namespace Scientist
             //On.Room.AddObject += RoomAddObject;
             On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
 
+            hat.Hook();
+            glasses.Hook();
+
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
-            //在玩家触发跳跃时执行Player_Jump
             //On.Player.Die += Player_Die;
-            //On.Lizard.ctor += Lizard_ctor;
-
             On.Player.CanIPickThisUp += PlayerCanIPickThisUp;
-
             On.Player.Update += PlayerUpdate;
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
             On.Player.ThrowObject += PlayerThrowObject;
             On.Player.ThrownSpear += PlayerThrownSpear;
 
-            //On.SSOracleBehavior.InitateConversation += chats.FivePebblesChats.FivePebbles_InitateConversationInitiateConversation;
-            On.SSOracleBehavior.Update += chats.FivePebblesChats.FivePebbles_Update;
-            On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
-        }
+            //On.Lizard.ctor += Lizard_ctor;
 
+            //On.SSOracleBehavior.InitateConversation += chats.FivePebblesChats.FivePebbles_InitateConversationInitiateConversation;
+            //On.SSOracleBehavior.Update += chats.FivePebblesChats.FivePebbles_Update;
+            //On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
+
+            On.ItemSymbol.SpriteNameForItem += ItemSymbolSpriteNameForItem;
+            On.ItemSymbol.ColorForItem += ItemSymbolColorForItem;
+
+            On.AbstractConsumable.IsTypeConsumable += AbstractConsumableIsTypeConsumable;
+        }
 
         private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
         {
@@ -117,7 +130,12 @@ namespace Scientist
         // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
         private void LoadResources(RainWorld rainWorld)
         {
-            
+            Console.WriteLine("Loading Scientist resources...");
+
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ShapeSpear");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ConcentratedDangleFruit");
+
+            Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
         }
 
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
@@ -135,6 +153,7 @@ namespace Scientist
         public void PlayerThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
         {
             Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
+            Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed is WaterNut}  {self.grasps[grasp].grabbed is SwollenWaterNut}");
             orig(self, grasp, eu);
         }
 
@@ -184,6 +203,10 @@ namespace Scientist
             {
                 self.realizedObject = new items.ShapeSpear(new items.AbstractPhysicalObjects.ShapeSpearAbstract(self.world, null, self.pos, self.ID), self.world);
             } //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
+            if (self.type == Register.ConcentratedDangleFruit)
+            {
+                self.realizedObject = new items.ConcentratedDangleFruit(self);
+            }
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -191,7 +214,45 @@ namespace Scientist
             //您还可以指定抓取对象的不同选项的条件。例如，根据物品的重量
             if (obj is items.ShapeSpear)
                 return Player.ObjectGrabability.BigOneHand;
+            if (obj is items.ConcentratedDangleFruit)
+                return Player.ObjectGrabability.OneHand;
             return orig(self, obj);
+        }
+
+        private string ItemSymbolSpriteNameForItem(On.ItemSymbol.orig_SpriteNameForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
+        {
+            if (itemType == Scientist.Register.ShapeSpear)
+            {
+                return "Symbol_ShapeSpear";
+            }
+            if (itemType == Scientist.Register.ConcentratedDangleFruit)
+            {
+                return "Symbol_ConcentratedDangleFruit";
+            }
+            return orig(itemType, intData);
+            
+        }
+
+        private Color ItemSymbolColorForItem(On.ItemSymbol.orig_ColorForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
+        {
+            if (itemType == Scientist.Register.ShapeSpear)
+            {
+                return Color.white;
+            }
+            if (itemType == Scientist.Register.ConcentratedDangleFruit)
+            {
+                return Color.blue;
+            }
+            return orig(itemType, intData);
+        }
+
+        private bool AbstractConsumableIsTypeConsumable(On.AbstractConsumable.orig_IsTypeConsumable orig, AbstractPhysicalObject.AbstractObjectType type)
+        {
+            if (type == Scientist.Register.ConcentratedDangleFruit)
+            {
+                return true;
+            }
+            return orig(type);
         }
 
         public void PlayerGrabUpdate(On.Player.orig_GrabUpdate orig, Player self, bool eu)
@@ -282,7 +343,7 @@ namespace Scientist
 
         public bool GraspsCanBeCrafted(Player player)
         {
-            return (player.input[0].y == 1 && CraftingResults(player) != null);     //CraftingResults替换成自定义
+            return (player.input[0].y == 1 && CraftingResults(player) != null) || (player.input[0].y == 1 && Scientist.ScientistSlugcat.GetSpecialCraftingResult(player) != null);     //CraftingResults替换成自定义
         }
 
         public AbstractPhysicalObject.AbstractObjectType CraftingResults(Player player)
@@ -716,7 +777,7 @@ namespace Scientist
             {
                 num11 = 1;
             }
-            if (ModManager.MSC && SlugcatStats.SlugcatCanMaul(player.SlugCatClass))
+            if (ModManager.MSC && SlugcatStats.SlugcatCanMaul(player.SlugCatClass))  //撕咬
             {
                 if (player.input[0].pckp && player.grasps[num11] != null && player.grasps[num11].grabbed is Creature && (player.CanMaulCreature(player.grasps[num11].grabbed as Creature) || player.maulTimer > 0))
                 {
@@ -910,7 +971,7 @@ namespace Scientist
                         }
                         player.swallowAndRegurgitateCounter = 0;
                     }
-                    else if (player.objectInStomach == null && player.swallowAndRegurgitateCounter > 90)
+                    else if (player.objectInStomach == null && player.swallowAndRegurgitateCounter > 90 && false)   //禁止使用胃袋存储
                     {
                         for (int num13 = 0; num13 < 2; num13++)
                         {

@@ -2,6 +2,6 @@ Scientist|科学家
 SCIENTIST|科学家
 THE SCIENTIST|科学家
 The Scientist|科学家
-Cap|帽子
+Hat|帽子
+Glasses|眼镜
 Having strong knowledge and thirst for knowledge, but...|拥有着强大的学识和求知欲，但...
-Powerful slugcat|强壮的蛞蝓猫

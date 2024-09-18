@@ -51,6 +51,9 @@
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.InputLegacyModule">
+        <HintPath>..\..\..\Tools\Unity\UnityEngine.InputLegacyModule.dll</HintPath>
+      </Reference>
     </ItemGroup>
     
     <ItemGroup>

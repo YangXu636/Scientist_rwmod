@@ -14,8 +14,12 @@
 				"story": "FFFFFF"
 			},
 			{
-				"name": "Cap",
+				"name": "Hat",
 				"story": "ffcdcc"
+			},
+			{
+				"name": "Glasses",
+				"story": "FFFFFF"
 			}
 		],
 		"diet": {
@@ -48,9 +52,9 @@
 		"timeline_after": "Yellow",
 		"select_menu_scene": "Slugcat_Prototype",
 		"select_menu_scene_ascended": "Ghost_Prototype",
-		"temp/power": false,
+		"temp/power": true,
 		"scientist/is_scientist": true,
 		"scientist/lower_jump": 1,
-		"scientist/can_pickup_shapespear_stuckinwall": false
+		"scientist/can_pickup_shapespear_stuckinwall": true
 	}
 }

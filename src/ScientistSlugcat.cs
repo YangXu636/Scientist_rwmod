@@ -182,13 +182,13 @@ public class ScientistSlugcat
     {
         AbstractPhysicalObject.AbstractObjectType abstractObjectType = graspA.grabbed.abstractPhysicalObject.type;
         AbstractPhysicalObject.AbstractObjectType abstractObjectType2 = graspB.grabbed.abstractPhysicalObject.type;
-        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspA.grabbed is WaterNut) //未泡开泡水果 -> 石头
+        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspA.grabbed is WaterNut) //未泡开泡水果 -> 石头  替换为 未泡开的泡水果 -> 另一只手的物体（无法合成）
         {
-            abstractObjectType = AbstractPhysicalObject.AbstractObjectType.Rock;
+            abstractObjectType = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ abstractObjectType2;
         }
         if (abstractObjectType2 == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspB.grabbed is WaterNut)
         {
-            abstractObjectType2 = AbstractPhysicalObject.AbstractObjectType.Rock;
+            abstractObjectType2 = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ abstractObjectType;
         }
         if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.PebblesPearl) // 五块卵石的珍珠 -> 珍珠
         {
@@ -198,7 +198,7 @@ public class ScientistSlugcat
         {
             abstractObjectType2 = AbstractPhysicalObject.AbstractObjectType.DataPearl;
         }
-        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer) // 神经元？
+        if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.SLOracleSwarmer) // 月姐神经元 -> fp神经元
         {
             abstractObjectType = AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer;
         }
@@ -399,7 +399,7 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GooieDuck, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GooieDuck, null);
         key = AbstractPhysicalObject.AbstractObjectType.DangleFruit;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DangleFruit], tableSelect, null, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DangleFruit], tableSelect, Scientist.Register.ConcentratedDangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DataPearl], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.WaterNut], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
@@ -1175,15 +1175,35 @@ public class ScientistSlugcat
         return ((grasp1 == item1 && grasp2 == item2) || (grasp1 == item2 && grasp2 == item1));
     }
 
+    public static AbstractPhysicalObject GetSpecialCraftingResult(Player player)
+    {
+        return GetSpecialCraftingResult(player.grasps[0].grabbed.abstractPhysicalObject.type, player.grasps[1].grabbed.abstractPhysicalObject.type, player);
+    }
+
     public static AbstractPhysicalObject GetSpecialCraftingResult(AbstractPhysicalObject.AbstractObjectType a, AbstractPhysicalObject.AbstractObjectType b, Player player)
     {
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
             return new items.AbstractPhysicalObjects.ShapeSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()); //自定义的ShapeSpearAbstract，覆写了realizedObject
         }
-        else if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
+        if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
         {
             return new AbstractSpear(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID(), true);
+        }
+        if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.WaterNut, AbstractPhysicalObject.AbstractObjectType.WaterNut))
+        {
+            if (player.grasps[0].grabbed is WaterNut && player.grasps[1].grabbed is WaterNut)
+            {
+                return null;
+            }
+            if ( (player.grasps[0].grabbed is WaterNut && player.grasps[1].grabbed is SwollenWaterNut) || (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is WaterNut))
+            {
+                return new items.AbstractPhysicalObjects.ShapeSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
+            }
+            if (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is SwollenWaterNut)
+            {
+                return null;
+            }
         }
         return null;
     }

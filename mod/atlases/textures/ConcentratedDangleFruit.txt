@@ -1,0 +1,61 @@
+{"frames": {
+
+"ConcentratedDangleFruit0A.png":
+{
+	"frame": {"x":0,"y":0,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ConcentratedDangleFruit0B.png":
+{
+	"frame": {"x":0,"y":15,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ConcentratedDangleFruit1A.png":
+{
+	"frame": {"x":10,"y":4,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ConcentratedDangleFruit1B.png":
+{
+	"frame": {"x":10,"y":19,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ConcentratedDangleFruit2A.png":
+{
+	"frame": {"x":20,"y":8,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+},
+"ConcentratedDangleFruit2B.png":
+{
+	"frame": {"x":20,"y":23,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+}
+},
+"meta": {
+	"app": "https://www.codeandweb.com/tgreenturepacker",
+	"version": "1.0",
+	"image": "EXtemplatehips.png",
+	"format": "RGBA8888",
+	"size": {"w":32,"h":38},
+	"scale": "1",
+	"smartupdate": "$TgreenturePacker:SmartUpdate:997a41558186e7354dcc8a4fce8a7c99:6b57016163b442e8a481e7af7dc3e9cf:47c195541bd5851e1cf2127685e38d61$"
+}
+}
