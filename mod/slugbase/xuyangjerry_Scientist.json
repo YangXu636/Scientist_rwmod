@@ -1,5 +1,5 @@
 {
-	"id": "xuyangjerry.Scientist",
+	"id": "XuYangJerry.Scientist",
 	"name": "Scientist",
 	"description": "Having strong knowledge and thirst for knowledge, but...",
 	"features": {
@@ -7,11 +7,11 @@
 		"custom_colors": [
 			{
 				"name": "Body",
-				"story": "cce5ff"
+				"story": "7fffd4"
 			},
 			{
 				"name": "Eyes",
-				"story": "FFFFFF"
+				"story": "000000"
 			},
 			{
 				"name": "Hat",
@@ -19,7 +19,7 @@
 			},
 			{
 				"name": "Glasses",
-				"story": "FFFFFF"
+				"story": "000000"
 			}
 		],
 		"diet": {

@@ -1,0 +1,28 @@
+{"frames": {
+
+"Kill_Slugcat_XuYangJerry.Scientist.png":
+{
+	"frame": {"x":1,"y":1,"w":20,"h":21},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":21},
+	"sourceSize": {"w":20,"h":23}
+},
+"Multiplayer_Death_XuYangJerry.Scientist.png":
+{
+	"frame": {"x":23,"y":1,"w":20,"h":21},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":21},
+	"sourceSize": {"w":20,"h":23}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "scientist_icon.png",
+	"format": "RGBA8888",
+	"size": {"w":44,"h":23},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:5181a5d977a14049292fdba0be300065:77eaedce157cbef4670b585f23ddd573:7b71584c126f7139f51a6e5959f922c0$"
+}
+}

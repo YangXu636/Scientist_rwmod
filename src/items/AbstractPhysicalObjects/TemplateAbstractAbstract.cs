@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using Fisobs.Core;
 using UnityEngine;
 
 namespace items.AbstractPhysicalObjects

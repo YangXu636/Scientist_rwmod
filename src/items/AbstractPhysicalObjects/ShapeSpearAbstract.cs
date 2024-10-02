@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Globalization;
-using Fisobs.Core;
 using UnityEngine;
 
 namespace items.AbstractPhysicalObjects
 {
-	// Token: 0x02000005 RID: 5
 	internal sealed class ShapeSpearAbstract : AbstractSpear
 	{
 

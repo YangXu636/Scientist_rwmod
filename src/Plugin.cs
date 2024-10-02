@@ -7,12 +7,12 @@ using RWCustom;
 using Expedition;
 using MoreSlugcats;
 using UnityEngine;
-using Fisobs;
-using Fisobs.Core;
 using items.AbstractPhysicalObjects;
 using chats;
 using SlugBase.DataTypes;
 using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -28,11 +28,8 @@ namespace Scientist
     [BepInPlugin(MOD_ID, "Scientist", "0.1.0")]
     class Plugin : BaseUnityPlugin
     {
-        public const string MOD_ID = "xuyangjerry.Scientist";
+        public const string MOD_ID = "XuYangJerry.Scientist";
 
-        /*public static readonly PlayerFeature<float> SuperJump = PlayerFloat("scientist/super_jump");
-        public static readonly PlayerFeature<bool> ExplodeOnDeath = PlayerBool("scientist/explode_on_death");
-        public static readonly GameFeature<float> MeanLizards = GameFloat("scientist/mean_lizards");*/
         public static readonly PlayerFeature<bool> IsScientist = PlayerBool("scientist/is_scientist");
         public static readonly PlayerFeature<bool> Power = PlayerBool("temp/power");
         public static readonly PlayerFeature<float> LowerJump = PlayerFloat("scientist/lower_jump");
@@ -43,6 +40,8 @@ namespace Scientist
 
         public static HatOnHead hat = new HatOnHead("atlases/slugcat/scientist_hat", "scientist_hat-", HatColor, IsScientist);
         public static HatOnHead glasses = new HatOnHead("atlases/slugcat/scientist_glasses", "scientist_glasses-", GlassesColor, IsScientist, new List<HatOnHead>() { Plugin.hat });
+
+        public static string tempAnimation = "";
 
         public Plugin()
         {
@@ -97,23 +96,34 @@ namespace Scientist
             //On.SSOracleBehavior.InitateConversation += chats.FivePebblesChats.FivePebbles_InitateConversationInitiateConversation;
             //On.SSOracleBehavior.Update += chats.FivePebblesChats.FivePebbles_Update;
             //On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
+            On.SSOracleBehavior.SeePlayer += chats.FivePebblesChats.FivePebbles_SeePlayer;
+            On.SSOracleBehavior.NewAction += chats.FivePebblesChats.FivePebbles_NewAction;
 
             On.ItemSymbol.SpriteNameForItem += ItemSymbolSpriteNameForItem;
             On.ItemSymbol.ColorForItem += ItemSymbolColorForItem;
 
             On.AbstractConsumable.IsTypeConsumable += AbstractConsumableIsTypeConsumable;
-        }
 
+            //On.JollyCoop.JollyHUD.JollyMeter.PlayerIcon.ctor += JollyCoopJollyHUDJollyMeterPlayerIcon_ctor;   //已移植为独立mod：DetailedIcon
+        }
+        
         private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
         {
-            return orig(self, obj) && 
-                !( 
-                    (obj is items.ShapeSpear && (obj as items.ShapeSpear).stuckInWall != null )
-                    && !(
-                        (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted) 
-                        || (self.SlugCatClass.value == MOD_ID && CanPickupShapespearStuckinwall.TryGet(self, out var canPickup) && canPickup)
-                    )
-                );
+            if (obj is items.ShapeSpear)
+            {
+                if ( (obj as items.ShapeSpear).stuckInWall != null)
+                {
+                    if (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted)                        //胖猫不力竭时可以拾取插入墙中的尖矛
+                    {
+                        return true;
+                    }
+                    if (self.SlugCatClass.value == MOD_ID && CanPickupShapespearStuckinwall.TryGet(self, out var canPickup) && canPickup)   //科学家仅在配置允许时可以拾取插入墙中的尖矛
+                    {
+                        return true;
+                    }
+                }
+            }
+            return orig(self, obj);
         }
 
         private void AbstractRoomAddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
@@ -132,15 +142,24 @@ namespace Scientist
         {
             Console.WriteLine("Loading Scientist resources...");
 
+            //Futile.atlasManager.LoadAtlas("atlases/icons/Kill_Slugcats");
+            Futile.atlasManager.LoadAtlas("atlases/slugcat/scientist_icon");
+
             Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ShapeSpear");
             Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ConcentratedDangleFruit");
 
             Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
+            Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
         }
 
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
         {
             orig(self, eu);
+            if (tempAnimation != self.animation.value && self.animation.value!= "None")
+            {
+                ScientistLogger.Log($"Player action: {self.animation.value}");
+                tempAnimation = self.animation.value;
+            }
             if (IsScientist.TryGet(self, out var isscientist) && isscientist)
             {
                 if (self.input[0].pckp && self.room != null)
@@ -152,8 +171,8 @@ namespace Scientist
 
         public void PlayerThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
         {
-            Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
-            Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed is WaterNut}  {self.grasps[grasp].grabbed is SwollenWaterNut}");
+            ScientistLogger.Log($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
+            /*Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed is WaterNut}  {self.grasps[grasp].grabbed is SwollenWaterNut}");*/
             orig(self, grasp, eu);
         }
 
@@ -183,7 +202,7 @@ namespace Scientist
         {
             //虽然原来的方法是空的，但其他模组也可以勾选这个方法，所以这里也需要orig
             orig(self, newlyEnabledMods);
-            Console.WriteLine("Scientist is coming!");
+            ScientistLogger.Log("Scientist is coming!");
             Register.RegisterValues();
         }
 
@@ -197,7 +216,7 @@ namespace Scientist
 
         private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
-            Console.WriteLine($"self = {self}    type = {self.type}");
+            ScientistLogger.Log($"self = {self}    type = {self.type}");
             orig(self);
             if (self.type == Register.ShapeSpear)
             {
@@ -207,15 +226,31 @@ namespace Scientist
             {
                 self.realizedObject = new items.ConcentratedDangleFruit(self);
             }
+            if (self.type == Register.PainlessFruit)
+            {
+                self.realizedObject = new items.PainlessFruit(self);
+            }
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
         {
             //您还可以指定抓取对象的不同选项的条件。例如，根据物品的重量
             if (obj is items.ShapeSpear)
+            {
+                if (self.SlugCatClass == SlugcatStats.Name.Red)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
                 return Player.ObjectGrabability.BigOneHand;
+            }
             if (obj is items.ConcentratedDangleFruit)
+            {
                 return Player.ObjectGrabability.OneHand;
+            }
+            if (obj is items.PainlessFruit)
+            {
+                return Player.ObjectGrabability.OneHand;
+            }
             return orig(self, obj);
         }
 
@@ -252,6 +287,10 @@ namespace Scientist
             {
                 return true;
             }
+            if (type == Scientist.Register.PainlessFruit)
+            {
+                return true;
+            }
             return orig(type);
         }
 
@@ -274,7 +313,7 @@ namespace Scientist
                 AbstractPhysicalObject ApoOne = player.grasps[0].grabbed.abstractPhysicalObject;
                 AbstractPhysicalObject ApoTwo = player.grasps[1].grabbed.abstractPhysicalObject;
                 AbstractPhysicalObject Apo = ScientistSlugcat.GetSpecialCraftingResult(ApoOne.type, ApoTwo.type, player);
-                Console.WriteLine($"Apo = {Apo}");
+                ScientistLogger.Log($"Apo = {Apo}");
                 if (Apo != null)
                 {
                     player.ReleaseGrasp(0);
@@ -1318,6 +1357,78 @@ namespace Scientist
             }
         }
     } 
+}
+
+public static class ScientistLogger
+{
+    public static readonly bool Enabled = true;
+
+    public static void Log(string msg, bool getCallChain = false)
+    {
+        if (!Enabled) { return; }
+        UnityEngine.Debug.Log($" [Scientist]: {msg}");
+        if (getCallChain)
+        {
+            ScientistLogger.Log("以下为调用信息: ");
+            GetMethodInfo(0);
+        }
+    }
+
+    public static void LogWarning(string msg, bool getCallChain = false)
+    {
+        if (!Enabled) { return; }
+        UnityEngine.Debug.LogWarning($" [Scientist]: {msg}");
+        if (getCallChain)
+        {
+            ScientistLogger.LogWarning("以下为调用信息: ");
+            GetMethodInfo(0);
+        }
+    }
+
+    public static void LogError(string msg, bool getCallChain = false)
+    {
+        if (!Enabled) { return; }
+        UnityEngine.Debug.LogError($" [Scientist]: {msg}");
+        if (getCallChain)
+        {
+            ScientistLogger.LogError("以下为调用信息: ");
+            GetMethodInfo(0);
+        }
+    }
+
+    public static void GetMethodInfo(int index)
+    {
+        index++;//由于我是封装了方法，相当于上端想要获取本身，其实对于这里而言，上端的本身就是这里的上端，所以需要+1，以此类推
+        var stack = new StackTrace(true);
+
+        //0是本身，1是调用方，2是调用方的调用方...以此类推
+        var method = stack.GetFrame(index).GetMethod();//想要获取关于方法的信息，可以自己断点调试这里
+
+        var dataList = new Dictionary<string, string>();
+        var module = method.Module;
+        dataList.Add("模块", module.Name);
+        var deClearType = method.DeclaringType;
+        dataList.Add("命名空间", deClearType.Namespace);
+        dataList.Add("类名", deClearType.Name);
+        dataList.Add("完整类名", deClearType.FullName);
+        dataList.Add("方法名", method.Name);
+        dataList.Add("行数", stack.GetFrame(index).GetFileLineNumber().ToString());
+        var stackFrames = stack.GetFrames();
+        dataList.Add("调用链", string.Join("\n -> ", stackFrames.Select((r, i) =>
+        {
+            if (i == 0) return null;
+            var m = r.GetMethod();
+            return $"{m.DeclaringType.FullName}.{m.Name} Line {r.GetFileLineNumber()}";
+        }).Where(r => !string.IsNullOrWhiteSpace(r)).Reverse()));
+        /*dataList.ForeachLingbug(r =>
+        {
+            Console.WriteLine($"{r.Key}：{r.Value}");
+        });*/
+        foreach (var item in dataList)
+        {
+            Console.WriteLine($"{item.Key}：{item.Value}");
+        }
+    }
 }
 
 /*
