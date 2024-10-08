@@ -1,0 +1,10 @@
+{"frames": {
+
+"Symbol_PainlessFruit.png":
+{
+	"frame": {"x":0,"y":0,"w":13,"h":20},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
+	"sourceSize": {"w":13,"h":20}
+}}}

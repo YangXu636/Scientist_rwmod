@@ -1,0 +1,60 @@
+{"frames": {
+
+"ColorfulFruit0A.png":
+{
+	"frame": {"x":0,"y":0,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ColorfulFruit0B.png":
+{
+	"frame": {"x":0,"y":14,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ColorfulFruit1A.png":
+{
+	"frame": {"x":0,"y":28,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ColorfulFruit1B.png":
+{
+	"frame": {"x":0,"y":38,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ColorfulFruit2A.png":
+{
+	"frame": {"x":0,"y":48,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+},
+"ColorfulFruit2B.png":
+{
+	"frame": {"x":0,"y":54,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "ColorfulFruit.png",
+	"format": "RGBA8888",
+	"size": {"w":9,"h":60},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:b41deb00fbd2d6b9dda94deac637425d:1f38fdc7a9792192045b5b241cb7c80a:a707a423aa0b2dc4865389e9d9dda9c2$"
+}
+}

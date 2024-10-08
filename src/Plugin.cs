@@ -13,6 +13,8 @@ using SlugBase.DataTypes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using static SlugBase.JsonAny;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -42,6 +44,8 @@ namespace Scientist
         public static HatOnHead glasses = new HatOnHead("atlases/slugcat/scientist_glasses", "scientist_glasses-", GlassesColor, IsScientist, new List<HatOnHead>() { Plugin.hat });
 
         public static string tempAnimation = "";
+
+        private items.ShowCraftingResult scr;
 
         public Plugin()
         {
@@ -84,12 +88,15 @@ namespace Scientist
 
             // Put your custom hooks here!-在此放置你自己的钩子
             On.Player.Jump += PlayerJump;
-            //On.Player.Die += Player_Die;
+            On.Player.Die += Player_Die;
+            On.Player.Stun += Player_Stun;
             On.Player.CanIPickThisUp += PlayerCanIPickThisUp;
             On.Player.Update += PlayerUpdate;
             On.Player.GrabUpdate += PlayerGrabUpdate;  //在玩家触发拾取时执行PlayerGrabUpdate
             On.Player.ThrowObject += PlayerThrowObject;
             On.Player.ThrownSpear += PlayerThrownSpear;
+
+            On.PlayerGraphics.Update += PlayerGraphics_Update;
 
             //On.Lizard.ctor += Lizard_ctor;
 
@@ -104,14 +111,129 @@ namespace Scientist
 
             On.AbstractConsumable.IsTypeConsumable += AbstractConsumableIsTypeConsumable;
 
+            //On.SaveState.ApplyCustomEndGame += SaveState_ApplyCustomEndGame;
+            //On.SaveState.LoadGame += SaveState_LoadGame;
+            //On.SaveState.SessionEnded += SaveState_SessionEnded;
+
+            On.RainWorldGame.ctor += RainWorldGame_ctor;
+            On.RainWorldGame.ShutDownProcess += RainWorldGame_ShutDownProcess;
+            //On.RainWorldGame.GameOver += RainWorldGame_GameOver;
+            //On.RainWorldGame.Win += RainWorldGame_Win;
+
             //On.JollyCoop.JollyHUD.JollyMeter.PlayerIcon.ctor += JollyCoopJollyHUDJollyMeterPlayerIcon_ctor;   //已移植为独立mod：DetailedIcon
+
+            //On.Creature.Violence += Creature_Violence;
+
+            On.MoreSlugcats.GlowWeed.HitByWeapon += MoreSlugcatsGlowWeed_HitByWeapon;
+
+            On.KingTusks.Tusk.ShootUpdate += KingTusksTusk_ShootUpdate;
+            On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
         }
-        
+
+        private void PlayerGraphics_Update(On.PlayerGraphics.orig_Update orig, PlayerGraphics self)
+        {
+            orig(self);
+            string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
+            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey( fts ) && Scientist.ScientistPlayer.colorfulCreatures[fts].enabled)
+            {
+                Scientist.ScientistPlayer.colorfulCreatures[fts].AddCounter();
+            }
+        }
+
+        private void MoreSlugcatsGlowWeed_HitByWeapon(On.MoreSlugcats.GlowWeed.orig_HitByWeapon orig, GlowWeed self, Weapon weapon)
+        {
+            orig(self, weapon);
+            if (weapon is items.SharpSpear || weapon is Spear)
+            {
+                float Rand = UnityEngine.Random.value;
+                for (int k = 0; k < UnityEngine.Random.Range(3, 8); k++)
+                {
+                    Vector2 pos = weapon.firstChunk.pos + Custom.DegToVec(Rand * 360f) * 5f * Rand;
+                    Vector2 vel = -weapon.firstChunk.vel * -0.1f + Custom.DegToVec(Rand * 360f) * Mathf.Lerp(0.2f, 0.4f, Rand) * weapon.firstChunk.vel.magnitude;
+                    self.room.AddObject(new Spark(pos, vel, new Color(1f, 1f, 1f), null, 10, 170));
+                }
+                self.room.AddObject(new StationaryEffect(weapon.firstChunk.pos, new Color(1f, 1f, 1f), null, StationaryEffect.EffectType.FlashingOrb));
+                AbstractPhysicalObject apo = new AbstractPhysicalObject(self.room.world, Scientist.Register.InflatableGlowingShield, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+                self.room.abstractRoom.AddEntity(apo);
+                apo.RealizeInRoom();
+                apo.realizedObject.firstChunk.vel = -weapon.firstChunk.vel / 3f;
+                self.Destroy();
+                weapon.Destroy();
+            }
+        }
+
+        private void RainWorldGame_ShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)
+        {
+            orig(self);
+            ScientistLogger.Log("RainWorldGame_ShutDownProcess");
+        }
+
+        private void RainWorldGame_ctor(On.RainWorldGame.orig_ctor orig, RainWorldGame self, ProcessManager manager)
+        {
+            orig(self, manager);
+            ScientistLogger.Log("RainWorldGame_ctor");
+            Scientist.ScientistPlayer.pfEatTimesInACycle = Enumerable.Repeat(0, self.Players.Count()).ToArray();
+            Scientist.ScientistPlayer.pfAfterActiveDie = Enumerable.Repeat(false, self.Players.Count()).ToArray();
+            Scientist.ScientistPlayer.pfTime = Enumerable.Repeat(0, self.Players.Count()).ToArray();
+        }
+
+        private void RainWorldGame_Win(On.RainWorldGame.orig_Win orig, RainWorldGame self, bool malnourished)
+        {
+            orig(self, malnourished);
+            ScientistLogger.Log("RainWorldGame_Win");
+        }
+
+        private void RainWorldGame_GameOver(On.RainWorldGame.orig_GameOver orig, RainWorldGame self, Creature.Grasp dependentOnGrasp)
+        {
+            orig(self, dependentOnGrasp);
+            ScientistLogger.Log("RainWorldGame_GameOver");
+        }
+
+        private void SaveState_SessionEnded(On.SaveState.orig_SessionEnded orig, SaveState self, RainWorldGame game, bool survived, bool newMalnourished)
+        {
+            orig(self, game, survived, newMalnourished);
+            ScientistLogger.Log("SaveState_SessionEnded");
+        }
+
+        private void SaveState_LoadGame(On.SaveState.orig_LoadGame orig, SaveState self, string str, RainWorldGame game)
+        {
+            orig(self, str, game);
+            ScientistLogger.Log("SaveState_LoadGame");
+        }
+
+        private void SaveState_ApplyCustomEndGame(On.SaveState.orig_ApplyCustomEndGame orig, SaveState self, RainWorldGame game, bool addFiveCycles)
+        {
+            orig(self, game, addFiveCycles);
+            ScientistLogger.Log("SaveState_ApplyCustomEndGame");
+        }
+
+        private void Player_Stun(On.Player.orig_Stun orig, Player self, int st)
+        {
+            if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0)
+            {
+                return;
+            }
+            orig(self, st);
+        }
+
+        private void Player_Die(On.Player.orig_Die orig, Player self)
+        {
+            bool wasDead = self.dead;
+            if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0 && Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] < 3)
+            {
+                Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)] = true;
+                return;
+            }
+            orig(self);
+            Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)] = false;
+            Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] = 0;
+        }
+
         private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
         {
-            if (obj is items.ShapeSpear)
+            if (obj is items.SharpSpear)
             {
-                if ( (obj as items.ShapeSpear).stuckInWall != null)
+                if ( (obj as items.SharpSpear).stuckInWall != null)
                 {
                     if (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted)                        //胖猫不力竭时可以拾取插入墙中的尖矛
                     {
@@ -121,6 +243,7 @@ namespace Scientist
                     {
                         return true;
                     }
+                    return false;
                 }
             }
             return orig(self, obj);
@@ -145,27 +268,79 @@ namespace Scientist
             //Futile.atlasManager.LoadAtlas("atlases/icons/Kill_Slugcats");
             Futile.atlasManager.LoadAtlas("atlases/slugcat/scientist_icon");
 
-            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ShapeSpear");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_SharpSpear");
             Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ConcentratedDangleFruit");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_PainlessFruit");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ColorfulFruit");
 
             Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
             Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
+            Futile.atlasManager.LoadAtlas("atlases/textures/SmallSharpSpear");
+            Futile.atlasManager.LoadAtlas("atlases/textures/ColorfulFruit");
         }
 
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
         {
+            ScientistPlayer.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : ScientistPlayer.offlineTime + 1;
             orig(self, eu);
-            if (tempAnimation != self.animation.value && self.animation.value!= "None")
+
+            if (self.SlugCatClass.value == MOD_ID && (ScientistPlayer.offlineTime <= 10 || ScientistPlayer.offlineTime > 640) && scr != null)
             {
-                ScientistLogger.Log($"Player action: {self.animation.value}");
-                tempAnimation = self.animation.value;
+                scr.Destroy();
+                scr = null;
             }
-            if (IsScientist.TryGet(self, out var isscientist) && isscientist)
+            if (ScientistPlayer.offlineTime > 320 && ScientistPlayer.offlineTime <= 640)
             {
-                if (self.input[0].pckp && self.room != null)
+                if (self.SlugCatClass.value == MOD_ID  && (CraftingResults(self) != null || Scientist.ScientistSlugcat.GetSpecialCraftingResult(self) != null) && scr == null)
                 {
-                    
+                    AbstractPhysicalObject apo = ( CraftingResults(self) != null ) ? ScientistSlugcat.CraftingResults(self, self.grasps[0], self.grasps[1]) : Scientist.ScientistSlugcat.GetSpecialCraftingResult(self);
+                    ScientistLogger.Log($"apo = {apo}, apo.type = {apo.type}");
+                    IconSymbol.IconSymbolData isd = apo.type != AbstractPhysicalObject.AbstractObjectType.Creature ? (IconSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo) : (IconSymbol.IconSymbolData)CreatureSymbol.SymbolDataFromCreature( (apo.realizedObject as Creature).abstractCreature );
+                    ScientistLogger.Log($"isd = {isd}");
+                    IconSymbol iconSymbol = IconSymbol.CreateIconSymbol(isd, new FContainer());
+                    scr = new items.ShowCraftingResult(self, iconSymbol.spriteName, iconSymbol.myColor, ScientistTools.RandomAngleVector2(new float[2][] { new float[2] { 0f, 60f }, new float[2] { 120f, 180f } }), 40f);
+                    self.room.AddObject(scr);
+                    Vector2 test = RWCustom.Custom.DirVec(self.mainBodyChunk.pos, self.mainBodyChunk.pos);
                 }
+            }
+
+            if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0)   //无痛果效果
+            {
+                if (!self.inShortcut)
+                {
+                    Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)]--;
+                    if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] == 0)
+                    {
+                        Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)]--;
+                    }
+                }
+                self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
+                if (!ModManager.CoopAvailable)
+                {
+                    goto IL_1S;
+                }
+                using (List<AbstractCreature>.Enumerator enumerator = self.abstractCreature.world.game.AlivePlayers.GetEnumerator())
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        AbstractCreature abstractCreature2 = enumerator.Current;
+                        if (abstractCreature2.realizedCreature != null)
+                        {
+                            (abstractCreature2.realizedCreature as Player).mushroomEffect = Mathf.Max(self.mushroomEffect, (abstractCreature2.realizedCreature as Player).mushroomEffect);
+                        }
+                    }
+                    goto IL_1S;
+                }
+            }
+            self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
+            IL_1S:
+            if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)])
+            {
+                self.Die();
+            }
+            if (Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] >= 3)
+            {
+                self.Die();
             }
         }
 
@@ -179,7 +354,7 @@ namespace Scientist
         public void PlayerThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
         {
             orig(self, spear);
-            if (IsScientist.TryGet(self, out var isscientist) && isscientist && Power.TryGet(self, out var power) && power)
+            if (self.SlugCatClass.value == MOD_ID && Power.TryGet(self, out var power) && power)
             {
                 spear.spearDamageBonus = 10000f;
             }
@@ -188,7 +363,7 @@ namespace Scientist
         public void PlayerJump(On.Player.orig_Jump orig, Player self)
         {
             orig(self);
-            if (IsScientist.TryGet(self, out var isscientist) && isscientist)
+            if (self.SlugCatClass.value == MOD_ID)
             {
                 if (LowerJump.TryGet(self, out float power))
                 {
@@ -218,10 +393,10 @@ namespace Scientist
         {
             ScientistLogger.Log($"self = {self}    type = {self.type}");
             orig(self);
-            if (self.type == Register.ShapeSpear)
+            if (self.type == Register.SharpSpear)
             {
-                self.realizedObject = new items.ShapeSpear(new items.AbstractPhysicalObjects.ShapeSpearAbstract(self.world, null, self.pos, self.ID), self.world);
-            } //与任何物理对象一样，您的对象将采用抽象对象作为参数。稍后将对此进行更详细的说明
+                self.realizedObject = new items.SharpSpear(new items.AbstractPhysicalObjects.SharpSpearAbstract(self.world, null, self.pos, self.ID), self.world);
+            }
             if (self.type == Register.ConcentratedDangleFruit)
             {
                 self.realizedObject = new items.ConcentratedDangleFruit(self);
@@ -230,12 +405,19 @@ namespace Scientist
             {
                 self.realizedObject = new items.PainlessFruit(self);
             }
+            if (self.type == Register.ColorfulFruit)
+            {
+                self.realizedObject = new items.ColorfulFruit(self, !ScientistTools.Probability(0.1f));
+            }
+            if (self.type == Register.InflatableGlowingShield)
+            {
+                self.realizedObject = new items.InflatableGlowingShield(self, self.world);
+            }
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
         {
-            //您还可以指定抓取对象的不同选项的条件。例如，根据物品的重量
-            if (obj is items.ShapeSpear)
+            if (obj is items.SharpSpear)
             {
                 if (self.SlugCatClass == SlugcatStats.Name.Red)
                 {
@@ -251,12 +433,20 @@ namespace Scientist
             {
                 return Player.ObjectGrabability.OneHand;
             }
+            if (obj is items.ColorfulFruit)
+            {
+                return Player.ObjectGrabability.OneHand;
+            }
+            if (obj is items.InflatableGlowingShield)
+            {
+                return Player.ObjectGrabability.OneHand;
+            }
             return orig(self, obj);
         }
 
         private string ItemSymbolSpriteNameForItem(On.ItemSymbol.orig_SpriteNameForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
         {
-            if (itemType == Scientist.Register.ShapeSpear)
+            if (itemType == Scientist.Register.SharpSpear)
             {
                 return "Symbol_ShapeSpear";
             }
@@ -264,19 +454,35 @@ namespace Scientist
             {
                 return "Symbol_ConcentratedDangleFruit";
             }
+            if (itemType == Scientist.Register.PainlessFruit)
+            {
+                return "Symbol_PainlessFruit";
+            }
+            if (itemType == Scientist.Register.ColorfulFruit)
+            {
+                return "Symbol_ColorfulFruit";
+            }
             return orig(itemType, intData);
             
         }
 
         private Color ItemSymbolColorForItem(On.ItemSymbol.orig_ColorForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
         {
-            if (itemType == Scientist.Register.ShapeSpear)
+            if (itemType == Scientist.Register.SharpSpear)
             {
                 return Color.white;
             }
             if (itemType == Scientist.Register.ConcentratedDangleFruit)
             {
                 return Color.blue;
+            }
+            if (itemType == Scientist.Register.PainlessFruit)
+            {
+                return Color.white;//ScientistTools.ColorFromHex("bd4848");
+            }
+            if (itemType == Scientist.Register.ColorfulFruit)
+            {
+                return Color.white;
             }
             return orig(itemType, intData);
         }
@@ -291,15 +497,19 @@ namespace Scientist
             {
                 return true;
             }
+            if (type == Scientist.Register.ColorfulFruit)
+            {
+                return true;
+            }
             return orig(type);
         }
 
         public void PlayerGrabUpdate(On.Player.orig_GrabUpdate orig, Player self, bool eu)
         {
-            if (IsScientist.TryGet(self, out var isscientist) && isscientist) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate
+            if (self.SlugCatClass.value == MOD_ID) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate
                 ScientistGrabUpdate(self, eu);
             }
-            else {                                                                  //不是科学家，则执行原函数（这也会导致其他mod的GrabUpdate钩子在科学家上无法生效）（既然叫科学家，那么能屏蔽外界干扰和更改是很正常的吧~）
+            else {                                       //不是科学家，则执行原函数（这也会导致其他mod的GrabUpdate钩子在科学家上无法生效）（既然叫科学家，那么能屏蔽外界干扰和更改是很正常的吧~）
                 orig(self, eu); 
             }
         }
@@ -403,7 +613,7 @@ namespace Scientist
             if ( (grasps[0] != null && grasps[0].grabbed is Spear && grasps[1] != null && grasps[1].grabbed is Rock)
                 || (grasps[0] != null && grasps[0].grabbed is Rock && grasps[1] != null && grasps[1].grabbed is Spear) )
             {
-                return Scientist.Register.ShapeSpear;
+                return Scientist.Register.SharpSpear;
             }*/
             return null;
         }
@@ -1355,6 +1565,177 @@ namespace Scientist
                     player.wantToPickUp = 0;
                 }
             }
+        }
+
+        private void BigNeedleWorm_Swish(On.BigNeedleWorm.orig_Swish orig, BigNeedleWorm self)
+        {
+            self.flying = 0f;
+            self.lookDir = self.swishDir.Value;
+            self.dodgeDelay = 30;
+            self.swishCounter--;
+            if (self.swishCounter < 1 || self.swishDir == null)
+            {
+                for (int i = 0; i < self.TotalSegments; i++)
+                {
+                    self.SetSegmentVel(i, Vector2.ClampMagnitude(self.GetSegmentVel(i) * 0.75f, 20f));
+                }
+                self.swishCounter = 0;
+                self.swishDir = null;
+                self.lameCounter = 7;
+                return;
+            }
+            float num = 90f + 90f * Mathf.Sin(Mathf.InverseLerp(1f, 5f, (float)self.swishCounter) * 3.1415927f);
+            Vector2 value = self.swishDir.Value;
+            Vector2 vector = self.bodyChunks[0].pos + value * self.fangLength;
+            Vector2 vector2 = self.bodyChunks[0].pos + value * (self.fangLength + num);
+            Vector2 vector3 = self.bodyChunks[0].lastPos + value * self.fangLength;
+            Vector2 vector4 = self.bodyChunks[0].pos + value * (self.fangLength + num);
+            FloatRect? floatRect = SharedPhysics.ExactTerrainRayTrace(self.room, vector3, vector4);
+            Vector2 vector5 = default;
+            if (floatRect != null)
+            {
+                vector5 = new Vector2(floatRect.Value.left, floatRect.Value.bottom);
+            }
+            Vector2 vector6 = vector4;
+            SharedPhysics.CollisionResult collisionResult = SharedPhysics.TraceProjectileAgainstBodyChunks(self, self.room, vector3, ref vector6, 1f, 1, self, false);
+            if (floatRect != null && collisionResult.chunk != null)
+            {
+                if (Vector2.Distance(vector3, vector5) < Vector2.Distance(vector3, collisionResult.collisionPoint))
+                {
+                    collisionResult.chunk = null;
+                }
+                else
+                {
+                    floatRect = null;
+                }
+            }
+            if (floatRect == null && collisionResult.chunk != null)
+            {
+                vector2 = collisionResult.collisionPoint - value * self.fangLength * 0.7f;
+                self.stuckDir = Vector3.Slerp(self.swishDir.Value, Custom.DirVec(vector2, collisionResult.chunk.pos), 0.4f);
+                self.swishCounter = 0;
+                self.swishDir = null;
+                self.impaleChunk = collisionResult.chunk;
+                float num2 = -self.fangLength / 4f;
+                for (int k = 0; k < self.impaleDistances.GetLength(0); k++)
+                {
+                    if (k == 1)
+                    {
+                        num2 += self.fangLength / 4f;
+                    }
+                    if (k > 0)
+                    {
+                        num2 += self.GetSegmentRadForRopeLength(k - 1) + self.GetSegmentRadForRopeLength(k) + self.fangLength / 4f;
+                    }
+                    self.impaleDistances[k, 0] = Vector2.Distance(vector2 - value * num2, self.impaleChunk.pos);
+                    if (self.impaleChunk.rotationChunk != null)
+                    {
+                        self.impaleDistances[k, 1] = Vector2.Distance(vector2 - value * num2, self.impaleChunk.rotationChunk.pos);
+                    }
+                }
+                if (self.impaleChunk.owner is Creature)
+                {
+                    if (self.impaleChunk.owner is Player)
+                    {
+                        Player player = self.impaleChunk.owner as Player;
+                        if (
+                                !player.dead
+                                && (
+                                    (player.grasps[0] != null && player.grasps[0].grabbed.abstractPhysicalObject.realizedObject is items.InflatableGlowingShield && (self.bodyChunks[0].pos - self.impaleChunk.pos).x < 0)
+                                    || (player.grasps[1] != null && player.grasps[1].grabbed.abstractPhysicalObject.realizedObject is items.InflatableGlowingShield && (self.bodyChunks[0].pos - self.impaleChunk.pos).x > 0)
+                                )
+                            )
+                        {
+                            return;
+                        }
+                    }
+                    (self.impaleChunk.owner as Creature).Violence(self.mainBodyChunk, null, self.impaleChunk, null, Creature.DamageType.Stab, 1.22f, 60f);
+                }
+                self.impaleChunk.vel += value * 12f / self.impaleChunk.mass;
+                self.impaleChunk.pos += value * 7f / self.impaleChunk.mass;
+                for (int l = 0; l < self.TotalSegments; l++)
+                {
+                    self.SetSegmentVel(l, Vector2.ClampMagnitude(self.GetSegmentVel(l), 6f));
+                }
+                self.room.PlaySound(SoundID.Big_Needle_Worm_Impale_Creature, vector2);
+                self.stuckTime = 0f;
+                return;
+            }
+            orig(self);
+        }
+
+        private void KingTusksTusk_ShootUpdate(On.KingTusks.Tusk.orig_ShootUpdate orig, KingTusks.Tusk self, float speed)
+        {
+            float num = 20f;
+            Vector2 vector = self.chunkPoints[0, 0] + self.shootDir * num;
+            Vector2 vector2 = self.chunkPoints[0, 0] + self.shootDir * (num + speed);
+            FloatRect? floatRect = SharedPhysics.ExactTerrainRayTrace(self.room, vector, vector2);
+            Vector2 vector3 = default;
+            if (floatRect != null)
+            {
+                vector3 = new Vector2(floatRect.Value.left, floatRect.Value.bottom);
+            }
+            Vector2 vector4 = vector2;
+            SharedPhysics.CollisionResult collisionResult = SharedPhysics.TraceProjectileAgainstBodyChunks(self, self.room, vector, ref vector4, 5f, 1, self.owner.vulture, false);
+            if (floatRect != null && collisionResult.chunk != null)
+            {
+                if (Vector2.Distance(vector, vector3) < Vector2.Distance(vector, collisionResult.collisionPoint))
+                {
+                    collisionResult.chunk = null;
+                }
+                else
+                {
+                    floatRect = null;
+                }
+            }
+            if (floatRect == null && collisionResult.chunk != null)
+            {
+                vector2 = collisionResult.collisionPoint - self.shootDir * num * 0.7f;
+                self.chunkPoints[0, 0] = vector2 - self.shootDir * num;
+                self.chunkPoints[1, 0] = vector2 - self.shootDir * (num + KingTusks.Tusk.length);
+                if (self.room.BeingViewed)
+                {
+                    for (int k = 0; k < 6; k++)
+                    {
+                        if (UnityEngine.Random.value < Mathf.InverseLerp(0f, 0.5f, self.room.roomSettings.CeilingDrips))
+                        {
+                            self.room.AddObject(new WaterDrip(collisionResult.collisionPoint, -self.shootDir * Mathf.Lerp(5f, 15f, UnityEngine.Random.value) + Custom.RNV() * UnityEngine.Random.value * 10f, false));
+                        }
+                    }
+                }
+                self.SwitchMode(KingTusks.Tusk.Mode.StuckInCreature);
+                self.room.PlaySound(SoundID.King_Vulture_Tusk_Impale_Creature, vector2);
+                self.impaleChunk = collisionResult.chunk;
+                self.impaleChunk.vel += self.shootDir * 12f / self.impaleChunk.mass;
+                self.impaleChunk.vel = Vector2.ClampMagnitude(self.impaleChunk.vel, 50f);
+                if (self.impaleChunk.owner is Creature)
+                {
+                    if (self.impaleChunk.owner is Player)
+                    {
+                        Player player = self.impaleChunk.owner as Player;
+                        if (
+                                (player.grasps[0] != null && player.grasps[0].grabbed.abstractPhysicalObject.realizedObject is items.InflatableGlowingShield && (self.chunkPoints[0, 0] - self.impaleChunk.pos).x < 0)
+                                || (player.grasps[1] != null && player.grasps[1].grabbed.abstractPhysicalObject.realizedObject is items.InflatableGlowingShield && (self.chunkPoints[0, 0] - self.impaleChunk.pos).x > 0)
+                            )
+                        {
+                            self.SwitchMode(KingTusks.Tusk.Mode.Dangling);
+                            return;
+                        }
+                    }
+                    (self.impaleChunk.owner as Creature).Violence(null, null, self.impaleChunk, null, Creature.DamageType.Stab, 1.5f, 0f);
+                }
+                self.shootDir = Vector3.Slerp(self.shootDir, Custom.DirVec(vector2, self.impaleChunk.pos), 0.4f);
+                if (self.impaleChunk.rotationChunk != null)
+                {
+                    self.shootDir = Custom.RotateAroundOrigo(self.shootDir, -Custom.AimFromOneVectorToAnother(self.impaleChunk.pos, self.impaleChunk.rotationChunk.pos));
+                }
+                if (self.impaleChunk.owner.graphicsModule != null)
+                {
+                    self.impaleChunk.owner.graphicsModule.BringSpritesToFront();
+                }
+                return;
+            }
+            orig(self, speed);
         }
     } 
 }

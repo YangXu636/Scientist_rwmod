@@ -5,9 +5,11 @@ namespace Scientist
     public static class Register
     {
         //AbstractObjectType, as well as the class as a whole, must be public and static
-        public static AbstractPhysicalObject.AbstractObjectType ShapeSpear;
+        public static AbstractPhysicalObject.AbstractObjectType SharpSpear;
         public static AbstractPhysicalObject.AbstractObjectType ConcentratedDangleFruit;
         public static AbstractPhysicalObject.AbstractObjectType PainlessFruit;
+        public static AbstractPhysicalObject.AbstractObjectType ColorfulFruit;
+        public static AbstractPhysicalObject.AbstractObjectType InflatableGlowingShield;
 
         public static SSOracleBehavior.SubBehavior.SubBehavID MeetScientist;
         public static Conversation.ID Pebbles_Scientist;
@@ -15,9 +17,11 @@ namespace Scientist
 
         public static void RegisterValues()
         {
-            Register.ShapeSpear = new AbstractPhysicalObject.AbstractObjectType("ShapeSpear", true);
+            Register.SharpSpear = new AbstractPhysicalObject.AbstractObjectType("SharpSpear", true);
             Register.ConcentratedDangleFruit = new AbstractPhysicalObject.AbstractObjectType("ConcentratedDangleFruit", true);
             Register.PainlessFruit = new AbstractPhysicalObject.AbstractObjectType("PainlessFruit", true);
+            Register.ColorfulFruit = new AbstractPhysicalObject.AbstractObjectType("ColorfulFruit", true);
+            Register.InflatableGlowingShield = new AbstractPhysicalObject.AbstractObjectType("InflatableGlowingShield", true);
 
             Register.MeetScientist = new SSOracleBehavior.SubBehavior.SubBehavID("MeetScientist", true);
             Register.Pebbles_Scientist = new Conversation.ID("Pebbles_Scientist", true);
@@ -27,9 +31,9 @@ namespace Scientist
 
         public static void UnregisterValues()
         {
-            AbstractPhysicalObject.AbstractObjectType sharpSpear = ShapeSpear;
+            AbstractPhysicalObject.AbstractObjectType sharpSpear = SharpSpear;
             sharpSpear?.Unregister();
-            ShapeSpear = null;
+            SharpSpear = null;
 
             AbstractPhysicalObject.AbstractObjectType concentratedDangleFruit = ConcentratedDangleFruit;
             concentratedDangleFruit?.Unregister();
@@ -38,6 +42,14 @@ namespace Scientist
             AbstractPhysicalObject.AbstractObjectType painlessFruit = PainlessFruit;
             painlessFruit?.Unregister();
             PainlessFruit = null;
+
+            AbstractPhysicalObject.AbstractObjectType colorfulFruit = ColorfulFruit;
+            colorfulFruit?.Unregister();
+            ColorfulFruit = null;
+
+            AbstractPhysicalObject.AbstractObjectType inflatableGlowingShield = InflatableGlowingShield;
+            inflatableGlowingShield?.Unregister();
+            InflatableGlowingShield = null;
 
 
             SSOracleBehavior.SubBehavior.SubBehavID meetScientist = MeetScientist;

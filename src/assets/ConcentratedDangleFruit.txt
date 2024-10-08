@@ -1,0 +1,60 @@
+{"frames": {
+
+"ConcentratedDangleFruit0A.png":
+{
+	"frame": {"x":0,"y":0,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ConcentratedDangleFruit0B.png":
+{
+	"frame": {"x":0,"y":14,"w":9,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":14},
+	"sourceSize": {"w":9,"h":14}
+},
+"ConcentratedDangleFruit1A.png":
+{
+	"frame": {"x":0,"y":28,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ConcentratedDangleFruit1B.png":
+{
+	"frame": {"x":0,"y":38,"w":9,"h":10},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":10},
+	"sourceSize": {"w":9,"h":10}
+},
+"ConcentratedDangleFruit2A.png":
+{
+	"frame": {"x":0,"y":48,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+},
+"ConcentratedDangleFruit2B.png":
+{
+	"frame": {"x":0,"y":54,"w":9,"h":6},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":9,"h":6},
+	"sourceSize": {"w":9,"h":6}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "ConcentratedDangleFruit.png",
+	"format": "RGBA8888",
+	"size": {"w":9,"h":60},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:1dc0cefc96bc24e476213d918460d004:29270d3a4be7b0524a4dac4bdaff5dce:4d8779dc21c6a8fc274298157495c928$"
+}
+}

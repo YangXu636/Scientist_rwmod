@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace items.AbstractPhysicalObjects
 {
-	internal sealed class ShapeSpearAbstract : AbstractSpear
+	internal sealed class SharpSpearAbstract : AbstractSpear
 	{
 
-		public ShapeSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID) : base(world, realizedObject, pos, ID, false)
+		public SharpSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID) : base(world, realizedObject, pos, ID, false)
 		{
-			this.type = Scientist.Register.ShapeSpear;
+			this.type = Scientist.Register.SharpSpear;
 
 			base.stuckInWallCycles = 0;
 			base.explosive = false;
@@ -24,7 +24,7 @@ namespace items.AbstractPhysicalObjects
 
 		public override void Realize()
 		{
-            this.realizedObject ??= new items.ShapeSpear(this, this.world);
+            this.realizedObject ??= new items.SharpSpear(this, this.world);
 		}
 	}
 }

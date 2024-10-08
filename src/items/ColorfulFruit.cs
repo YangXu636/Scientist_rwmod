@@ -6,14 +6,19 @@ using UnityEngine;
 
 
 namespace items;
-public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
+public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 {
     public Vector2 rotation;
     public Vector2 lastRotation;
     public Vector2? setRotation;
     public float darkness;
     public float lastDarkness;
+    public bool normal;
     public int bites = 3;
+    public int counter = 0;
+    public readonly float colorSpeed = 0.1f;
+    public float v;
+    public float s;
 
     public AbstractConsumable AbstrConsumable
     {
@@ -23,10 +28,10 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         }
     }
 
-    public PainlessFruit(AbstractPhysicalObject abstractPhysicalObject) : base(abstractPhysicalObject)
+    public ColorfulFruit(AbstractPhysicalObject abstractPhysicalObject, bool normal = true) : base(abstractPhysicalObject)
     {
         base.bodyChunks = new BodyChunk[1];
-        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 10f, 0.2f);
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 8f, 0.2f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
         base.airFriction = 0.999f;
         base.gravity = 0.9f;
@@ -35,11 +40,15 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         this.collisionLayer = 1;
         base.waterFriction = 0.95f;
         base.buoyancy = 1.1f;
+        this.v = UnityEngine.Random.Range(0.6f, 1f);
+        this.s = UnityEngine.Random.Range(0.6f, 1f);
+        this.normal = normal;
     }
 
     public override void Update(bool eu)
     {
         base.Update(eu);
+        counter = counter >= 560 ? 0 : counter + 1;
         this.lastRotation = this.rotation;
         if (this.grabbedBy.Count > 0)
         {
@@ -61,7 +70,7 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public int BitesLeft => this.bites;
 
-    public int FoodPoints => 0;
+    public int FoodPoints => 1;
 
     public bool Edible => true;
 
@@ -92,10 +101,14 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         base.firstChunk.MoveFromOutsideMyUpdate(eu, grasp.grabber.mainBodyChunk.pos);
         if (this.bites < 1)
         {
+            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)))
+            {
+                Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
+                ScientistLogger.Log($"Player ate a Colorful Fruit! {Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)}, {Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)]}");
+            } 
+            (grasp.grabber as Player).mushroomCounter += 320;
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
-            ScientistTools.ArrayAdd(Scientist.ScientistPlayer.pfTime, 2400);
-            Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(grasp.grabber as Player)] += 1;
             this.Destroy();
         }
     }
@@ -108,19 +121,22 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
             sLeaser.sprites[i].RemoveFromContainer();
             newContatiner.AddChild(sLeaser.sprites[i]);
         }
+        if (this.normal)
+        {
+            sLeaser.sprites[2].RemoveFromContainer();
+            sLeaser.sprites[3].RemoveFromContainer();
+            rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[2]);
+            rCam.ReturnFContainer("Water").AddChild(sLeaser.sprites[3]);
+        }
     }
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f);
-        sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f);
-        sLeaser.sprites[2].color = new Color(1f, 0f, 0f);
-        if (ModManager.MSC && rCam.room.game.session is StoryGameSession && rCam.room.world.name == "HR")
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
-            this.color = Color.Lerp(RainWorld.SaturatedGold, palette.blackColor, this.darkness);
-            return;
+            sLeaser.sprites[i].color = Color.HSVToRGB(this.counter / 560f, this.v, this.s);
         }
-        this.color = Color.Lerp(new Color(0f, 0f, 1f), palette.blackColor, this.darkness);
+        sLeaser.sprites[2].alpha = 0.5f;
     }
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -129,18 +145,21 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         Vector2 v = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
         this.lastDarkness = this.darkness;
         this.darkness = rCam.room.Darkness(vector) * (1f - rCam.room.LightSourceExposure(vector));
-        if (this.darkness != this.lastDarkness)
-        {
-            this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
-        }
-        sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f, (3 <= this.bites) ? 1f : 0f);
-        sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f, (2 <= this.bites) ? 1f : 0f);
-        sLeaser.sprites[2].color = new Color(1f, 0f, 0f, (1 <= this.bites) ? 1f : 0f);
-        for (int i = 0; i < 3; i++)
+        this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
             sLeaser.sprites[i].x = vector.x - camPos.x;
             sLeaser.sprites[i].y = vector.y - camPos.y;
             sLeaser.sprites[i].rotation = Custom.VecToDeg(v);
+            if ( (i != 2 && i != 3 && this.normal) || ((i == 0 || i == 1) && !this.normal) )
+            {
+                sLeaser.sprites[i].element = Futile.atlasManager.GetElementWithName("ColorfulFruit" + Custom.IntClamp(3 - this.bites, 0, 2).ToString() + ((i == 0) ? "A" : "B"));
+            }
+        }
+        sLeaser.sprites[2].scale = 3.5f;
+        if (this.normal)
+        {
+            sLeaser.sprites[3].scale = 35f;
         }
         if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
         {
@@ -154,10 +173,24 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[3];
-        sLeaser.sprites[0] = new FSprite("PainlessFruitLeft", true);
-        sLeaser.sprites[1] = new FSprite("PainlessFruitRight", true);
-        sLeaser.sprites[2] = new FSprite("PainlessFruitHeart", true);
+        if (this.normal)
+        {
+            sLeaser.sprites = new FSprite[4];
+            sLeaser.sprites[0] = new FSprite("ColorfulFruit0A", true);
+            sLeaser.sprites[1] = new FSprite("ColorfulFruit0B", true);
+            sLeaser.sprites[2] = new FSprite("Futile_White", true);
+            sLeaser.sprites[2].shader = rCam.game.rainWorld.Shaders["FlatLightBehindTerrain"];
+            sLeaser.sprites[3] = new FSprite("Futile_White", true);
+            sLeaser.sprites[3].shader = rCam.game.rainWorld.Shaders["LightSource"];
+        }
+        else
+        {
+            sLeaser.sprites = new FSprite[3];
+            sLeaser.sprites[0] = new FSprite("ColorfulFruit0A", true);
+            sLeaser.sprites[1] = new FSprite("ColorfulFruit0B", true);
+            sLeaser.sprites[2] = new FSprite("Futile_White", true);
+            sLeaser.sprites[2].shader = rCam.game.rainWorld.Shaders["FlareBomb"];
+        }
         this.AddToContainer(sLeaser, rCam, null);
     }
 }

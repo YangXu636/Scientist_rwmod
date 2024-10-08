@@ -13,13 +13,13 @@ namespace items;
 
 
 
-sealed class ShapeSpear : Spear
+sealed class SharpSpear : Spear
 {
-    public new items.AbstractPhysicalObjects.ShapeSpearAbstract abstractSpear
+    public new items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
     {
         get
         {
-            return this.abstractPhysicalObject as ShapeSpearAbstract;
+            return this.abstractPhysicalObject as SharpSpearAbstract;
         }
     }
 
@@ -31,10 +31,10 @@ sealed class ShapeSpear : Spear
         }
     }
 
-    public ShapeSpear(items.AbstractPhysicalObjects.ShapeSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public SharpSpear(items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
-        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.07f);
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
         base.airFriction = 0.999f;
         base.gravity = 0.9f;
