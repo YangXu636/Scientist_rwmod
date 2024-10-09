@@ -52,7 +52,6 @@ class ShowCraftingResult : UpdatableAndDeletable, IDrawable
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        ScientistLogger.Log($"timeStacker = {timeStacker}");
         ApplyPalette(sLeaser, rCam, rCam.currentPalette);
         sLeaser.sprites[0].x = player.mainBodyChunk.pos.x - camPos.x + this.offsetV2.x * offsetR;
         sLeaser.sprites[0].y = player.mainBodyChunk.pos.y - camPos.y + this.offsetV2.y * offsetR;
@@ -60,6 +59,7 @@ class ShowCraftingResult : UpdatableAndDeletable, IDrawable
         sLeaser.sprites[0].color = ScientistTools.ColorChangeAlpha(sLeaser.sprites[0].color, counter / 37.5f);
         sLeaser.sprites[1].x = player.mainBodyChunk.pos.x - camPos.x + this.offsetV2.x * offsetR;
         sLeaser.sprites[1].y = player.mainBodyChunk.pos.y - camPos.y + this.offsetV2.y * offsetR;
+        sLeaser.sprites[1].alpha = counter / 37.5f;
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();

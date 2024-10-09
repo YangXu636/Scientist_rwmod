@@ -10,6 +10,8 @@ namespace Scientist
         public static AbstractPhysicalObject.AbstractObjectType PainlessFruit;
         public static AbstractPhysicalObject.AbstractObjectType ColorfulFruit;
         public static AbstractPhysicalObject.AbstractObjectType InflatableGlowingShield;
+        public static AbstractPhysicalObject.AbstractObjectType AnesthesiaSpear;
+        public static AbstractPhysicalObject.AbstractObjectType AnesthesiaNeedle;
 
         public static SSOracleBehavior.SubBehavior.SubBehavID MeetScientist;
         public static Conversation.ID Pebbles_Scientist;
@@ -22,6 +24,8 @@ namespace Scientist
             Register.PainlessFruit = new AbstractPhysicalObject.AbstractObjectType("PainlessFruit", true);
             Register.ColorfulFruit = new AbstractPhysicalObject.AbstractObjectType("ColorfulFruit", true);
             Register.InflatableGlowingShield = new AbstractPhysicalObject.AbstractObjectType("InflatableGlowingShield", true);
+            Register.AnesthesiaSpear = new AbstractPhysicalObject.AbstractObjectType("AnesthesiaSpear", true);
+            Register.AnesthesiaNeedle = new AbstractPhysicalObject.AbstractObjectType("AnesthesiaNeedle", true);
 
             Register.MeetScientist = new SSOracleBehavior.SubBehavior.SubBehavID("MeetScientist", true);
             Register.Pebbles_Scientist = new Conversation.ID("Pebbles_Scientist", true);
@@ -50,6 +54,14 @@ namespace Scientist
             AbstractPhysicalObject.AbstractObjectType inflatableGlowingShield = InflatableGlowingShield;
             inflatableGlowingShield?.Unregister();
             InflatableGlowingShield = null;
+
+            AbstractPhysicalObject.AbstractObjectType anesthesiaSpear = AnesthesiaSpear;
+            anesthesiaSpear?.Unregister();
+            AnesthesiaSpear = null;
+
+            AbstractPhysicalObject.AbstractObjectType anesthesiaNeedle = AnesthesiaNeedle;
+            anesthesiaNeedle?.Unregister();
+            AnesthesiaNeedle = null;
 
 
             SSOracleBehavior.SubBehavior.SubBehavID meetScientist = MeetScientist;

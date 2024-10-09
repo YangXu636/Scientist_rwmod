@@ -41,7 +41,7 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         this.lastRotation = this.rotation;
         if (this.grabbedBy.Count > 0)
         {
-            this.rotation = Vector2.right;
+            this.rotation = Vector2.up;
         }
         if (this.setRotation != null)
         {
@@ -147,7 +147,11 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
     {
         this.color = new Color(0.8f, 1f, 0.4f);
         sLeaser.sprites[0].color = Color.Lerp(palette.waterColor1, palette.waterColor2, 0.5f);
-        sLeaser.sprites[5].color = palette.blackColor;
+        sLeaser.sprites[1].color = palette.blackColor;
+        sLeaser.sprites[2].color = Scientist.ScientistTools.ColorFromHex("81E629");
+        sLeaser.sprites[3].color = Scientist.ScientistTools.ColorFromHex("7DCF36");
+        sLeaser.sprites[4].color = Scientist.ScientistTools.ColorFromHex("BDE324");
+        sLeaser.sprites[5].color = Scientist.ScientistTools.ColorFromHex("E5FF63");
     }
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -156,19 +160,12 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         Vector2 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
         this.lastDarkness = this.darkness;
         this.darkness = rCam.room.Darkness(vector) * (1f - rCam.room.LightSourceExposure(vector));
-        sLeaser.sprites[0].x = vector.x - camPos.x;
-        sLeaser.sprites[0].y = vector.y - camPos.y;
-        sLeaser.sprites[0].rotation = Custom.VecToDeg(vector2);
-        sLeaser.sprites[0].alpha = 0.6f + rCam.PaletteDarkness() / 2f;
-        sLeaser.sprites[1].x = vector.x - camPos.x;
-        sLeaser.sprites[1].y = vector.y - camPos.y;
-        sLeaser.sprites[1].rotation = Custom.VecToDeg(vector2);
-        sLeaser.sprites[2].x = vector.x - camPos.x;
-        sLeaser.sprites[2].y = vector.y - camPos.y;
-        sLeaser.sprites[2].rotation = Custom.VecToDeg(vector2);
-        sLeaser.sprites[5].x = vector.x - camPos.x;
-        sLeaser.sprites[5].y = vector.y - camPos.y;
-        sLeaser.sprites[5].rotation = Custom.VecToDeg(vector2) + 90f;
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
+        {
+            sLeaser.sprites[i].x = vector.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y - camPos.y;
+            sLeaser.sprites[i].rotation = Custom.VecToDeg(vector2);
+        }
         if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
         {
             sLeaser.sprites[1].color = base.blinkColor;
@@ -179,19 +176,8 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         }
         else
         {
-            sLeaser.sprites[1].color = this.color;
-            sLeaser.sprites[2].color = this.color;
-            sLeaser.sprites[3].color = Color.Lerp(this.color, rCam.currentPalette.blackColor, 0.4f);
-            sLeaser.sprites[4].color = Color.Lerp(this.color, rCam.currentPalette.blackColor, 0.4f);
-            sLeaser.sprites[5].color = rCam.currentPalette.blackColor;
+            this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
         }
-        vector2 = Custom.DirVec(default, vector2);
-        sLeaser.sprites[3].x = vector.x + vector2.x * 10f - camPos.x;
-        sLeaser.sprites[3].y = vector.y + vector2.y * 10f - camPos.y;
-        sLeaser.sprites[3].rotation = sLeaser.sprites[0].rotation;
-        sLeaser.sprites[4].x = vector.x + vector2.x * (-10f) - camPos.x;
-        sLeaser.sprites[4].y = vector.y + vector2.y * (-10f) - camPos.y;
-        sLeaser.sprites[4].rotation = sLeaser.sprites[0].rotation;
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();
@@ -203,26 +189,11 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         sLeaser.sprites = new FSprite[6];
         sLeaser.sprites[0] = new FSprite("Futile_White", true);
         sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["WaterNut"];
-        sLeaser.sprites[1] = new FSprite("DangleFruit0A", true);
-        sLeaser.sprites[2] = new FSprite("DangleFruit0B", true);
-        sLeaser.sprites[3] = new FSprite("DangleFruit2A", true);
-        /*sLeaser.sprites[3].scaleX = 3.3f;
-        sLeaser.sprites[3].scaleY = -0.15f;*/
-        sLeaser.sprites[4] = new FSprite("DangleFruit2A", true);
-        /*sLeaser.sprites[4].scaleX = 3.3f;
-        sLeaser.sprites[4].scaleY = 0.15f;*/
-        sLeaser.sprites[5] = new FSprite("SmallSpear", true);
-        sLeaser.sprites[0].scaleX = 3f;
-        sLeaser.sprites[0].scaleY = 0.7f;
-        for (int i = 1; i < 3; i++)
-        {
-            sLeaser.sprites[i].scaleX = 2.7f;
-            sLeaser.sprites[i].scaleY = 0.4f;
-        }
-        sLeaser.sprites[3].scaleX = 3.3f;
-        sLeaser.sprites[3].scaleY = -0.6f;
-        sLeaser.sprites[4].scaleX = 3.3f;
-        sLeaser.sprites[4].scaleY = 0.6f;
+        sLeaser.sprites[1] = new FSprite("InflatableGlowingShieldA", true);
+        sLeaser.sprites[2] = new FSprite("InflatableGlowingShieldB", true);
+        sLeaser.sprites[3] = new FSprite("InflatableGlowingShieldC", true);
+        sLeaser.sprites[4] = new FSprite("InflatableGlowingShieldD", true);
+        sLeaser.sprites[5] = new FSprite("InflatableGlowingShieldE", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
 }

@@ -96,7 +96,10 @@ namespace Scientist
             On.Player.ThrowObject += PlayerThrowObject;
             On.Player.ThrownSpear += PlayerThrownSpear;
 
-            On.PlayerGraphics.Update += PlayerGraphics_Update;
+            //On.PlayerGraphics.Update += PlayerGraphics_Update;
+
+            On.GraphicsModule.Update += GraphicsModule_Update;
+            On.GraphicsModule.DrawSprites += GraphicsModule_DrawSprites;
 
             //On.Lizard.ctor += Lizard_ctor;
 
@@ -123,6 +126,9 @@ namespace Scientist
             //On.JollyCoop.JollyHUD.JollyMeter.PlayerIcon.ctor += JollyCoopJollyHUDJollyMeterPlayerIcon_ctor;   //已移植为独立mod：DetailedIcon
 
             //On.Creature.Violence += Creature_Violence;
+            On.Creature.Die += Creature_Die;
+
+            On.AbstractCreature.Move += AbstractCreature_Move;
 
             On.MoreSlugcats.GlowWeed.HitByWeapon += MoreSlugcatsGlowWeed_HitByWeapon;
 
@@ -130,13 +136,63 @@ namespace Scientist
             On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
         }
 
-        private void PlayerGraphics_Update(On.PlayerGraphics.orig_Update orig, PlayerGraphics self)
+        private void AbstractCreature_Move(On.AbstractCreature.orig_Move orig, AbstractCreature self, WorldCoordinate newCoord)
+        {
+            if (Scientist.ScientistPlayer.anesthesiaCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(self)) && Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(self)].IsEnabled())
+            {
+                Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(self)].AddCounter(Mathf.FloorToInt(self.realizedObject.TotalMass));
+                return;
+            }
+            orig(self, newCoord);
+        }
+
+        private void Creature_Die(On.Creature.orig_Die orig, Creature self)
+        {
+            bool wadDead = self.dead;
+            orig(self);
+            if (wadDead != self.dead)
+            {
+                if (self is BigNeedleWorm)
+                {
+                    items.AbstractPhysicalObjects.AnesthesiaSpearAbstract asa = new(self.room.world, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+                    self.room.abstractRoom.AddEntity(asa);
+                    asa.RealizeInRoom();
+                    asa.realizedObject.firstChunk.vel = Scientist.ScientistTools.RandomAngleVector2() * 10f;
+                }
+            }
+        }
+
+        private void GraphicsModule_Update(On.GraphicsModule.orig_Update orig, GraphicsModule self)
         {
             orig(self);
             string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
-            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey( fts ) && Scientist.ScientistPlayer.colorfulCreatures[fts].enabled)
+            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(fts) && Scientist.ScientistPlayer.colorfulCreatures[fts].enabled)
             {
                 Scientist.ScientistPlayer.colorfulCreatures[fts].AddCounter();
+                Scientist.ScientistPlayer.colorfulCreatures[fts].SetLightSource();
+            }
+        }
+
+        private void GraphicsModule_DrawSprites(On.GraphicsModule.orig_DrawSprites orig, GraphicsModule self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
+            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(fts) && Scientist.ScientistPlayer.colorfulCreatures[fts].enabled)
+            {
+                if (Scientist.ScientistPlayer.colorfulCreatures[fts].lightSource == null)
+                {
+                    Scientist.ScientistPlayer.colorfulCreatures[fts].SetLightSource();
+                }
+                for (int i = 0; i < sLeaser.sprites.Length; i++)
+                {
+                    if (sLeaser.sprites[i] != null)
+                    {
+                        sLeaser.sprites[i].color = Scientist.ScientistPlayer.colorfulCreatures[fts].lightSource.color;
+                    }
+                }
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, timeStacker, camPos);
             }
         }
 
@@ -260,25 +316,6 @@ namespace Scientist
             orig(self, obj);
         }
 
-        // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
-        private void LoadResources(RainWorld rainWorld)
-        {
-            Console.WriteLine("Loading Scientist resources...");
-
-            //Futile.atlasManager.LoadAtlas("atlases/icons/Kill_Slugcats");
-            Futile.atlasManager.LoadAtlas("atlases/slugcat/scientist_icon");
-
-            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_SharpSpear");
-            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ConcentratedDangleFruit");
-            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_PainlessFruit");
-            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ColorfulFruit");
-
-            Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
-            Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
-            Futile.atlasManager.LoadAtlas("atlases/textures/SmallSharpSpear");
-            Futile.atlasManager.LoadAtlas("atlases/textures/ColorfulFruit");
-        }
-
         public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
         {
             ScientistPlayer.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : ScientistPlayer.offlineTime + 1;
@@ -294,13 +331,13 @@ namespace Scientist
                 if (self.SlugCatClass.value == MOD_ID  && (CraftingResults(self) != null || Scientist.ScientistSlugcat.GetSpecialCraftingResult(self) != null) && scr == null)
                 {
                     AbstractPhysicalObject apo = ( CraftingResults(self) != null ) ? ScientistSlugcat.CraftingResults(self, self.grasps[0], self.grasps[1]) : Scientist.ScientistSlugcat.GetSpecialCraftingResult(self);
-                    ScientistLogger.Log($"apo = {apo}, apo.type = {apo.type}");
-                    IconSymbol.IconSymbolData isd = apo.type != AbstractPhysicalObject.AbstractObjectType.Creature ? (IconSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo) : (IconSymbol.IconSymbolData)CreatureSymbol.SymbolDataFromCreature( (apo.realizedObject as Creature).abstractCreature );
-                    ScientistLogger.Log($"isd = {isd}");
+                    IconSymbol.IconSymbolData isd = apo.type != AbstractPhysicalObject.AbstractObjectType.Creature ? (IconSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo) : (IconSymbol.IconSymbolData)CreatureSymbol.SymbolDataFromCreature((apo.realizedObject as Creature).abstractCreature);
                     IconSymbol iconSymbol = IconSymbol.CreateIconSymbol(isd, new FContainer());
                     scr = new items.ShowCraftingResult(self, iconSymbol.spriteName, iconSymbol.myColor, ScientistTools.RandomAngleVector2(new float[2][] { new float[2] { 0f, 60f }, new float[2] { 120f, 180f } }), 40f);
                     self.room.AddObject(scr);
-                    Vector2 test = RWCustom.Custom.DirVec(self.mainBodyChunk.pos, self.mainBodyChunk.pos);
+
+                    ScientistLogger.Log($"apo = {apo}, apo.type = {apo.type}");
+                    ScientistLogger.Log($"isd = {isd}");
                 }
             }
 
@@ -370,7 +407,28 @@ namespace Scientist
                     self.jumpBoost *= power;
                 }
             }
-            
+
+        }
+
+        // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
+        private void LoadResources(RainWorld rainWorld)
+        {
+            Console.WriteLine("Loading Scientist resources...");
+
+            //Futile.atlasManager.LoadAtlas("atlases/icons/Kill_Slugcats");
+            Futile.atlasManager.LoadAtlas("atlases/slugcat/scientist_icon");
+
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_SharpSpear");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ConcentratedDangleFruit");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_PainlessFruit");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ColorfulFruit");
+            Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_InflatableGlowingShield");
+
+            Futile.atlasManager.LoadAtlas("atlases/textures/SmallSharpSpear");
+            Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
+            Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
+            Futile.atlasManager.LoadAtlas("atlases/textures/ColorfulFruit");
+            Futile.atlasManager.LoadAtlas("atlases/textures/InflatableGlowingShield");
         }
 
         private void RainWorld_OnModsEnabled(On.RainWorld.orig_OnModsEnabled orig, RainWorld self, ModManager.Mod[] newlyEnabledMods)
@@ -413,6 +471,10 @@ namespace Scientist
             {
                 self.realizedObject = new items.InflatableGlowingShield(self, self.world);
             }
+            if (self.type == Register.AnesthesiaSpear)
+            {
+                self.realizedObject = new items.AnesthesiaSpear(new items.AbstractPhysicalObjects.AnesthesiaSpearAbstract(self.world, null, self.pos, self.ID), self.world);
+            }
         }
 
         private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -441,6 +503,14 @@ namespace Scientist
             {
                 return Player.ObjectGrabability.OneHand;
             }
+            if (obj is items.AnesthesiaSpear)
+            {
+                if (self.SlugCatClass == SlugcatStats.Name.Red)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                return Player.ObjectGrabability.BigOneHand;
+            }
             return orig(self, obj);
         }
 
@@ -462,6 +532,10 @@ namespace Scientist
             {
                 return "Symbol_ColorfulFruit";
             }
+            if (itemType == Scientist.Register.InflatableGlowingShield)
+            {
+                return "Symbol_InflatableGlowingShield";
+            }
             return orig(itemType, intData);
             
         }
@@ -481,6 +555,10 @@ namespace Scientist
                 return Color.white;//ScientistTools.ColorFromHex("bd4848");
             }
             if (itemType == Scientist.Register.ColorfulFruit)
+            {
+                return Color.white;
+            }
+            if (itemType == Scientist.Register.InflatableGlowingShield)
             {
                 return Color.white;
             }

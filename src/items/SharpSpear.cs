@@ -76,8 +76,16 @@ sealed class SharpSpear : Spear
     public override void HitWall()
     {
         base.HitWall();
-        this.stuckInWall = new Vector2?(this.room.MiddleOfTile(this.abstractPhysicalObject.pos.Tile));
-        this.ChangeMode(Weapon.Mode.StuckInWall);
+        try
+        {
+            this.stuckInWall = new Vector2?(this.room.MiddleOfTile(this.abstractPhysicalObject.pos.Tile));
+            this.ChangeMode(Weapon.Mode.StuckInWall);
+        }
+        catch (Exception ex)
+        {
+            ScientistLogger.LogError($"{ex}, {this.abstractPhysicalObject.pos.Tile}, SharpSpear.HitWall(), line 86, SharpSpear.cs");
+            this.ChangeMode(Weapon.Mode.Free);
+        }
     }
 
     public override void PickedUp(Creature upPicker)
@@ -86,5 +94,14 @@ sealed class SharpSpear : Spear
         //Player player = upPicker as Player;
         //if ( (player.isGourmand && player.gourmandExhausted) || (player.SlugCatClass.value == "xuyangjerry.Scientist") )
         base.PickedUp(upPicker);
+    }
+
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    {
+        base.InitiateSprites(sLeaser, rCam);
+        if (sLeaser.sprites[0].element.name == "SmallSpear")
+        {
+            sLeaser.sprites[0].element = Futile.atlasManager.GetElementWithName("SmallSharpSpear");
+        }
     }
 }

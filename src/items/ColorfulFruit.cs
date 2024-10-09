@@ -20,11 +20,30 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
     public float v;
     public float s;
 
+    public Creature thrownBy;
+    public LightSource light;
+    public Vector2 flickerDir;
+    public Vector2 lastFlickerDir;
+    public float flashRad;
+    public float lastFlashRad;
+    public float flashAplha;
+    public float lastFlashAlpha;
+    public float burning;
+    private bool charged;
+
     public AbstractConsumable AbstrConsumable
     {
         get
         {
             return this.abstractPhysicalObject as AbstractConsumable;
+        }
+    }
+
+    public float LightIntensity
+    {
+        get
+        {
+            return Mathf.Pow(Mathf.Sin(this.burning * 3.1415927f), 0.4f);
         }
     }
 
@@ -66,6 +85,44 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
             BodyChunk firstChunk = base.firstChunk;
             firstChunk.vel.x = firstChunk.vel.x * 0.8f;
         }
+
+        if (this.burning > 0f)
+        {
+            this.burning += 0.016666668f;
+            if (this.burning > 1f)
+            {
+                this.Destroy();
+            }
+            this.lastFlickerDir = this.flickerDir;
+            this.flickerDir = Custom.DegToVec(UnityEngine.Random.value * 360f) * 50f * this.LightIntensity;
+            this.lastFlashAlpha = this.flashAplha;
+            this.flashAplha = Mathf.Pow(UnityEngine.Random.value, 0.3f) * this.LightIntensity;
+            this.lastFlashRad = this.flashRad;
+            this.flashRad = Mathf.Pow(UnityEngine.Random.value, 0.3f) * this.LightIntensity * 200f * 16f;
+            for (int i = 0; i < this.room.abstractRoom.creatures.Count; i++)
+            {
+                if (this.room.abstractRoom.creatures[i].realizedCreature != null && (Custom.DistLess(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos, this.LightIntensity * 600f) || (Custom.DistLess(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos, this.LightIntensity * 1600f) && this.room.VisualContact(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos))))
+                {
+                    if (this.room.abstractRoom.creatures[i].creatureTemplate.type == CreatureTemplate.Type.Spider && !this.room.abstractRoom.creatures[i].realizedCreature.dead)
+                    {
+                        this.room.abstractRoom.creatures[i].realizedCreature.firstChunk.vel += Custom.DegToVec(UnityEngine.Random.value * 360f) * UnityEngine.Random.value * 7f;
+                        this.room.abstractRoom.creatures[i].realizedCreature.Die();
+                    }
+                    else if (this.room.abstractRoom.creatures[i].creatureTemplate.type == CreatureTemplate.Type.BigSpider)
+                    {
+                        (this.room.abstractRoom.creatures[i].realizedCreature as BigSpider).poison = 1f;
+                        (this.room.abstractRoom.creatures[i].realizedCreature as BigSpider).State.health -= UnityEngine.Random.value * 0.2f;
+                        this.room.abstractRoom.creatures[i].realizedCreature.Stun(UnityEngine.Random.Range(10, 20));
+                        if (this.thrownBy != null)
+                        {
+                            this.room.abstractRoom.creatures[i].realizedCreature.SetKillTag(this.thrownBy.abstractCreature);
+                        }
+                    }
+                    this.room.abstractRoom.creatures[i].realizedCreature.Blind((int)Custom.LerpMap(Vector2.Distance(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.VisionPoint), 60f, 600f, 400f, 20f));
+
+                }
+            }
+        }
     }
 
     public int BitesLeft => this.bites;
@@ -101,11 +158,12 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         base.firstChunk.MoveFromOutsideMyUpdate(eu, grasp.grabber.mainBodyChunk.pos);
         if (this.bites < 1)
         {
-            if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)))
+            if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)))
             {
-                Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
-                ScientistLogger.Log($"Player ate a Colorful Fruit! {Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)}, {Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)]}");
-            } 
+                Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)] = new(grasp.grabber as Player);
+            }
+            Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
+            ScientistLogger.Log($"Player ate a Colorful Fruit! {Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)}");
             (grasp.grabber as Player).mushroomCounter += 320;
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
