@@ -8,11 +8,6 @@ using UnityEngine;
 
 namespace items;
 
-//TODO 1.5矛的伤害 OK!
-//TODO 如果你一不小心把削尖的矛插到墙中，它会插的很深，只有胖猫体型且不在力竭状态才能把它拨出 OK!
-
-
-
 sealed class SharpSpear : Spear
 {
     public new items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
@@ -83,7 +78,7 @@ sealed class SharpSpear : Spear
         }
         catch (Exception ex)
         {
-            ScientistLogger.LogError($"{ex}, {this.abstractPhysicalObject.pos.Tile}, SharpSpear.HitWall(), line 86, SharpSpear.cs");
+            Scientist.ScientistLogger.Error($"{ex}, {this.abstractPhysicalObject.pos.Tile}, SharpSpear.HitWall(), line 86, SharpSpear.cs");
             this.ChangeMode(Weapon.Mode.Free);
         }
     }
@@ -98,10 +93,55 @@ sealed class SharpSpear : Spear
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        base.InitiateSprites(sLeaser, rCam);
-        if (sLeaser.sprites[0].element.name == "SmallSpear")
+        if (this.stuckIns != null)
         {
-            sLeaser.sprites[0].element = Futile.atlasManager.GetElementWithName("SmallSharpSpear");
+            rCam.ReturnFContainer("HUD").AddChild(this.stuckIns.label);
+        }
+        sLeaser.sprites = new FSprite[2];
+        sLeaser.sprites[0] = new FSprite("SmallSharpSpear", true);
+        sLeaser.sprites[1] = new FSprite("SmallSharpSpearHead", true);
+        this.AddToContainer(sLeaser, rCam, null);
+    }
+
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    {
+        if (this.stuckIns != null && this.room != null)
+        {
+            if (this.room.game.devToolsActive && Input.GetKeyDown("l"))
+            {
+                sLeaser.RemoveAllSpritesFromContainer();
+                this.InitiateSprites(sLeaser, rCam);
+                this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
+            }
+            if (this.stuckIns.relativePos)
+            {
+                this.stuckIns.label.x = base.bodyChunks[0].pos.x + this.stuckIns.pos.x - camPos.x;
+                this.stuckIns.label.y = base.bodyChunks[0].pos.y + this.stuckIns.pos.y - camPos.y;
+            }
+            else
+            {
+                this.stuckIns.label.x = this.stuckIns.pos.x;
+                this.stuckIns.label.y = this.stuckIns.pos.y;
+            }
+        }
+        Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
+        if (this.vibrate > 0)
+        {
+            vector += Custom.DegToVec(UnityEngine.Random.value * 360f) * 2f * UnityEngine.Random.value;
+        }
+        Vector3 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
+        for (int i = 0; i <= 1; i++)
+        {
+            sLeaser.sprites[i].x = vector.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y - camPos.y;
+            sLeaser.sprites[i].anchorY = Mathf.Lerp(this.lastPivotAtTip ? 0.85f : 0.5f, this.pivotAtTip ? 0.85f : 0.5f, timeStacker);
+            sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(new Vector2(0f, 0f), vector2);
+        }
+        sLeaser.sprites[0].color = (this.blink > 0 && UnityEngine.Random.value < 0.5f) ? base.blinkColor : this.color;
+        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("FFFFFF");
+        if (base.slatedForDeletetion || this.room != rCam.room)
+        {
+            sLeaser.CleanSpritesAndRemove();
         }
     }
 }

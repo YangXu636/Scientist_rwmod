@@ -1,5 +1,6 @@
 ﻿using SlugBase.DataTypes;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Scientist;
@@ -12,6 +13,27 @@ public class ScientistTools
     {
         int digit10 = (int)Mathf.Pow(10, GetNumberOfDecimalPlaces(chance));
         return (UnityEngine.Random.Range(1, digit10 + 1) / (float)digit10) <= chance;
+    }
+
+    public static bool DictionaryKeyHasValue<K, V>(Dictionary<K, V> dictionary, K key, V value)
+    {
+        if (dictionary == null) { return false; }
+        try
+        {
+            return (dictionary.ContainsKey(key) && dictionary[key].Equals(value));
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public static bool InRange(float value, float min, float max, bool inclusiveLeft = true, bool inclusiveRight = true) => (inclusiveLeft? value >= min : value > min) && (inclusiveRight? value <= max : value < max);
+
+    public static float GetFractionalPart(float num)
+    {
+        int digit10 = (int)Mathf.Pow(10, GetNumberOfDecimalPlaces(num));
+        return (float)((float)(num * digit10 % digit10) / digit10);
     }
 
     public static int GetNumberOfDecimalPlaces<T>(T decimalV) // where T : float, double, decimal
@@ -98,4 +120,13 @@ public class ScientistTools
     public static string FeaturesTypeString(Creature c) => FeaturesTypeString(c.abstractCreature);
 
     public static string FeaturesTypeString(AbstractCreature ac) => ac.ToString();
+
+    public static T[] Memset<T>(T[] array, T value)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = value;
+        }
+        return array;
+    }
 }

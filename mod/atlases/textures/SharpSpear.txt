@@ -1,0 +1,28 @@
+{"frames": {
+
+"SmallSharpSpear.png":
+{
+	"frame": {"x":0,"y":0,"w":4,"h":61},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":4,"h":61},
+	"sourceSize": {"w":4,"h":61}
+},
+"SmallSharpSpearHead.png":
+{
+	"frame": {"x":4,"y":0,"w":4,"h":61},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":4,"h":61},
+	"sourceSize": {"w":4,"h":61}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "SharpSpear.png",
+	"format": "RGBA8888",
+	"size": {"w":8,"h":61},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3a7f831cb526c6ccb4774d191cb286ad:7e8fd86c06441837503bfcb2f68b5bf1:cc4fc28e1b81a3089da95f3c0aa49b4b$"
+}
+}

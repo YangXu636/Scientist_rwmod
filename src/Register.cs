@@ -5,6 +5,7 @@ namespace Scientist
     public static class Register
     {
         //AbstractObjectType, as well as the class as a whole, must be public and static
+        public static AbstractPhysicalObject.AbstractObjectType ScientistIcon;
         public static AbstractPhysicalObject.AbstractObjectType SharpSpear;
         public static AbstractPhysicalObject.AbstractObjectType ConcentratedDangleFruit;
         public static AbstractPhysicalObject.AbstractObjectType PainlessFruit;
@@ -19,6 +20,7 @@ namespace Scientist
 
         public static void RegisterValues()
         {
+            Register.ScientistIcon = new AbstractPhysicalObject.AbstractObjectType("ScientistIcon", true);
             Register.SharpSpear = new AbstractPhysicalObject.AbstractObjectType("SharpSpear", true);
             Register.ConcentratedDangleFruit = new AbstractPhysicalObject.AbstractObjectType("ConcentratedDangleFruit", true);
             Register.PainlessFruit = new AbstractPhysicalObject.AbstractObjectType("PainlessFruit", true);
@@ -35,6 +37,10 @@ namespace Scientist
 
         public static void UnregisterValues()
         {
+            AbstractPhysicalObject.AbstractObjectType scientistIcon = ScientistIcon;
+            scientistIcon?.Unregister();
+            ScientistIcon = null;
+
             AbstractPhysicalObject.AbstractObjectType sharpSpear = SharpSpear;
             sharpSpear?.Unregister();
             SharpSpear = null;

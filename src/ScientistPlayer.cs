@@ -27,24 +27,33 @@ public static class ScientistPlayer
 
 public class ColorfulSprite
 {
+    public float secondTotal = -1f;
+    public float second = 0f;
     public int counterTotal = 560;
     public int counter;
     public bool enabled = false;
     public LightSource? lightSource;
     public Creature c;
 
-    public ColorfulSprite(Creature c, bool enabled = false, LightSource? ls = null)
+    public ColorfulSprite(Creature c, int counter = 0, bool enabled = false, float secondTotal = -1f, LightSource? ls = null)
     {
-        this.counter = 0;
         this.c = c;
+        this.counter = counter;
         this.enabled = enabled;
+        this.secondTotal = secondTotal;
+        this.second = 0f;
         this.lightSource = ls;
     }
 
-    public void AddCounter(int amount = 1)
+    public void AddCounter(int amount = 1, float second = 1/40.000f)
     {
         this.counter %= this.counterTotal;
         this.counter += amount;
+        this.second += second;
+        if (this.enabled && Scientist.ScientistTools.InRange(this.second, this.secondTotal, this.secondTotal + 0.9f))
+        {
+            this.SetEnabled(false);
+        }
     }
 
     public void SetEnabled(bool enabled)

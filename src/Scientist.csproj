@@ -42,12 +42,12 @@
         <Reference Include="..\lib\UnityEngine.dll">
           <Private>false</Private>
         </Reference>
+        <Reference Include="BeastMaster">
+          <HintPath>..\lib\BeastMaster.dll</HintPath>
+        </Reference>
     </ItemGroup>
     
     <ItemGroup>
-      <Reference Include="Fisobs">
-        <HintPath>..\..\Scientist\dependencies\Fisobs.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
       </Reference>
@@ -96,7 +96,7 @@
     </Target>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;" />
+      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.dll&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;" />
     </Target>
     
 </Project>

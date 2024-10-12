@@ -6,11 +6,11 @@ using UnityEngine;
 
 
 namespace items;
-public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
+public class ColorfulFruit : Weapon, IPlayerEdible
 {
-    public Vector2 rotation;
+    /*public Vector2 rotation;
     public Vector2 lastRotation;
-    public Vector2? setRotation;
+    public Vector2? setRotation;*/
     public float darkness;
     public float lastDarkness;
     public bool normal;
@@ -20,7 +20,6 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
     public float v;
     public float s;
 
-    public Creature thrownBy;
     public LightSource light;
     public Vector2 flickerDir;
     public Vector2 lastFlickerDir;
@@ -47,7 +46,7 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         }
     }
 
-    public ColorfulFruit(AbstractPhysicalObject abstractPhysicalObject, bool normal = true) : base(abstractPhysicalObject)
+    public ColorfulFruit(AbstractPhysicalObject abstractPhysicalObject, World world, bool normal = true) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 8f, 0.2f);
@@ -68,7 +67,7 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
     {
         base.Update(eu);
         counter = counter >= 560 ? 0 : counter + 1;
-        this.lastRotation = this.rotation;
+        /*this.lastRotation = this.rotation;
         if (this.grabbedBy.Count > 0)
         {
             this.rotation = Custom.PerpendicularVector(Custom.DirVec(base.firstChunk.pos, this.grabbedBy[0].grabber.mainBodyChunk.pos));
@@ -84,8 +83,11 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
             this.rotation = (this.rotation - Custom.PerpendicularVector(this.rotation) * 0.1f * base.firstChunk.vel.x).normalized;
             BodyChunk firstChunk = base.firstChunk;
             firstChunk.vel.x = firstChunk.vel.x * 0.8f;
+        }*/
+        if (this.charged && (base.firstChunk.ContactPoint.x != 0 || base.firstChunk.ContactPoint.y != 0))
+        {
+            this.StartBurn();
         }
-
         if (this.burning > 0f)
         {
             this.burning += 0.016666668f;
@@ -119,9 +121,41 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
                         }
                     }
                     this.room.abstractRoom.creatures[i].realizedCreature.Blind((int)Custom.LerpMap(Vector2.Distance(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.VisionPoint), 60f, 600f, 400f, 20f));
-
+                    string c_fts = Scientist.ScientistTools.FeaturesTypeString(this.room.abstractRoom.creatures[i]);
+                    if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
+                    {
+                        Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.abstractRoom.creatures[i].realizedCreature, UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
+                    }
                 }
             }
+        }
+        if (base.firstChunk.ContactPoint.y != 0)
+        {
+            this.rotationSpeed = (this.rotationSpeed * 2f + base.firstChunk.vel.x * 5f) / 3f;
+        }
+        if (this.light != null)
+        {
+            if (this.room.Darkness(base.firstChunk.pos) == 0f)
+            {
+                this.light.Destroy();
+            }
+            else
+            {
+                this.light.setPos = new Vector2?(base.firstChunk.pos + base.firstChunk.vel);
+                this.light.setAlpha = new float?(((base.mode == Weapon.Mode.Thrown) ? Mathf.Lerp(0.5f, 1f, UnityEngine.Random.value) : 0.5f) * (1f - 0.6f * this.LightIntensity));
+                this.light.setRad = new float?(Mathf.Max(this.flashRad, ((base.mode == Weapon.Mode.Thrown) ? Mathf.Lerp(60f, 290f, UnityEngine.Random.value) : 60f) * 1f + this.LightIntensity * 10f));
+                this.light.color = Color.HSVToRGB(Scientist.ScientistTools.GetFractionalPart(this.counter / 56f), 0.7f, 0.8f);
+            }
+            if (this.light.slatedForDeletetion || this.light.room != this.room)
+            {
+                this.light = null;
+                return;
+            }
+        }
+        else if (this.room.Darkness(base.firstChunk.pos) > 0f && this.charged)
+        {
+            this.light = new LightSource(base.firstChunk.pos, false, this.color, this);
+            this.room.AddObject(this.light);
         }
     }
 
@@ -137,8 +171,8 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
     {
         base.PlaceInRoom(placeRoom);
         base.firstChunk.HardSetPosition(placeRoom.MiddleOfTile(this.abstractPhysicalObject.pos));
-        this.rotation = Custom.RNV();
-        this.lastRotation = this.rotation;
+        /*this.rotation = Custom.RNV();
+        this.lastRotation = this.rotation;*/
     }
 
     public override void HitByWeapon(Weapon weapon)
@@ -163,7 +197,6 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
                 Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)] = new(grasp.grabber as Player);
             }
             Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
-            ScientistLogger.Log($"Player ate a Colorful Fruit! {Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)}");
             (grasp.grabber as Player).mushroomCounter += 320;
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
@@ -171,7 +204,55 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         }
     }
 
-    public void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+    public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)
+    {
+        if (result.chunk == null)
+        {
+            return false;
+        }
+        this.room.PlaySound(SoundID.Flare_Bomb_Hit_Creature, base.firstChunk);
+        this.StartBurn();
+        return base.HitSomething(result, eu);
+    }
+
+    // Token: 0x06001130 RID: 4400 RVA: 0x001137AA File Offset: 0x001119AA
+    public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
+    {
+        base.Thrown(thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
+        this.charged = true;
+        Room room = this.room;
+        if (room == null)
+        {
+            return;
+        }
+        room.PlaySound(SoundID.Slugcat_Throw_Flare_Bomb, base.firstChunk);
+    }
+
+    public override void HitWall()
+    {
+        this.StartBurn();
+        this.SetRandomSpin();
+        this.ChangeMode(Weapon.Mode.Free);
+        base.forbiddenToPlayer = 10;
+    }
+
+    public override void HitByExplosion(float hitFac, Explosion explosion, int hitChunk)
+    {
+        base.HitByExplosion(hitFac, explosion, hitChunk);
+        this.StartBurn();
+    }
+
+    public void StartBurn()
+    {
+        if (this.burning > 0f && burning < 1f)
+        {
+            return;
+        }
+        this.burning = 0.01f;
+        this.room.PlaySound(SoundID.Flare_Bomb_Burn, base.firstChunk);
+    }
+
+    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         newContatiner ??= rCam.ReturnFContainer("Items");
         for (int i = 0; i < sLeaser.sprites.Length; i++)
@@ -188,7 +269,7 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         }
     }
 
-    public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
         for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
@@ -197,7 +278,7 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         sLeaser.sprites[2].alpha = 0.5f;
     }
 
-    public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
         Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
         Vector2 v = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
@@ -219,6 +300,20 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             sLeaser.sprites[3].scale = 35f;
         }
+        if (this.burning == 0f)
+        {
+            sLeaser.sprites[2].shader = rCam.room.game.rainWorld.Shaders["FlatLightBehindTerrain"];
+            sLeaser.sprites[2].x = vector.x - camPos.x;
+            sLeaser.sprites[2].y = vector.y - camPos.y;
+        }
+        else
+        {
+            sLeaser.sprites[2].shader = rCam.room.game.rainWorld.Shaders["FlareBomb"];
+            sLeaser.sprites[2].x = vector.x - camPos.x + Mathf.Lerp(this.lastFlickerDir.x, this.flickerDir.x, timeStacker);
+            sLeaser.sprites[2].y = vector.y - camPos.y + Mathf.Lerp(this.lastFlickerDir.y, this.flickerDir.y, timeStacker);
+            sLeaser.sprites[2].scale = Mathf.Lerp(this.lastFlashRad, this.flashRad, timeStacker) / 16f;
+            sLeaser.sprites[2].alpha = Mathf.Lerp(this.lastFlashAlpha, this.flashAplha, timeStacker);
+        }
         if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
         {
             sLeaser.sprites[1].color = base.blinkColor;
@@ -229,7 +324,7 @@ public class ColorfulFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         }
     }
 
-    public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
         if (this.normal)
         {
