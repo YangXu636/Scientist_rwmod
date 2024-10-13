@@ -103,6 +103,13 @@ sealed class SharpSpear : Spear
         this.AddToContainer(sLeaser, rCam, null);
     }
 
+    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+    {
+        base.AddToContainer(sLeaser, rCam, newContatiner);
+        //rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[1]);
+        sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
+    }
+
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
         if (this.stuckIns != null && this.room != null)
@@ -138,7 +145,7 @@ sealed class SharpSpear : Spear
             sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(new Vector2(0f, 0f), vector2);
         }
         sLeaser.sprites[0].color = (this.blink > 0 && UnityEngine.Random.value < 0.5f) ? base.blinkColor : this.color;
-        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("FFFFFF");
+        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("949494");
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();

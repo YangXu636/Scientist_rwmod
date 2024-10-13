@@ -21,6 +21,7 @@ using UnityEditor.VersionControl;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using System.Text;
+using System.Reflection.Emit;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -220,6 +221,7 @@ class Plugin : BaseUnityPlugin
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
         if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(fts) && Scientist.ScientistPlayer.colorfulCreatures[fts].enabled)
         {
+            Scientist.ScientistPlayer.colorfulCreatures[fts].SetOriginalColors(sLeaser);
             if (Scientist.ScientistPlayer.colorfulCreatures[fts].lightSource == null)
             {
                 Scientist.ScientistPlayer.colorfulCreatures[fts].SetLightSource();
@@ -229,7 +231,6 @@ class Plugin : BaseUnityPlugin
                 if (sLeaser.sprites[i] != null)
                 {
                     sLeaser.sprites[i].color = Scientist.ScientistPlayer.colorfulCreatures[fts].lightSource.color;
-                    sLeaser.sprites[i].alpha = 1f;
                 }
             }
         }
@@ -390,7 +391,7 @@ class Plugin : BaseUnityPlugin
                     Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)]--;
                 }
             }
-            self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
+            //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
             if (!ModManager.CoopAvailable)
             {
                 goto IL_1S;
@@ -402,13 +403,13 @@ class Plugin : BaseUnityPlugin
                     AbstractCreature abstractCreature2 = enumerator.Current;
                     if (abstractCreature2.realizedCreature != null)
                     {
-                        (abstractCreature2.realizedCreature as Player).mushroomEffect = Mathf.Max(self.mushroomEffect, (abstractCreature2.realizedCreature as Player).mushroomEffect);
+                        //(abstractCreature2.realizedCreature as Player).mushroomEffect = Mathf.Max(self.mushroomEffect, (abstractCreature2.realizedCreature as Player).mushroomEffect);
                     }
                 }
                 goto IL_1S;
             }
         }
-        self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
+        //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
         IL_1S:
         if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)])
         {
@@ -644,77 +645,20 @@ class Plugin : BaseUnityPlugin
     {
         ILCursor cur = new(il);
 
-        ILLabel canEatLabel1 = cur.DefineLabel();
-        ILLabel canEatLabel2 = cur.DefineLabel();
-        ILLabel canEatLabel3 = cur.DefineLabel();
-        ILLabel canEatLabel4 = cur.DefineLabel();
-        ILLabel canEatLabel5 = cur.DefineLabel();
-
-        bool[] flag = new bool[2];
-        Scientist.ScientistTools.Memset(flag, false);
-
-        if (cur.TryGotoNext(ins => ins.MatchLdfld<Creature.Grasp>("grabbed"), ins => ins.MatchIsinst<KarmaFlower>()))  //IL_0e58: ldfld class PhysicalObject Creature/Grasp::grabbed
+        /*if (cur.TryGotoNext(ins => ins.MatchCallOrCallvirt(typeof(Player).GetMethod("AddFood")), ins => ins.MatchLdcI4(1), ins => ins.MatchStloc(0), ins => ins.MatchLdarg(0), ins => ins.MatchCallOrCallvirt(typeof(Player).GetProperty("FoodInStomach").GetGetMethod()), ins => ins.MatchLdarg(0), ins => ins.MatchCallOrCallvirt(typeof(Player).GetProperty("MaxFoodInStomach").GetGetMethod())))
         {
-            flag[0] = true;
-            cur.Index += 2;
-            cur.Remove();
-            cur.Emit(OpCodes.Brtrue_S, canEatLabel1);
-        }
-        if (cur.TryGotoNext(ins => ins.MatchLdfld<Creature.Grasp>("grabbed"), ins => ins.MatchIsinst<Mushroom>()))  //IL_0e6d: ldfld class PhysicalObject Creature/Grasp::grabbed
-        {
-            flag[1] = true;
-            cur.Index += 2;
-            cur.Remove();
-            cur.Emit(OpCodes.Brtrue_S, canEatLabel1);
-            //cur.EmitDelegate(new Func<Player, bool, bool>((player, eu) => { }));
-        }
-        if (flag[0] && flag[1])
-        {
-            //cur.Index++;
-            cur.Emit(OpCodes.Ldarg_0);
-            cur.Emit(OpCodes.Callvirt, typeof(Creature).GetProperty("grasps").GetValue(null));
-            cur.Emit(OpCodes.Ldloc_S, (byte)6);
-            cur.Emit(OpCodes.Ldelem_Ref);
-            cur.Emit(OpCodes.Ldfld, typeof(Creature.Grasp).GetField("grabbed"));
-            cur.Emit(OpCodes.Isinst, typeof(IPlayerEdible));
-            cur.Emit(OpCodes.Brfalse_S, canEatLabel2);
-
-            cur.Emit(OpCodes.Ldarg_0);
-            cur.Emit(OpCodes.Callvirt, typeof(Creature).GetProperty("grasps").GetValue(null));
-            cur.Emit(OpCodes.Ldloc_S, (byte)6);
-            cur.Emit(OpCodes.Ldelem_Ref);
-            cur.Emit(OpCodes.Ldfld, typeof(Creature.Grasp).GetField("grabbed"));
-            cur.Emit(OpCodes.Isinst, typeof(IPlayerEdible));
-            cur.Emit(OpCodes.Callvirt, typeof(IPlayerEdible).GetProperty("Edible").GetValue(null));
-            cur.Emit(OpCodes.Brfalse_S, canEatLabel2);
-
-            cur.Emit(OpCodes.Ldarg_0);
-            cur.Emit(OpCodes.Callvirt, typeof(Creature).GetProperty("grasps").GetValue(null));
-            cur.Emit(OpCodes.Ldloc_S, (byte)6);
-            cur.Emit(OpCodes.Ldelem_Ref);
-            cur.Emit(OpCodes.Ldfld, typeof(Creature.Grasp).GetField("grabbed"));
-            cur.Emit(OpCodes.Isinst, typeof(IPlayerEdible));
-            cur.Emit(OpCodes.Callvirt, typeof(IPlayerEdible).GetProperty("FoodPoints").GetValue(null));
-            cur.Emit(OpCodes.Ldc_I4_0);
-            cur.Emit(OpCodes.Ceq);
-            cur.Emit(OpCodes.Br_S, canEatLabel3);
-
-            cur.MarkLabel(canEatLabel2);
-            cur.Emit(OpCodes.Ldc_I4_0);
-
-            cur.MarkLabel(canEatLabel3);
-            cur.Emit(OpCodes.Br_S, canEatLabel4);
-
-            cur.MarkLabel(canEatLabel1);
-            cur.Emit(OpCodes.Ldc_I4_1);
-
-            cur.MarkLabel(canEatLabel4);
-            cur.Emit(OpCodes.Stloc_S, (byte)54);
-            cur.Emit(OpCodes.Ldloc_S, (byte)54);
-            cur.Emit(OpCodes.Brfalse_S, canEatLabel5);
-        }
+            Scientist.ScientistLogger.Log($"Player.GrabUpdate IL hooked, index = {cur.Index}");
+            cur.Index += 3;
+            cur.RemoveRange(50);
+            cur.EmitDelegate(new Func<Player, bool, bool>((player, eu) =>
+            {
+                int num5 = 0;
+                if 
+            player.grasps[2].grabbed is IPlayerEdible && (player.grasps[2].grabbed as IPlayerEdible).Edible && (player.grasps[2].grabbed as IPlayerEdible).FoodPoints == 0) || player.FoodInStomach < player.MaxFoodInStomach || player.grasps[2].grabbed is KarmaFlower || player.grasps[2].grabbed is Mushroom
+            }));
+        }*/
     }
-
+    
     public void SpitUpCraftedObject(Player player)
     {
         player.craftingTutorial = true;

@@ -140,17 +140,21 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
             sLeaser.sprites[i].RemoveFromContainer();
             newContatiner.AddChild(sLeaser.sprites[i]);
         }
-        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[0]);
-        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[1]);
-        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[2]);
-        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[3]);
+        /*rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[0]);//GrabShaders
+        rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[1]);
+        rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[2]);
+        rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[3]);*/
+        sLeaser.sprites[0].MoveInFrontOfOtherNode(sLeaser.sprites[4]);
+        //sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
+        sLeaser.sprites[2].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
+        sLeaser.sprites[3].MoveInFrontOfOtherNode(sLeaser.sprites[2]);
     }
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
         this.color = new Color(0.8f, 1f, 0.4f);
         //sLeaser.sprites[0].color = Color.Lerp(palette.waterColor1, palette.waterColor2, 0.5f);
-        sLeaser.sprites[0].color = /*Scientist.ScientistTools.ColorFromHex("48611C"); //*/palette.blackColor;
+        sLeaser.sprites[0].color = Scientist.ScientistTools.ColorFromHex("48611C"); //palette.blackColor;
         sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("81E629");
         sLeaser.sprites[1].alpha = 0.5f;
         sLeaser.sprites[2].color = Scientist.ScientistTools.ColorFromHex("7DCF36");

@@ -34,6 +34,8 @@ public class ColorfulSprite
     public bool enabled = false;
     public LightSource? lightSource;
     public Creature c;
+    public bool getOriginalColors;
+    public Color[] originalColors;
 
     public ColorfulSprite(Creature c, int counter = 0, bool enabled = false, float secondTotal = -1f, LightSource? ls = null)
     {
@@ -43,6 +45,8 @@ public class ColorfulSprite
         this.secondTotal = secondTotal;
         this.second = 0f;
         this.lightSource = ls;
+        this.getOriginalColors = false;
+        this.originalColors = new Color[0];
     }
 
     public void AddCounter(int amount = 1, float second = 1/40.000f)
@@ -59,6 +63,7 @@ public class ColorfulSprite
     public void SetEnabled(bool enabled)
     {
         this.enabled = enabled;
+        this.getOriginalColors = !enabled || (enabled && this.originalColors.Length == 0);
         this.SetLightSource();
     }
 
@@ -76,7 +81,7 @@ public class ColorfulSprite
             }
             this.lightSource.stayAlive = true;
             this.lightSource.setPos = new Vector2?(c.mainBodyChunk.pos);
-            this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.7f);
+            this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.5f);
             if (this.lightSource.slatedForDeletetion)
             {
                 this.lightSource = null;
@@ -92,6 +97,27 @@ public class ColorfulSprite
         }
     }
 
+    public void SetOriginalColors(RoomCamera.SpriteLeaser sLeaser)
+    {
+        if (this.getOriginalColors && this.originalColors.Length == 0)
+        {
+            this.originalColors = new Color[sLeaser.sprites.Length];
+            for (int i = 0; i < sLeaser.sprites.Length; i++)
+            {
+                this.originalColors[i] = sLeaser.sprites[i].color;
+            }
+            this.getOriginalColors = false;
+        }
+        else if (this.getOriginalColors && this.originalColors.Length != 0)
+        {
+            for (int i = 0; i < sLeaser.sprites.Length; i++)
+            {
+                sLeaser.sprites[i].color = this.originalColors[i];
+            }
+            this.getOriginalColors = false;
+        }
+    }
+
     public override string ToString()
     {
         return $"{this.c}<>{this.counterTotal}<>{this.counter}<>{this.enabled}<>{this.lightSource}";
@@ -100,11 +126,11 @@ public class ColorfulSprite
 
 public class AnesthesiaCreature
 {
-    public int counterTotal = 3200;
+    public int counterTotal = 1600;
     public int counter;
     public Func<int, int, bool> enabled;
 
-    public AnesthesiaCreature(Func<int, int, bool> enabled, int counterTotal = 3200)
+    public AnesthesiaCreature(Func<int, int, bool> enabled, int counterTotal = 1600)
     {
         this.counter = 0;
         this.enabled = enabled;
