@@ -125,6 +125,7 @@ public class ColorfulFruit : Weapon, IPlayerEdible
                     if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
                     {
                         Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.abstractRoom.creatures[i].realizedCreature, UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
+                        ScientistLogger.Log($"this.room.abstractRoom.creatures[i].realizedCreature = {this.room.abstractRoom.creatures[i].realizedCreature}");
                     }
                 }
             }

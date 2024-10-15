@@ -52,27 +52,35 @@ public class ScientistTools
 
     public static Color ColorFromHex(string hex)
     {
-        if (hex.StartsWith("#"))
+        try
         {
-            hex = hex.Substring(1);
+            if (hex.StartsWith("#"))
+            {
+                hex = hex.Substring(1);
+            }
+            if (hex.Length != 6 && hex.Length != 8)
+            {
+                return Color.white;
+            }
+            byte br = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+            byte bg = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+            byte bb = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+            float r = br / 255f;
+            float g = bg / 255f;
+            float b = bb / 255f;
+            if (hex.Length == 6)
+            {
+                return new Color(r, g, b);
+            }
+            byte cc = byte.Parse(hex.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+            float a = cc / 255f;
+            return new Color(r, g, b, a);
         }
-        if (hex.Length!= 6 && hex.Length!= 8)
+        catch (Exception ex)
         {
+            ScientistLogger.Warning("Could not parse color from hex: " + ex.Message + " " + hex + "ScienistTools.ColorFromHex");
             return Color.white;
         }
-        byte br = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-        byte bg = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-        byte bb = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-        float r = br / 255f;
-        float g = bg / 255f;
-        float b = bb / 255f;
-        if (hex.Length == 6)
-        {
-            return new Color(r, g, b);
-        }
-        byte cc = byte.Parse(hex.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
-        float a = cc / 255f;
-        return new Color(r, g, b, a);
     }
 
     public static Color ColorReverse(Color color) => new Color(1f - color.r, 1f - color.g, 1f - color.b, color.a);

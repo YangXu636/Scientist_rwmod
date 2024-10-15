@@ -39,6 +39,14 @@
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":27,"h":34},
 	"sourceSize": {"w":27,"h":34}
+},
+"InflatableGlowingShieldF.png":
+{
+	"frame": {"x":0,"y":170,"w":27,"h":34},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":27,"h":34},
+	"sourceSize": {"w":27,"h":34}
 }},
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

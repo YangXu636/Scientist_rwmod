@@ -9,7 +9,7 @@ namespace items.AbstractPhysicalObjects
 
 		public AnesthesiaSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID) : base(world, realizedObject, pos, ID, false)
 		{
-            this.type = Scientist.Register.AnesthesiaSpear;
+            this.type = Scientist.ScientistEnums.Items.AnesthesiaSpear;
         }
 
 		public override void Realize()

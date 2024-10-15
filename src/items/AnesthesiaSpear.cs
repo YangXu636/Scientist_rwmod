@@ -1,6 +1,7 @@
 ﻿using items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
+using Scientist;
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -54,11 +55,6 @@ sealed class AnesthesiaSpear : Spear
         this.jollyCustomColor = null;
     }
 
-    public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
-    {
-        base.Thrown(thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
-    }
-
     public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)
     {
         if (result.obj is Creature)
@@ -70,61 +66,32 @@ sealed class AnesthesiaSpear : Spear
             }
             if (!c.dead)
             {
-                c.Stun(800);
+                c.Stun(400);
+                if (c is not Player)
+                {
+                    Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.AnesthesiaCreature((x, y) => x < y);
+                }
             }
         }
         return base.HitSomething(result, eu);
     }
 
-    public override void HitSomethingWithoutStopping(PhysicalObject obj, BodyChunk chunk, Appendage appendage)
-    {
-        bool flag = false;
-        if (obj is Creature)
-        {
-            flag = (obj as Creature).dead;
-        }
-        base.HitSomethingWithoutStopping(obj, chunk, appendage);
-        if (obj is Creature && !flag)
-        {
-            Creature c = obj as Creature;
-            if (c is Player)
-            {
-                c.Stun(800);
-            }
-            else
-            {
-                Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.AnesthesiaCreature( (x, y) => x < y);
-            }
-        }
-        if (obj is items.AnesthesiaSpear)
-        {
-            for (int i = 0; i < UnityEngine.Random.Range(2, 4); i++)
-            {
-                items.AbstractPhysicalObjects.AnesthesiaSpearAbstract apo = new(this.room.world, null, this.abstractPhysicalObject.pos, this.room.world.game.GetNewID());
-                this.room.abstractRoom.AddEntity(apo);
-                apo.RealizeInRoom();
-                apo.realizedObject.firstChunk.vel = -this.firstChunk.vel / 3f;
-            }
-            for (int i = 0; i < UnityEngine.Random.Range(2, 4); i++)
-            {
-                items.AbstractPhysicalObjects.AnesthesiaSpearAbstract apo = new(this.room.world, null, this.abstractPhysicalObject.pos, this.room.world.game.GetNewID());
-                this.room.abstractRoom.AddEntity(apo);
-                apo.RealizeInRoom();
-                apo.realizedObject.firstChunk.vel = this.firstChunk.vel / 3f;
-            }
-            this.Destroy();
-            (obj as items.AnesthesiaSpear).Destroy();
-        }
-    }
-
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        base.InitiateSprites(sLeaser, rCam);
+        if (this.stuckIns != null)
+        {
+            rCam.ReturnFContainer("HUD").AddChild(this.stuckIns.label);
+        }
+        sLeaser.sprites = new FSprite[2];
+        sLeaser.sprites[0] = new FSprite("SmallAnesthesiaSpearA", true);
+        sLeaser.sprites[1] = new FSprite("SmallAnesthesiaSpearB", true);
+        this.AddToContainer(sLeaser, rCam, null);
     }
 
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         base.AddToContainer(sLeaser, rCam, newContatiner);
+        sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
     }
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -134,6 +101,43 @@ sealed class AnesthesiaSpear : Spear
 
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+        if (this.stuckIns != null && this.room != null)
+        {
+            if (this.room.game.devToolsActive && Input.GetKeyDown("l"))
+            {
+                sLeaser.RemoveAllSpritesFromContainer();
+                this.InitiateSprites(sLeaser, rCam);
+                this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
+            }
+            if (this.stuckIns.relativePos)
+            {
+                this.stuckIns.label.x = base.bodyChunks[0].pos.x + this.stuckIns.pos.x - camPos.x;
+                this.stuckIns.label.y = base.bodyChunks[0].pos.y + this.stuckIns.pos.y - camPos.y;
+            }
+            else
+            {
+                this.stuckIns.label.x = this.stuckIns.pos.x;
+                this.stuckIns.label.y = this.stuckIns.pos.y;
+            }
+        }
+        Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
+        if (this.vibrate > 0)
+        {
+            vector += Custom.DegToVec(UnityEngine.Random.value * 360f) * 2f * UnityEngine.Random.value;
+        }
+        Vector3 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
+        for (int i = 0; i <= 1; i++)
+        {
+            sLeaser.sprites[i].x = vector.x - camPos.x + this.rotation.x * 10f;
+            sLeaser.sprites[i].y = vector.y - camPos.y + this.rotation.y * 10f;
+            sLeaser.sprites[i].anchorY = Mathf.Lerp(this.lastPivotAtTip ? 0.85f : 0.5f, this.pivotAtTip ? 0.85f : 0.5f, timeStacker);
+            sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(new Vector2(0f, 0f), vector2);
+        }
+        sLeaser.sprites[0].color = (this.blink > 0 && UnityEngine.Random.value < 0.5f) ? base.blinkColor : Scientist.ScientistTools.ColorFromHex("F04D52");
+        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("636363");
+        if (base.slatedForDeletetion || this.room != rCam.room)
+        {
+            sLeaser.CleanSpritesAndRemove();
+        }
     }
 }

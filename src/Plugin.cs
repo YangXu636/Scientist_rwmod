@@ -34,7 +34,7 @@ using System.Reflection.Emit;
 
 namespace Scientist;
 
-[BepInPlugin(MOD_ID, "Scientist", "0.1.0")]
+[BepInPlugin(MOD_ID, "Scientist", "2.1.0")]
 class Plugin : BaseUnityPlugin
 {
     public const string MOD_ID = "XuYangJerry.Scientist";
@@ -83,7 +83,7 @@ class Plugin : BaseUnityPlugin
         {
             new items.ShapeSpears.ShapeSpearFisob()
         });*/
-        Register.RegisterValues(); //注册，钩子有时候出问题
+        ScientistEnums.ScientistEnums.RegisterValues(); //注册，钩子有时候出问题
 
         // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
         On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
@@ -115,7 +115,7 @@ class Plugin : BaseUnityPlugin
 
         //On.SSOracleBehavior.InitateConversation += chats.FivePebblesChats.FivePebbles_InitateConversationInitiateConversation;
         //On.SSOracleBehavior.Update += chats.FivePebblesChats.FivePebbles_Update;
-        //On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
+        On.SSOracleBehavior.PebblesConversation.AddEvents += chats.FivePebblesChats.FivePebbles_AddEvents;
         On.SSOracleBehavior.SeePlayer += chats.FivePebblesChats.FivePebbles_SeePlayer;
         On.SSOracleBehavior.NewAction += chats.FivePebblesChats.FivePebbles_NewAction;
 
@@ -138,12 +138,45 @@ class Plugin : BaseUnityPlugin
         //On.Creature.Violence += Creature_Violence;
         On.Creature.Die += Creature_Die;
 
+        On.Weapon.HitAnotherThrownWeapon += Weapon_HitAnotherThrownWeapon;
+
         On.AbstractCreature.Move += AbstractCreature_Move;
 
         On.MoreSlugcats.GlowWeed.HitByWeapon += MoreSlugcatsGlowWeed_HitByWeapon;
 
         On.KingTusks.Tusk.ShootUpdate += KingTusksTusk_ShootUpdate;
         On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
+    }
+
+    public void Weapon_HitAnotherThrownWeapon(On.Weapon.orig_HitAnotherThrownWeapon orig, Weapon self, Weapon obj)
+    {
+        if (self is items.AnesthesiaSpear && obj is items.AnesthesiaSpear)
+        {
+            for (int i = 0; i < UnityEngine.Random.Range(2, 4); i++)
+            {
+                items.AbstractPhysicalObjects.AnesthesiaNeedleAbstract apo = new(self.room.world, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+                self.room.abstractRoom.AddEntity(apo);
+                apo.RealizeInRoom();
+                apo.realizedObject.firstChunk.vel = -self.firstChunk.vel / 3f;
+            }
+            for (int i = 0; i < UnityEngine.Random.Range(2, 4); i++)
+            {
+                items.AbstractPhysicalObjects.AnesthesiaNeedleAbstract apo = new(obj.room.world, null, obj.abstractPhysicalObject.pos, obj.room.world.game.GetNewID());
+                obj.room.abstractRoom.AddEntity(apo);
+                apo.RealizeInRoom();
+                apo.realizedObject.firstChunk.vel = -obj.firstChunk.vel / 3f;
+            }
+            Vector2 vector = Vector2.Lerp(obj.firstChunk.lastPos, self.firstChunk.lastPos, 0.5f);
+            self.room.PlaySound(SoundID.Spear_Bounce_Off_Creauture_Shell, vector);
+            obj.abstractPhysicalObject.Destroy();
+            obj.Destroy();
+            self.abstractPhysicalObject.Destroy();
+            self.Destroy();
+        }
+        else
+        {
+            orig(self, obj);
+        }
     }
 
     public void OnDisable()
@@ -193,6 +226,13 @@ class Plugin : BaseUnityPlugin
                 self.room.abstractRoom.AddEntity(asa);
                 asa.RealizeInRoom();
                 asa.realizedObject.firstChunk.vel = Scientist.ScientistTools.RandomAngleVector2() * 10f;
+            }
+            if (self is SmallNeedleWorm)
+            {
+                items.AbstractPhysicalObjects.AnesthesiaNeedleAbstract ana = new(self.room.world, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+                self.room.abstractRoom.AddEntity(ana);
+                ana.RealizeInRoom();
+                ana.realizedObject.firstChunk.vel = Scientist.ScientistTools.RandomAngleVector2() * 20f;
             }
         }
     }
@@ -249,7 +289,7 @@ class Plugin : BaseUnityPlugin
                 self.room.AddObject(new Spark(pos, vel, new Color(1f, 1f, 1f), null, 10, 170));
             }
             self.room.AddObject(new StationaryEffect(weapon.firstChunk.pos, new Color(1f, 1f, 1f), null, StationaryEffect.EffectType.FlashingOrb));
-            AbstractPhysicalObject apo = new AbstractPhysicalObject(self.room.world, Scientist.Register.InflatableGlowingShield, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+            AbstractPhysicalObject apo = new AbstractPhysicalObject(self.room.world, Scientist.ScientistEnums.Items.InflatableGlowingShield, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
             self.room.abstractRoom.AddEntity(apo);
             apo.RealizeInRoom();
             apo.realizedObject.firstChunk.vel = -weapon.firstChunk.vel / 3f;
@@ -305,7 +345,8 @@ class Plugin : BaseUnityPlugin
 
     private void Player_Stun(On.Player.orig_Stun orig, Player self, int st)
     {
-        if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0)
+        int index = ScientistTools.PlayerIndex(self);
+        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0)
         {
             return;
         }
@@ -315,14 +356,18 @@ class Plugin : BaseUnityPlugin
     private void Player_Die(On.Player.orig_Die orig, Player self)
     {
         bool wasDead = self.dead;
-        if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0 && Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] < 3)
+        int index = ScientistTools.PlayerIndex(self);
+        if (index < ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0 && Scientist.ScientistPlayer.pfEatTimesInACycle[index] < 3)
         {
-            Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)] = true;
+            Scientist.ScientistPlayer.pfAfterActiveDie[index] = true;
             return;
         }
         orig(self);
-        Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)] = false;
-        Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] = 0;
+        if (index < ScientistPlayer.pfTime.Length)
+        {
+            Scientist.ScientistPlayer.pfAfterActiveDie[index] = false;
+            Scientist.ScientistPlayer.pfEatTimesInACycle[index] = 0;
+        }
     }
 
     private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
@@ -359,8 +404,8 @@ class Plugin : BaseUnityPlugin
     public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
     {
         ScientistPlayer.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : ScientistPlayer.offlineTime + 1;
+        int index = ScientistTools.PlayerIndex(self);
         orig(self, eu);
-
         if (self.SlugCatClass.value == MOD_ID && (ScientistPlayer.offlineTime <= 10 || ScientistPlayer.offlineTime > 640) && scr != null)
         {
             scr.Destroy();
@@ -380,15 +425,14 @@ class Plugin : BaseUnityPlugin
                 ScientistLogger.Log($"isd = {isd}");
             }
         }
-
-        if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] > 0)   //无痛果效果
+        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0)   //无痛果效果
         {
             if (!self.inShortcut)
             {
-                Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)]--;
-                if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] == 0)
+                Scientist.ScientistPlayer.pfTime[index]--;
+                if (Scientist.ScientistPlayer.pfTime[index] == 0)
                 {
-                    Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)]--;
+                    Scientist.ScientistPlayer.pfTime[index]--;
                 }
             }
             //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
@@ -411,11 +455,11 @@ class Plugin : BaseUnityPlugin
         }
         //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
         IL_1S:
-        if (Scientist.ScientistPlayer.pfTime[ScientistTools.PlayerIndex(self)] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.PlayerIndex(self)])
+        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[index])
         {
             self.Die();
         }
-        if (Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(self)] >= 3)
+        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfEatTimesInACycle[index] >= 3)
         {
             self.Die();
         }
@@ -464,12 +508,16 @@ class Plugin : BaseUnityPlugin
         Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_PainlessFruit");
         Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_ColorfulFruit");
         Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_InflatableGlowingShield");
+        Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_AnesthesiaSpear");
+        Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_AnesthesiaNeedle");
 
         Futile.atlasManager.LoadAtlas("atlases/textures/SharpSpear");
         Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/ColorfulFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/InflatableGlowingShield");
+        Futile.atlasManager.LoadAtlas("atlases/textures/AnesthesiaSpear");
+        //Futile.atlasManager.LoadAtlas("atlases/textures/AnesthesiaNeedle");
     }
 
     private void RainWorld_OnModsEnabled(On.RainWorld.orig_OnModsEnabled orig, RainWorld self, ModManager.Mod[] newlyEnabledMods)
@@ -477,7 +525,7 @@ class Plugin : BaseUnityPlugin
         //虽然原来的方法是空的，但其他模组也可以勾选这个方法，所以这里也需要orig
         orig(self, newlyEnabledMods);
         ScientistLogger.Log("Scientist is coming!");
-        Register.RegisterValues();
+        ScientistEnums.ScientistEnums.RegisterValues();
     }
 
     private void RainWorld_OnModsDisabled(On.RainWorld.orig_OnModsDisabled orig, RainWorld self, ModManager.Mod[] newlyDisabledMods)
@@ -485,36 +533,40 @@ class Plugin : BaseUnityPlugin
         orig(self, newlyDisabledMods);
         foreach (ModManager.Mod mod in newlyDisabledMods)
             if (mod.id == MOD_ID) //MOD_ID - 以字符串变量形式表示的mod ID
-                Register.UnregisterValues();
+                ScientistEnums.ScientistEnums.UnregisterValues();
     }
 
     private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
     {
         ScientistLogger.Log($"self = {self}    type = {self.type}");
         orig(self);
-        if (self.type == Register.SharpSpear)
+        if (self.type == ScientistEnums.Items.SharpSpear)
         {
             self.realizedObject = new items.SharpSpear(new items.AbstractPhysicalObjects.SharpSpearAbstract(self.world, null, self.pos, self.ID), self.world);
         }
-        if (self.type == Register.ConcentratedDangleFruit)
+        if (self.type == ScientistEnums.Items.ConcentratedDangleFruit)
         {
             self.realizedObject = new items.ConcentratedDangleFruit(self);
         }
-        if (self.type == Register.PainlessFruit)
+        if (self.type == ScientistEnums.Items.PainlessFruit)
         {
             self.realizedObject = new items.PainlessFruit(self);
         }
-        if (self.type == Register.ColorfulFruit)
+        if (self.type == ScientistEnums.Items.ColorfulFruit)
         {
             self.realizedObject = new items.ColorfulFruit(self, self.world, !ScientistTools.Probability(0.1f));
         }
-        if (self.type == Register.InflatableGlowingShield)
+        if (self.type == ScientistEnums.Items.InflatableGlowingShield)
         {
             self.realizedObject = new items.InflatableGlowingShield(self, self.world);
         }
-        if (self.type == Register.AnesthesiaSpear)
+        if (self.type == ScientistEnums.Items.AnesthesiaSpear)
         {
             self.realizedObject = new items.AnesthesiaSpear(new items.AbstractPhysicalObjects.AnesthesiaSpearAbstract(self.world, null, self.pos, self.ID), self.world);
+        }
+        if (self.type == ScientistEnums.Items.AnesthesiaNeedle)
+        {
+            self.realizedObject = new items.AnesthesiaNeedle(new items.AbstractPhysicalObjects.AnesthesiaNeedleAbstract(self.world, null, self.pos, self.ID), self.world);
         }
     }
 
@@ -552,34 +604,46 @@ class Plugin : BaseUnityPlugin
             }
             return Player.ObjectGrabability.BigOneHand;
         }
+        if (obj is items.AnesthesiaNeedle)
+        {
+            return Player.ObjectGrabability.OneHand;
+        }
         return orig(self, obj);
     }
 
     private string ItemSymbolSpriteNameForItem(On.ItemSymbol.orig_SpriteNameForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
     {
-        if (itemType == Scientist.Register.ScientistIcon)
+        if (itemType == Scientist.ScientistEnums.Items.ScientistIcon)
         {
             return "Symbol_ScientistIcon";
         }
-        if (itemType == Scientist.Register.SharpSpear)
+        if (itemType == Scientist.ScientistEnums.Items.SharpSpear)
         {
-            return "Symbol_ShapeSpear";
+            return "Symbol_SharpSpear";
         }
-        if (itemType == Scientist.Register.ConcentratedDangleFruit)
+        if (itemType == Scientist.ScientistEnums.Items.ConcentratedDangleFruit)
         {
             return "Symbol_ConcentratedDangleFruit";
         }
-        if (itemType == Scientist.Register.PainlessFruit)
+        if (itemType == Scientist.ScientistEnums.Items.PainlessFruit)
         {
             return "Symbol_PainlessFruit";
         }
-        if (itemType == Scientist.Register.ColorfulFruit)
+        if (itemType == Scientist.ScientistEnums.Items.ColorfulFruit)
         {
             return "Symbol_ColorfulFruit";
         }
-        if (itemType == Scientist.Register.InflatableGlowingShield)
+        if (itemType == Scientist.ScientistEnums.Items.InflatableGlowingShield)
         {
             return "Symbol_InflatableGlowingShield";
+        }
+        if (itemType == Scientist.ScientistEnums.Items.AnesthesiaSpear)
+        {
+            return "Symbol_AnesthesiaSpear";
+        }
+        if (itemType == Scientist.ScientistEnums.Items.AnesthesiaNeedle)
+        {
+            return "Symbol_AnesthesiaNeedle";
         }
         return orig(itemType, intData);
             
@@ -587,27 +651,35 @@ class Plugin : BaseUnityPlugin
 
     private Color ItemSymbolColorForItem(On.ItemSymbol.orig_ColorForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
     {
-        if (itemType == Scientist.Register.ScientistIcon)
+        if (itemType == Scientist.ScientistEnums.Items.ScientistIcon)
         {
             return Color.gray;
         }
-        if (itemType == Scientist.Register.SharpSpear)
+        if (itemType == Scientist.ScientistEnums.Items.SharpSpear)
         {
             return Color.white;
         }
-        if (itemType == Scientist.Register.ConcentratedDangleFruit)
+        if (itemType == Scientist.ScientistEnums.Items.ConcentratedDangleFruit)
         {
             return Color.blue;
         }
-        if (itemType == Scientist.Register.PainlessFruit)
+        if (itemType == Scientist.ScientistEnums.Items.PainlessFruit)
         {
             return Color.white;//ScientistTools.ColorFromHex("bd4848");
         }
-        if (itemType == Scientist.Register.ColorfulFruit)
+        if (itemType == Scientist.ScientistEnums.Items.ColorfulFruit)
         {
             return Color.white;
         }
-        if (itemType == Scientist.Register.InflatableGlowingShield)
+        if (itemType == Scientist.ScientistEnums.Items.InflatableGlowingShield)
+        {
+            return Color.white;
+        }
+        if (itemType == Scientist.ScientistEnums.Items.AnesthesiaSpear)
+        {
+            return Color.white;
+        }
+        if (itemType == Scientist.ScientistEnums.Items.AnesthesiaNeedle)
         {
             return Color.white;
         }
@@ -616,15 +688,15 @@ class Plugin : BaseUnityPlugin
 
     private bool AbstractConsumableIsTypeConsumable(On.AbstractConsumable.orig_IsTypeConsumable orig, AbstractPhysicalObject.AbstractObjectType type)
     {
-        if (type == Scientist.Register.ConcentratedDangleFruit)
+        if (type == Scientist.ScientistEnums.Items.ConcentratedDangleFruit)
         {
             return true;
         }
-        if (type == Scientist.Register.PainlessFruit)
+        if (type == Scientist.ScientistEnums.Items.PainlessFruit)
         {
             return true;
         }
-        if (type == Scientist.Register.ColorfulFruit)
+        if (type == Scientist.ScientistEnums.Items.ColorfulFruit)
         {
             return true;
         }

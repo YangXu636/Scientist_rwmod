@@ -1,12 +1,12 @@
 {"frames": {
 
-"Symbol_SharpSpear.png":
+"Symbol_ShapeSpear.png":
 {
-	"frame": {"x":0,"y":0,"w":28,"h":28},
+	"frame": {"x":0,"y":0,"w":20,"h":25},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":28,"h":28},
-	"sourceSize": {"w":28,"h":28}
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":25},
+	"sourceSize": {"w":20,"h":25}
 }},
 "meta": {
 	"app": "https://www.codeandweb.com/tgreenturepacker",

@@ -53,25 +53,19 @@ sealed class SharpSpear : Spear
         this.jollyCustomColor = null;
     }
 
-    public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
-    {
-        base.Thrown(thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
-    }
-
     public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)
     {
-        this.spearDamageBonus *= 1.5f;
+        if (result.obj is Creature)
+        {
+            this.spearDamageBonus *= 1.5f;
+        }
         return base.HitSomething(result, eu);
-    }
-    public override void HitSomethingWithoutStopping(PhysicalObject obj, BodyChunk chunk, Appendage appendage)
-    {
-        base.HitSomethingWithoutStopping(obj, chunk, appendage);
     }
 
     public override void HitWall()
     {
         base.HitWall();
-        try
+        /*try
         {
             this.stuckInWall = new Vector2?(this.room.MiddleOfTile(this.abstractPhysicalObject.pos.Tile));
             this.ChangeMode(Weapon.Mode.StuckInWall);
@@ -80,15 +74,7 @@ sealed class SharpSpear : Spear
         {
             Scientist.ScientistLogger.Error($"{ex}, {this.abstractPhysicalObject.pos.Tile}, SharpSpear.HitWall(), line 86, SharpSpear.cs");
             this.ChangeMode(Weapon.Mode.Free);
-        }
-    }
-
-    public override void PickedUp(Creature upPicker)
-    {
-        //Console.WriteLine($"{(upPicker as Player).SlugCatClass}, {(upPicker as Player).SlugCatClass.value},  {(upPicker as Player).bodyMode}");
-        //Player player = upPicker as Player;
-        //if ( (player.isGourmand && player.gourmandExhausted) || (player.SlugCatClass.value == "xuyangjerry.Scientist") )
-        base.PickedUp(upPicker);
+        }*/
     }
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)

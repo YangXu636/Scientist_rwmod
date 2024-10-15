@@ -1,8 +1,8 @@
 ﻿{
 	"id": "XuYangJerry.Scientist",
 	"name": "Scientist",
-	"version": "0.1.0",
-	"authors": "XuYangJerry(需氧)、世花",
+	"version": "2.1.0",
+	"authors": "XuYangJerry(需氧)、世花、哑铃",
 	"description": "一个基于SlugBase制作的的mod。\n并且在开发过程中没有任何秃鹫受到伤害",
 	"requirements": [
 		"slime-cubed.slugbase"

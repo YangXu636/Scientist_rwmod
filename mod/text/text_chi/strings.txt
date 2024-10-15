@@ -5,3 +5,17 @@ The Scientist|科学家
 Hat|帽子
 Glasses|眼镜
 Having strong knowledge and thirst for knowledge, but...|拥有着强大的学识和求知欲，但...
+
+Pebbles_Scientist_Meet_First_Line1|我观察你很久了，聪明的怪胎。
+Pebbles_Scientist_Meet_First_Line2|你与你的同类不同，你格外的……聪明。
+Pebbles_Scientist_Meet_First_Line3|你甚至已经理解了一些它们的基础文字，当然你可以把这些内容翻译给你的同类。
+Pebbles_Scientist_Meet_First_Line4|自然演化一般来说不会诞生出像你这样的个体，但你的出现打破了这个概念。
+Pebbles_Scientist_Meet_First_Line5|令我感到好奇。
+Pebbles_Scientist_Meet_First_Line6|我不知道你的大脑为何会如此发达，但你现在来这里肯定是有些目的。
+Pebbles_Scientist_Meet_First_Line7|如果你来这里是为了神经元的话，我不建议你深入我的设施里取。
+Pebbles_Scientist_Meet_First_Line8|我的情况连我自己都说不上来有多糟糕，我不知道我还能支撑多久。
+Pebbles_Scientist_Meet_First_Line9|让我想想。
+Pebbles_Scientist_Meet_First_Line10|我动了点手脚，这应该能让你轻松一点。
+Pebbles_Scientist_Meet_First_Line11|我会继续观察你的，但现在不管你有什么理由，离开。
+
+Pebbles_Scientist_ThrowOut_Line1|知道你对这里很感兴趣，但你该走了。

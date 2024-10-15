@@ -1,0 +1,28 @@
+{"frames": {
+
+"AnesthesiaSpearA.png":
+{
+	"frame": {"x":0,"y":0,"w":5,"h":85},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":5,"h":85},
+	"sourceSize": {"w":5,"h":85}
+},
+"AnesthesiaSpearB.png":
+{
+	"frame": {"x":5,"y":0,"w":5,"h":85},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":5,"h":85},
+	"sourceSize": {"w":5,"h":85}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "AnesthesiaSpear.png",
+	"format": "RGBA8888",
+	"size": {"w":10,"h":85},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:526bafb1c56e3a7ad627e109360dee49:d1baac2dbdaeacae32e70c8efa88c719:417d7e986dd1a7e2fe54c59d40279de1$"
+}
+}

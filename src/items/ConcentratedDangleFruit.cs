@@ -31,7 +31,7 @@ sealed class ConcentratedDangleFruit : PlayerCarryableItem, IDrawable, IPlayerEd
     {
         get
         {
-            return 2;
+            return 1;
         }
     }
 
@@ -178,6 +178,8 @@ sealed class ConcentratedDangleFruit : PlayerCarryableItem, IDrawable, IPlayerEd
         base.firstChunk.MoveFromOutsideMyUpdate(eu, grasp.grabber.mainBodyChunk.pos);
         if (this.bites < 1)
         {
+            (grasp.grabber as Player).AddQuarterFood();
+            (grasp.grabber as Player).AddQuarterFood();
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
             this.Destroy();

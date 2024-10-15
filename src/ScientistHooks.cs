@@ -67,14 +67,14 @@ public static class BeastMasterHooks
             bms = bms
         };
         bms.itemMenu.subMenus.Add(radialItemMenu);
-        radialItemMenu.iconName = ItemSymbol.SpriteNameForItem(Scientist.Register.ScientistIcon, 0);
-        radialItemMenu.items.Add(Scientist.Register.SharpSpear);
-        radialItemMenu.items.Add(Scientist.Register.ConcentratedDangleFruit);
-        radialItemMenu.items.Add(Scientist.Register.PainlessFruit);
-        radialItemMenu.items.Add(Scientist.Register.ColorfulFruit);
-        radialItemMenu.items.Add(Scientist.Register.InflatableGlowingShield);
-        radialItemMenu.items.Add(Scientist.Register.AnesthesiaSpear);
-        radialItemMenu.items.Add(Scientist.Register.AnesthesiaNeedle);
+        radialItemMenu.iconName = ItemSymbol.SpriteNameForItem(Scientist.ScientistEnums.Items.ScientistIcon, 0);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.SharpSpear);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.ConcentratedDangleFruit);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.PainlessFruit);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.ColorfulFruit);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.InflatableGlowingShield);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.AnesthesiaSpear);
+        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.AnesthesiaNeedle);
         for (int i = 0; i < radialItemMenu.items.Count; i++)
         {
             radialItemMenu.itemData.Add(0);
