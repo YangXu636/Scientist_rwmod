@@ -8,6 +8,7 @@ using Scientist;
 using UnityEngine;
 
 namespace chats;
+
 public class FivePebblesChats
 {
     public static void FivePebbles_SeePlayer(On.SSOracleBehavior.orig_SeePlayer orig, SSOracleBehavior self)
@@ -24,7 +25,18 @@ public class FivePebblesChats
             }
             else if (self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiConversationsHad >= 1 &&(!ModManager.MSC || (ModManager.MSC && self.oracle.ID != MoreSlugcatsEnums.OracleID.DM)))
             {
-                self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_SeeObject);
+                Player[] players = self.oracle.room.PlayersInRoom.ToArray();
+                PhysicalObject[][] posWithPlayers = players.Select( p => new PhysicalObject[]{p.grasps?[0]?.grabbed, p.grasps?[1]?.grabbed}).Where(p => p != null).ToArray();
+                PhysicalObject[] poS = posWithPlayers.SelectMany(p => p).Where(p => p != null).ToArray();
+                string posWithPlayersToString = posWithPlayers.SelectMany(innerList => innerList)
+                                                   .Select(item => item == null ? "null" : item.ToString())
+                                                   .Aggregate((current, next) => current + ", " + next);
+                string poSToString = string.Join(", ", poS.Select(item => item == null ? "null" : item.ToString()));
+                ScientistLogger.Log($"posWithPlayersToString: {posWithPlayersToString}, poSToString: {poSToString}");
+                if (poS == null || poS.Length == 0)
+                {
+                    self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First);
+                }
                 if (!ModManager.MSC || self.oracle.ID != MoreSlugcatsEnums.OracleID.DM)
                 {
                     self.SlugcatEnterRoomReaction();
@@ -36,7 +48,7 @@ public class FivePebblesChats
                 {
                     
                 }*/
-                self.NewAction(SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut);
+                self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_Second);
                 self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiThrowOuts++;
             }
             self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiConversationsHad++;
@@ -65,7 +77,7 @@ public class FivePebblesChats
             {
 
             }
-            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut)
+            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
             {
                 subBehavID = Scientist.ScientistEnums.SubBehavID_Fp.ThrowOutScientist;
             }
@@ -168,7 +180,6 @@ public class SSOracleMeetScientist : SSOracleBehavior.ConversationBehavior
         {
             return;
         }
-        ScientistLogger.Log($"SSOracleMeetScientist Update, base.inActionCounter = {base.inActionCounter}");
         this.owner.LockShortcuts();
         if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_Init)
         {
@@ -195,7 +206,7 @@ public class SSOracleMeetScientist : SSOracleBehavior.ConversationBehavior
                 this.owner.conversation = null;
                 //this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
                 this.owner.getToWorking = 1f;
-                this.owner.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut);
+                this.owner.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First);
             }
         }
     }
@@ -327,8 +338,9 @@ public class ThrowOutScientistBehavior : SSOracleBehavior.TalkBehavior
             }
         }
     IL_722:
-        if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut)
+        if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
         {
+            this.owner.getToWorking = 1f;
             if (base.player.room == base.oracle.room)
             {
                 this.owner.throwOutCounter++;

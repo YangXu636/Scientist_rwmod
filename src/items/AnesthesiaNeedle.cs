@@ -1,6 +1,7 @@
 ﻿using items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
+using Scientist;
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -54,9 +55,13 @@ sealed class AnesthesiaNeedle : Spear
         this.jollyCustomColor = null;
     }
 
-    public override void Thrown(Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
+    public override void Update(bool eu)
     {
-        base.Thrown(thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
+        if (this.addPoles && this.room.readyForAI)
+        {
+            this.addPoles = false;
+        }
+        base.Update(eu);
     }
 
     public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)

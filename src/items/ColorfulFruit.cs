@@ -125,7 +125,23 @@ public class ColorfulFruit : Weapon, IPlayerEdible
                     if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
                     {
                         Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.abstractRoom.creatures[i].realizedCreature, UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
-                        ScientistLogger.Log($"this.room.abstractRoom.creatures[i].realizedCreature = {this.room.abstractRoom.creatures[i].realizedCreature}");
+                    }
+                }
+            }
+            if (room.world.name == "SS")
+            {
+                for (int j = 0; j < room.physicalObjects.Length; j++)
+                {
+                    for (int k = 0; k < room.physicalObjects[j].Count; k++)
+                    {
+                        if (room.physicalObjects[j][k] is Oracle)
+                        {
+                            string c_fts = Scientist.ScientistTools.FeaturesTypeString(this.room.physicalObjects[j][k]);
+                            if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
+                            {
+                                Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.physicalObjects[j][k], UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
+                            }
+                        }
                     }
                 }
             }

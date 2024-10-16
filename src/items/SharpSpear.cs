@@ -53,6 +53,15 @@ sealed class SharpSpear : Spear
         this.jollyCustomColor = null;
     }
 
+    public override void ChangeMode(Mode newMode)
+    {
+        if (newMode == Weapon.Mode.StuckInWall && this.abstractSpear.stuckInWallCycles == 0)
+        {
+            this.abstractSpear.stuckInWallCycles = UnityEngine.Random.Range(7, 12) * ((this.throwDir.y != 0) ? -1 : 1);
+        }
+        base.ChangeMode(newMode);
+    }
+
     public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)
     {
         if (result.obj is Creature)

@@ -33,13 +33,31 @@ public class ColorfulSprite
     public int counter;
     public bool enabled = false;
     public LightSource? lightSource;
-    public Creature c;
+    public Creature? c;
+    public PhysicalObject? po;
+    public UpdatableAndDeletable uad;
     public bool getOriginalColors;
     public Color[] originalColors;
 
     public ColorfulSprite(Creature c, int counter = 0, bool enabled = false, float secondTotal = -1f, LightSource? ls = null)
     {
         this.c = c;
+        this.po = null;
+        this.uad = c;
+        this.counter = counter;
+        this.enabled = enabled;
+        this.secondTotal = secondTotal;
+        this.second = 0f;
+        this.lightSource = ls;
+        this.getOriginalColors = false;
+        this.originalColors = new Color[0];
+    }
+
+    public ColorfulSprite(PhysicalObject po, int counter = 0, bool enabled = false, float secondTotal = -1f, LightSource? ls = null)
+    {
+        this.c = null;
+        this.po = po;
+        this.uad = po;
         this.counter = counter;
         this.enabled = enabled;
         this.secondTotal = secondTotal;
@@ -54,7 +72,7 @@ public class ColorfulSprite
         this.counter %= this.counterTotal;
         this.counter += amount;
         this.second += second;
-        if (this.enabled && Scientist.ScientistTools.InRange(this.second, this.secondTotal, this.secondTotal + 0.9f))
+        if (this.enabled && Scientist.ScientistTools.InRange(this.second, this.secondTotal, this.secondTotal + 0.1f))
         {
             this.SetEnabled(false);
         }
@@ -71,20 +89,24 @@ public class ColorfulSprite
     {
         if (this.enabled)
         {
-            if (this.lightSource == null)
+            if (this.uad != null && (this.c != null || this.po != null) )
             {
-                this.lightSource = new LightSource(c.mainBodyChunk.pos, false, Color.red, c);
-                this.lightSource.requireUpKeep = true;
-                this.lightSource.setRad = new float?(300f);
-                this.lightSource.setAlpha = new float?(1f);
-                c.room.AddObject(this.lightSource);
-            }
-            this.lightSource.stayAlive = true;
-            this.lightSource.setPos = new Vector2?(c.mainBodyChunk.pos);
-            this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.5f);
-            if (this.lightSource.slatedForDeletetion)
-            {
-                this.lightSource = null;
+                if (this.lightSource == null)
+                {
+                    this.lightSource = new LightSource( (c != null ? c.mainBodyChunk.pos : po.firstChunk.pos), false, Color.red, uad);
+                    this.lightSource.requireUpKeep = true;
+                    this.lightSource.setRad = new float?(300f);
+                    this.lightSource.setAlpha = new float?(1f);
+                    c?.room.AddObject(this.lightSource);
+                    po?.room.AddObject(this.lightSource);
+                }
+                this.lightSource.stayAlive = true;
+                this.lightSource.setPos = new Vector2?(c != null ? c.mainBodyChunk.pos : po.firstChunk.pos);
+                this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.5f);
+                if (this.lightSource.slatedForDeletetion)
+                {
+                    this.lightSource = null;
+                }
             }
         }
         else 
@@ -120,7 +142,7 @@ public class ColorfulSprite
 
     public override string ToString()
     {
-        return $"{this.c}<>{this.counterTotal}<>{this.counter}<>{this.enabled}<>{this.lightSource}";
+        return $"{this.c}<>{this.po}<>{this.counterTotal}<>{this.counter}<>{this.enabled}<>{this.lightSource}";
     }
 }
 

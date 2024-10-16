@@ -1,6 +1,7 @@
 ﻿using items;
 using MonoMod.RuntimeDetour;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Scientist.ScientistHooks;
@@ -67,14 +68,17 @@ public static class BeastMasterHooks
             bms = bms
         };
         bms.itemMenu.subMenus.Add(radialItemMenu);
-        radialItemMenu.iconName = ItemSymbol.SpriteNameForItem(Scientist.ScientistEnums.Items.ScientistIcon, 0);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.SharpSpear);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.ConcentratedDangleFruit);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.PainlessFruit);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.ColorfulFruit);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.InflatableGlowingShield);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.AnesthesiaSpear);
-        radialItemMenu.items.Add(Scientist.ScientistEnums.Items.AnesthesiaNeedle);
+        radialItemMenu.iconName = "Symbol_ScientistIcon";
+        Type type = typeof(ScientistEnums.Items);
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
+        foreach (FieldInfo field in fields)
+        {
+            AbstractPhysicalObject.AbstractObjectType apo = field.GetValue(null) as AbstractPhysicalObject.AbstractObjectType;
+            if (apo != null)
+            {
+                radialItemMenu.items.Add(apo);
+            }
+        }
         for (int i = 0; i < radialItemMenu.items.Count; i++)
         {
             radialItemMenu.itemData.Add(0);

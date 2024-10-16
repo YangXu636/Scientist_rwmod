@@ -288,7 +288,7 @@ public class ScientistSlugcat
 
         int tableSelect = 0;
         AbstractPhysicalObject.AbstractObjectType key = AbstractPhysicalObject.AbstractObjectType.Rock;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, null, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, ScientistEnums.Items.SmallRock, null);                                                                    //null
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
@@ -1191,7 +1191,7 @@ public class ScientistSlugcat
         return ((grasp1 == item1 && grasp2 == item2) || (grasp1 == item2 && grasp2 == item1));
     }
 
-    public static AbstractPhysicalObject GetSpecialCraftingResult(Player player)
+    public static AbstractPhysicalObject[] GetSpecialCraftingResult(Player player)
     {
         if (player.grasps[0] != null && player.grasps[1] != null)
         {
@@ -1200,15 +1200,15 @@ public class ScientistSlugcat
         return null;
     }
 
-    public static AbstractPhysicalObject GetSpecialCraftingResult(AbstractPhysicalObject.AbstractObjectType a, AbstractPhysicalObject.AbstractObjectType b, Player player)
+    public static AbstractPhysicalObject[] GetSpecialCraftingResult(AbstractPhysicalObject.AbstractObjectType a, AbstractPhysicalObject.AbstractObjectType b, Player player)
     {
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
-            return new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()); //自定义的ShapeSpearAbstract，覆写了realizedObject
+            return new AbstractPhysicalObject[] { new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) }; //自定义的ShapeSpearAbstract，覆写了realizedObject
         }
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
         {
-            return new AbstractSpear(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID(), true);
+            return new AbstractPhysicalObject[] { new AbstractSpear(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID(), true) };
         }
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.WaterNut, AbstractPhysicalObject.AbstractObjectType.WaterNut))
         {
@@ -1218,12 +1218,22 @@ public class ScientistSlugcat
             }
             if ( (player.grasps[0].grabbed is WaterNut && player.grasps[1].grabbed is SwollenWaterNut) || (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is WaterNut))
             {
-                return new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
+                return new AbstractPhysicalObject[] { new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) };
             }
             if (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is SwollenWaterNut)
             {
                 return null;
             }
+        }
+        if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Rock, AbstractPhysicalObject.AbstractObjectType.Rock))
+        {
+            return new AbstractPhysicalObject[] {
+                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
+            };
         }
         return null;
     }
