@@ -27,7 +27,7 @@ public class FivePebblesChats
             {
                 Player[] players = self.oracle.room.PlayersInRoom.ToArray();
                 PhysicalObject[][] posWithPlayers = players.Select( p => new PhysicalObject[]{p.grasps?[0]?.grabbed, p.grasps?[1]?.grabbed}).Where(p => p != null).ToArray();
-                PhysicalObject[] poS = posWithPlayers.SelectMany(p => p).Where(p => p != null).ToArray();
+                PhysicalObject[] poS = posWithPlayers.SelectMany(p => p).Where(p => p != null && p.abstractPhysicalObject.type != AbstractPhysicalObject.AbstractObjectType.PebblesPearl).ToArray();
                 string posWithPlayersToString = posWithPlayers.SelectMany(innerList => innerList)
                                                    .Select(item => item == null ? "null" : item.ToString())
                                                    .Aggregate((current, next) => current + ", " + next);
@@ -77,7 +77,7 @@ public class FivePebblesChats
             {
 
             }
-            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
+            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First || nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_Second)
             {
                 subBehavID = Scientist.ScientistEnums.SubBehavID_Fp.ThrowOutScientist;
             }
@@ -338,309 +338,312 @@ public class ThrowOutScientistBehavior : SSOracleBehavior.TalkBehavior
             }
         }
     IL_722:
-        if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
+        if (base.player.room == base.oracle.room || (ModManager.MSC && base.oracle.room.abstractRoom.creatures.Count > 0))
         {
-            this.owner.getToWorking = 1f;
-            if (base.player.room == base.oracle.room)
-            {
-                this.owner.throwOutCounter++;
-            }
-            base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
-            this.telekinThrowOut = (base.inActionCounter > 220);
-            if (this.owner.inspectPearl != null)
-            {
-                this.owner.NewAction(MoreSlugcatsEnums.SSOracleBehaviorAction.Pebbles_SlumberParty);
-                this.owner.getToWorking = 1f;
-                return;
-            }
-            if (this.owner.throwOutCounter == 1300)
-            {
-                base.dialogBox.Interrupt(base.Translate("Pebbles_Scientist_ThrowOut_Line1"), 80);
-            }
-            else if (this.owner.throwOutCounter == 2100)
-            {
-                base.dialogBox.NewMessage(base.Translate("LEAVE."), 0);
-            }
-            else if (this.owner.throwOutCounter == 2900)
+            if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
             {
                 this.owner.getToWorking = 1f;
-                base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
-                if (base.player.room != base.oracle.room && base.oracle.oracleBehavior.PlayersInRoom.Count <= 0)
+                if (base.player.room == base.oracle.room)
                 {
-                    this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                    this.owner.throwOutCounter++;
+                }
+                base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                this.telekinThrowOut = (base.inActionCounter > 220);
+                if (this.owner.inspectPearl != null)
+                {
+                    this.owner.NewAction(MoreSlugcatsEnums.SSOracleBehaviorAction.Pebbles_SlumberParty);
+                    this.owner.getToWorking = 1f;
                     return;
                 }
-                if (base.oracle.ID == Oracle.OracleID.SS)
+                if (this.owner.throwOutCounter == 1300)
                 {
-                    if (!ModManager.CoopAvailable)
+                    base.dialogBox.Interrupt(base.Translate("Pebbles_Scientist_ThrowOut_Line1"), 80);
+                }
+                else if (this.owner.throwOutCounter == 2100)
+                {
+                    base.dialogBox.NewMessage(base.Translate("LEAVE."), 0);
+                }
+                else if (this.owner.throwOutCounter == 2900)
+                {
+                    this.owner.getToWorking = 1f;
+                    base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                    if (base.player.room != base.oracle.room && base.oracle.oracleBehavior.PlayersInRoom.Count <= 0)
                     {
-                        base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 0.6f * (1f - base.oracle.room.gravity);
-                        if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
+                        this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                        return;
+                    }
+                    if (base.oracle.ID == Oracle.OracleID.SS)
+                    {
+                        if (!ModManager.CoopAvailable)
+                        {
+                            base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 0.6f * (1f - base.oracle.room.gravity);
+                            if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
+                            {
+                                base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
+                                return;
+                            }
+                            return;
+                        }
+                        else
+                        {
+                            using (List<Player>.Enumerator enumerator2 = base.oracle.oracleBehavior.PlayersInRoom.GetEnumerator())
+                            {
+                                while (enumerator2.MoveNext())
+                                {
+                                    Player player = enumerator2.Current;
+                                    player.mainBodyChunk.vel += Custom.DirVec(player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 0.6f * (1f - base.oracle.room.gravity);
+                                    if (base.oracle.room.GetTilePosition(player.mainBodyChunk.pos) == new IntVector2(28, 32) && player.enteringShortCut == null)
+                                    {
+                                        player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
+                                    }
+                                }
+                                return;
+                            }
+                        }
+                    }
+                    if (ModManager.MSC && base.oracle.ID == MoreSlugcatsEnums.OracleID.DM)
+                    {
+                        base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32)) * 0.6f * (1f - base.oracle.room.gravity);
+                        if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(24, 32) && base.player.enteringShortCut == null)
                         {
                             base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
                             return;
                         }
-                        return;
-                    }
-                    else
-                    {
-                        using (List<Player>.Enumerator enumerator2 = base.oracle.oracleBehavior.PlayersInRoom.GetEnumerator())
-                        {
-                            while (enumerator2.MoveNext())
-                            {
-                                Player player = enumerator2.Current;
-                                player.mainBodyChunk.vel += Custom.DirVec(player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 0.6f * (1f - base.oracle.room.gravity);
-                                if (base.oracle.room.GetTilePosition(player.mainBodyChunk.pos) == new IntVector2(28, 32) && player.enteringShortCut == null)
-                                {
-                                    player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
-                                }
-                            }
-                            return;
-                        }
                     }
                 }
-                if (ModManager.MSC && base.oracle.ID == MoreSlugcatsEnums.OracleID.DM)
+                if ((this.owner.playerOutOfRoomCounter > 100 && this.owner.throwOutCounter > 400) || this.owner.throwOutCounter > 3200)
                 {
-                    base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32)) * 0.6f * (1f - base.oracle.room.gravity);
-                    if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(24, 32) && base.player.enteringShortCut == null)
-                    {
-                        base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
-                        return;
-                    }
-                }
-            }
-            if ((this.owner.playerOutOfRoomCounter > 100 && this.owner.throwOutCounter > 400) || this.owner.throwOutCounter > 3200)
-            {
-                this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
-                this.owner.getToWorking = 1f;
-                return;
-            }
-        }
-        else if (base.action == SSOracleBehavior.Action.ThrowOut_SecondThrowOut)
-        {
-            if (base.player.room == base.oracle.room)
-            {
-                this.owner.throwOutCounter++;
-            }
-            base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
-            this.telekinThrowOut = (base.inActionCounter > 220);
-            if (this.owner.throwOutCounter == 50)
-            {
-                if (base.oracle.room.game.GetStorySession.saveStateNumber == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && base.oracle.room.game.GetStorySession.saveState.deathPersistentSaveData.altEnding)
-                {
-                    base.dialogBox.Interrupt(base.Translate("Oh, it's you again? I had told you to leave and never return."), 0);
-                }
-                else
-                {
-                    base.dialogBox.Interrupt(base.Translate("You again? I have nothing for you."), 0);
-                }
-            }
-            else if (this.owner.throwOutCounter == 250)
-            {
-                int num = 0;
-                if (ModManager.MSC)
-                {
-                    for (int i = 0; i < base.oracle.room.physicalObjects.Length; i++)
-                    {
-                        for (int j = 0; j < base.oracle.room.physicalObjects[i].Count; j++)
-                        {
-                            if (base.oracle.room.physicalObjects[i][j] is Player && (base.oracle.room.physicalObjects[i][j] as Player).isNPC)
-                            {
-                                num++;
-                            }
-                        }
-                    }
-                }
-                if (num > 0)
-                {
-                    base.dialogBox.Interrupt(base.Translate("Leave immediately and don't come back. And take THEM with you!"), 0);
-                }
-                else
-                {
-                    base.dialogBox.Interrupt(base.Translate("I won't tolerate this. Leave immediately and don't come back."), 0);
-                }
-            }
-            else if (this.owner.throwOutCounter == 700)
-            {
-                base.dialogBox.Interrupt(base.Translate("You had your chances."), 0);
-            }
-            else if (this.owner.throwOutCounter > 770)
-            {
-                this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_KillOnSight);
-            }
-            if (this.owner.playerOutOfRoomCounter > 100 && this.owner.throwOutCounter > 400)
-            {
-                this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
-                this.owner.getToWorking = 1f;
-                return;
-            }
-        }
-        else if (base.action == SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut)
-        {
-            this.owner.getToWorking = 1f;
-            if (base.inActionCounter < 200)
-            {
-                base.movementBehavior = SSOracleBehavior.MovementBehavior.Idle;
-            }
-            else if (base.inActionCounter < 530)
-            {
-                base.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
-            }
-            else if (base.inActionCounter < 1050)
-            {
-                base.movementBehavior = SSOracleBehavior.MovementBehavior.Idle;
-            }
-            else
-            {
-                base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
-            }
-            if (this.owner.playerOutOfRoomCounter > 100 && base.inActionCounter > 400)
-            {
-                this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
-                return;
-            }
-            if (base.inActionCounter == 500)
-            {
-                base.dialogBox.Interrupt(base.Translate("Thank you little creature. I must resume my work."), 0);
-                return;
-            }
-            if (base.inActionCounter == 1100)
-            {
-                base.dialogBox.NewMessage(base.Translate("I appreciate what you have done but it is time for you to leave."), 0);
-                if (this.owner.oracle.room.game.StoryCharacter == SlugcatStats.Name.Red)
-                {
-                    base.dialogBox.NewMessage(base.Translate("As I mentioned you do not have unlimited time."), 0);
+                    this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                    this.owner.getToWorking = 1f;
                     return;
                 }
             }
-            else if (base.inActionCounter > 1400)
+            else if (base.action == SSOracleBehavior.Action.ThrowOut_SecondThrowOut)
             {
-                this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
-                this.owner.getToWorking = 0f;
-                return;
-            }
-        }
-        else if (ModManager.MSC && base.action == MoreSlugcatsEnums.SSOracleBehaviorAction.ThrowOut_Singularity)
-        {
-            if (base.inActionCounter == 10)
-            {
-                if ((base.oracle.oracleBehavior as SSOracleBehavior).conversation != null)
+                if (base.player.room == base.oracle.room)
                 {
-                    (base.oracle.oracleBehavior as SSOracleBehavior).conversation.Destroy();
-                    (base.oracle.oracleBehavior as SSOracleBehavior).conversation = null;
+                    this.owner.throwOutCounter++;
                 }
-                base.dialogBox.Interrupt(base.Translate(". . . !"), 0);
-            }
-            this.owner.getToWorking = 1f;
-            if (base.player.room != base.oracle.room && !base.player.inShortcut)
-            {
-                if (base.player.grasps[0] != null && base.player.grasps[0].grabbed is SingularityBomb)
+                base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                this.telekinThrowOut = (base.inActionCounter > 220);
+                if (this.owner.throwOutCounter == 50)
                 {
-                    (base.player.grasps[0].grabbed as SingularityBomb).Thrown(base.player, base.player.firstChunk.pos, null, new IntVector2(0, -1), 1f, true);
-                    (base.player.grasps[0].grabbed as SingularityBomb).ignited = true;
-                    (base.player.grasps[0].grabbed as SingularityBomb).activateSucktion = true;
-                    (base.player.grasps[0].grabbed as SingularityBomb).counter = 50f;
-                    (base.player.grasps[0].grabbed as SingularityBomb).floatLocation = base.player.firstChunk.pos;
-                    (base.player.grasps[0].grabbed as SingularityBomb).firstChunk.pos = base.player.firstChunk.pos;
-                }
-                if (base.player.grasps[1] != null && base.player.grasps[1].grabbed is SingularityBomb)
-                {
-                    (base.player.grasps[1].grabbed as SingularityBomb).Thrown(base.player, base.player.firstChunk.pos, null, new IntVector2(0, -1), 1f, true);
-                    (base.player.grasps[1].grabbed as SingularityBomb).ignited = true;
-                    (base.player.grasps[1].grabbed as SingularityBomb).activateSucktion = true;
-                    (base.player.grasps[1].grabbed as SingularityBomb).counter = 50f;
-                    (base.player.grasps[1].grabbed as SingularityBomb).floatLocation = base.player.firstChunk.pos;
-                    (base.player.grasps[1].grabbed as SingularityBomb).firstChunk.pos = base.player.firstChunk.pos;
-                }
-                base.player.Stun(200);
-                this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
-                return;
-            }
-            base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
-            if (base.oracle.ID == Oracle.OracleID.SS)
-            {
-                base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 1.3f;
-                base.player.mainBodyChunk.pos = Vector2.Lerp(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32), 0.08f);
-                if (base.player.enteringShortCut == null && base.player.mainBodyChunk.pos.x < 560f && base.player.mainBodyChunk.pos.y > 630f)
-                {
-                    base.player.mainBodyChunk.pos.y = 630f;
-                }
-                if ((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity != null)
-                {
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.activateSucktion = false;
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.vel += Custom.DirVec((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) * 1.3f;
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos = Vector2.Lerp((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos, 0.1f);
-                    if (Vector2.Distance((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) < 10f)
+                    if (base.oracle.room.game.GetStorySession.saveStateNumber == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && base.oracle.room.game.GetStorySession.saveState.deathPersistentSaveData.altEnding)
                     {
-                        if (base.player.grasps[0] == null)
+                        base.dialogBox.Interrupt(base.Translate("Oh, it's you again? I had told you to leave and never return."), 0);
+                    }
+                    else
+                    {
+                        base.dialogBox.Interrupt(base.Translate("You again? I have nothing for you."), 0);
+                    }
+                }
+                else if (this.owner.throwOutCounter == 250)
+                {
+                    int num = 0;
+                    if (ModManager.MSC)
+                    {
+                        for (int i = 0; i < base.oracle.room.physicalObjects.Length; i++)
                         {
-                            base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 0);
-                        }
-                        if (base.player.grasps[1] == null)
-                        {
-                            base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 1);
+                            for (int j = 0; j < base.oracle.room.physicalObjects[i].Count; j++)
+                            {
+                                if (base.oracle.room.physicalObjects[i][j] is Player && (base.oracle.room.physicalObjects[i][j] as Player).isNPC)
+                                {
+                                    num++;
+                                }
+                            }
                         }
                     }
+                    if (num > 0)
+                    {
+                        base.dialogBox.Interrupt(base.Translate("Leave immediately and don't come back. And take THEM with you!"), 0);
+                    }
+                    else
+                    {
+                        base.dialogBox.Interrupt(base.Translate("I won't tolerate this. Leave immediately and don't come back."), 0);
+                    }
                 }
-                if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
+                else if (this.owner.throwOutCounter == 700)
                 {
-                    bool flag = false;
-                    if (base.player.grasps[0] != null && base.player.grasps[0].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                    base.dialogBox.Interrupt(base.Translate("You had your chances."), 0);
+                }
+                else if (this.owner.throwOutCounter > 770)
+                {
+                    this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_KillOnSight);
+                }
+                if (this.owner.playerOutOfRoomCounter > 100 && this.owner.throwOutCounter > 400)
+                {
+                    this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                    this.owner.getToWorking = 1f;
+                    return;
+                }
+            }
+            else if (base.action == SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut)
+            {
+                this.owner.getToWorking = 1f;
+                if (base.inActionCounter < 200)
+                {
+                    base.movementBehavior = SSOracleBehavior.MovementBehavior.Idle;
+                }
+                else if (base.inActionCounter < 530)
+                {
+                    base.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
+                }
+                else if (base.inActionCounter < 1050)
+                {
+                    base.movementBehavior = SSOracleBehavior.MovementBehavior.Idle;
+                }
+                else
+                {
+                    base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                }
+                if (this.owner.playerOutOfRoomCounter > 100 && base.inActionCounter > 400)
+                {
+                    this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                    return;
+                }
+                if (base.inActionCounter == 500)
+                {
+                    base.dialogBox.Interrupt(base.Translate("Thank you little creature. I must resume my work."), 0);
+                    return;
+                }
+                if (base.inActionCounter == 1100)
+                {
+                    base.dialogBox.NewMessage(base.Translate("I appreciate what you have done but it is time for you to leave."), 0);
+                    if (this.owner.oracle.room.game.StoryCharacter == SlugcatStats.Name.Red)
                     {
-                        flag = true;
-                    }
-                    if (base.player.grasps[1] != null && base.player.grasps[1].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
-                    {
-                        flag = true;
-                    }
-                    if (flag)
-                    {
-                        base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
+                        base.dialogBox.NewMessage(base.Translate("As I mentioned you do not have unlimited time."), 0);
                         return;
                     }
-                    base.player.ReleaseGrasp(0);
-                    base.player.ReleaseGrasp(1);
+                }
+                else if (base.inActionCounter > 1400)
+                {
+                    this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
+                    this.owner.getToWorking = 0f;
+                    return;
                 }
             }
-            if (base.oracle.ID == MoreSlugcatsEnums.OracleID.DM)
+            else if (ModManager.MSC && base.action == MoreSlugcatsEnums.SSOracleBehaviorAction.ThrowOut_Singularity)
             {
-                base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32)) * 1.3f;
-                base.player.mainBodyChunk.pos = Vector2.Lerp(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32), 0.08f);
-                if ((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity != null)
+                if (base.inActionCounter == 10)
                 {
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.activateSucktion = false;
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.vel += Custom.DirVec((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) * 1.3f;
-                    (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos = Vector2.Lerp((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos, 0.1f);
-                    if (Vector2.Distance((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) < 10f)
+                    if ((base.oracle.oracleBehavior as SSOracleBehavior).conversation != null)
                     {
-                        if (base.player.grasps[0] == null)
+                        (base.oracle.oracleBehavior as SSOracleBehavior).conversation.Destroy();
+                        (base.oracle.oracleBehavior as SSOracleBehavior).conversation = null;
+                    }
+                    base.dialogBox.Interrupt(base.Translate(". . . !"), 0);
+                }
+                this.owner.getToWorking = 1f;
+                if (base.player.room != base.oracle.room && !base.player.inShortcut)
+                {
+                    if (base.player.grasps[0] != null && base.player.grasps[0].grabbed is SingularityBomb)
+                    {
+                        (base.player.grasps[0].grabbed as SingularityBomb).Thrown(base.player, base.player.firstChunk.pos, null, new IntVector2(0, -1), 1f, true);
+                        (base.player.grasps[0].grabbed as SingularityBomb).ignited = true;
+                        (base.player.grasps[0].grabbed as SingularityBomb).activateSucktion = true;
+                        (base.player.grasps[0].grabbed as SingularityBomb).counter = 50f;
+                        (base.player.grasps[0].grabbed as SingularityBomb).floatLocation = base.player.firstChunk.pos;
+                        (base.player.grasps[0].grabbed as SingularityBomb).firstChunk.pos = base.player.firstChunk.pos;
+                    }
+                    if (base.player.grasps[1] != null && base.player.grasps[1].grabbed is SingularityBomb)
+                    {
+                        (base.player.grasps[1].grabbed as SingularityBomb).Thrown(base.player, base.player.firstChunk.pos, null, new IntVector2(0, -1), 1f, true);
+                        (base.player.grasps[1].grabbed as SingularityBomb).ignited = true;
+                        (base.player.grasps[1].grabbed as SingularityBomb).activateSucktion = true;
+                        (base.player.grasps[1].grabbed as SingularityBomb).counter = 50f;
+                        (base.player.grasps[1].grabbed as SingularityBomb).floatLocation = base.player.firstChunk.pos;
+                        (base.player.grasps[1].grabbed as SingularityBomb).firstChunk.pos = base.player.firstChunk.pos;
+                    }
+                    base.player.Stun(200);
+                    this.owner.NewAction(SSOracleBehavior.Action.General_Idle);
+                    return;
+                }
+                base.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                if (base.oracle.ID == Oracle.OracleID.SS)
+                {
+                    base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32)) * 1.3f;
+                    base.player.mainBodyChunk.pos = Vector2.Lerp(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(28, 32), 0.08f);
+                    if (base.player.enteringShortCut == null && base.player.mainBodyChunk.pos.x < 560f && base.player.mainBodyChunk.pos.y > 630f)
+                    {
+                        base.player.mainBodyChunk.pos.y = 630f;
+                    }
+                    if ((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity != null)
+                    {
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.activateSucktion = false;
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.vel += Custom.DirVec((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) * 1.3f;
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos = Vector2.Lerp((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos, 0.1f);
+                        if (Vector2.Distance((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) < 10f)
                         {
-                            base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 0);
+                            if (base.player.grasps[0] == null)
+                            {
+                                base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 0);
+                            }
+                            if (base.player.grasps[1] == null)
+                            {
+                                base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 1);
+                            }
                         }
-                        if (base.player.grasps[1] == null)
+                    }
+                    if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
+                    {
+                        bool flag = false;
+                        if (base.player.grasps[0] != null && base.player.grasps[0].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
                         {
-                            base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 1);
+                            flag = true;
                         }
+                        if (base.player.grasps[1] != null && base.player.grasps[1].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                        {
+                            flag = true;
+                        }
+                        if (flag)
+                        {
+                            base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
+                            return;
+                        }
+                        base.player.ReleaseGrasp(0);
+                        base.player.ReleaseGrasp(1);
                     }
                 }
-                if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
+                if (base.oracle.ID == MoreSlugcatsEnums.OracleID.DM)
                 {
-                    bool flag2 = false;
-                    if (base.player.grasps[0] != null && base.player.grasps[0].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                    base.player.mainBodyChunk.vel += Custom.DirVec(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32)) * 1.3f;
+                    base.player.mainBodyChunk.pos = Vector2.Lerp(base.player.mainBodyChunk.pos, base.oracle.room.MiddleOfTile(24, 32), 0.08f);
+                    if ((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity != null)
                     {
-                        flag2 = true;
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.activateSucktion = false;
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.vel += Custom.DirVec((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) * 1.3f;
+                        (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos = Vector2.Lerp((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos, 0.1f);
+                        if (Vector2.Distance((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity.firstChunk.pos, base.player.mainBodyChunk.pos) < 10f)
+                        {
+                            if (base.player.grasps[0] == null)
+                            {
+                                base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 0);
+                            }
+                            if (base.player.grasps[1] == null)
+                            {
+                                base.player.SlugcatGrab((base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity, 1);
+                            }
+                        }
                     }
-                    if (base.player.grasps[1] != null && base.player.grasps[1].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                    if (base.oracle.room.GetTilePosition(base.player.mainBodyChunk.pos) == new IntVector2(28, 32) && base.player.enteringShortCut == null)
                     {
-                        flag2 = true;
+                        bool flag2 = false;
+                        if (base.player.grasps[0] != null && base.player.grasps[0].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                        {
+                            flag2 = true;
+                        }
+                        if (base.player.grasps[1] != null && base.player.grasps[1].grabbed == (base.oracle.oracleBehavior as SSOracleBehavior).dangerousSingularity)
+                        {
+                            flag2 = true;
+                        }
+                        if (flag2)
+                        {
+                            base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
+                            return;
+                        }
+                        base.player.ReleaseGrasp(0);
+                        base.player.ReleaseGrasp(1);
                     }
-                    if (flag2)
-                    {
-                        base.player.enteringShortCut = new IntVector2?(base.oracle.room.ShortcutLeadingToNode(1).StartTile);
-                        return;
-                    }
-                    base.player.ReleaseGrasp(0);
-                    base.player.ReleaseGrasp(1);
                 }
             }
         }

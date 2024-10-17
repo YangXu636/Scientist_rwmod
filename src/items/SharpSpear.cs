@@ -140,7 +140,7 @@ sealed class SharpSpear : Spear
             sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(new Vector2(0f, 0f), vector2);
         }
         sLeaser.sprites[0].color = (this.blink > 0 && UnityEngine.Random.value < 0.5f) ? base.blinkColor : this.color;
-        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("949494");
+        sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("4f4f4f");
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();

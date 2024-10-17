@@ -45,6 +45,9 @@
         <Reference Include="BeastMaster">
           <HintPath>..\lib\BeastMaster.dll</HintPath>
         </Reference>
+        <Reference Include="EmgTx">
+          <HintPath>..\lib\EmgTx.dll</HintPath>
+        </Reference>
     </ItemGroup>
     
     <ItemGroup>

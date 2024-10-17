@@ -3,7 +3,7 @@
 	"name": "Scientist",
 	"description": "Having strong knowledge and thirst for knowledge, but...",
 	"features": {
-		"color": "ffcdcc",
+		"color": "7fffd4",
 		"custom_colors": [
 			{
 				"name": "Body",
