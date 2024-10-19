@@ -13,8 +13,11 @@ public class ScientistSlugcat
     public static Dictionary<AbstractPhysicalObject.AbstractObjectType, int> objectsLibrary;
     public static Dictionary<CreatureTemplate.Type, int> critsLibrary;
     public static ScientistSlugcat.CraftDat[,] craftingGrid_ObjectsOnly;
+    public static int[,] craftingGrid_ObjectsOnly_Enable;
     public static ScientistSlugcat.CraftDat[,] craftingGrid_CritterObjects;
+    public static int[,] craftingGrid_CritterObjects_Enable;
     public static ScientistSlugcat.CraftDat[,] craftingGrid_CrittersOnly;
+    public static int[,] craftingGrid_CrittersOnly_Enable;
     public static bool showDebug;
 
     public static Hashtable s2t = new Hashtable();
@@ -79,7 +82,7 @@ public class ScientistSlugcat
         num++;
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure] = num;
         num++;
-        ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb] = num; //手雷（炸弹）
+        ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb] = num; //手雷（炸弹）17
         num++;
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SporePlant] = num;
         num++;
@@ -288,7 +291,7 @@ public class ScientistSlugcat
 
         int tableSelect = 0;
         AbstractPhysicalObject.AbstractObjectType key = AbstractPhysicalObject.AbstractObjectType.Rock;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, ScientistEnums.Items.SmallRock, null);                                                                    //null
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, ScientistEnums.Items.SmallRock, null);                                              //null
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);

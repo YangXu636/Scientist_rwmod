@@ -15,6 +15,8 @@ using System.Linq;
 using System.Diagnostics;
 using MonoMod.Cil;
 using Menu;
+using CustomSaveTx;
+using Mono.Cecil.Cil;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -40,7 +42,8 @@ class Plugin : BaseUnityPlugin
     public static readonly PlayerColor HatColor = new PlayerColor("Hat");
     public static readonly PlayerColor GlassesColor = new PlayerColor("Glasses");
 
-    public static HatOnHead hat = new HatOnHead("atlases/slugcat/scientist_hat", "scientist_hat-", HatColor, IsScientist);
+    public static HatOnHead hatbrim = new HatOnHead("atlases/slugcat/scientist_hatbrim", "scientist_hatbrim-", HatColor, IsScientist);
+    public static HatOnHead hat = new HatOnHead("atlases/slugcat/scientist_hat", "scientist_hat-", HatColor, IsScientist, new List<HatOnHead>() { Plugin.hatbrim });
     public static HatOnHead glasses = new HatOnHead("atlases/slugcat/scientist_glasses", "scientist_glasses-", GlassesColor, IsScientist, new List<HatOnHead>() { Plugin.hat });
 
     public static string tempAnimation = "";
@@ -84,9 +87,6 @@ class Plugin : BaseUnityPlugin
 
         //On.Room.AddObject += RoomAddObject;
         On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
-
-        hat.Hook();
-        glasses.Hook();
 
         // Put your custom hooks here!-在此放置你自己的钩子
         On.Player.Jump += PlayerJump;
@@ -139,6 +139,14 @@ class Plugin : BaseUnityPlugin
 
         On.KingTusks.Tusk.ShootUpdate += KingTusksTusk_ShootUpdate;
         On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
+
+        On.DangleFruit.Stalk.Update += DangleFruitStalk_Update;
+        IL.DangleFruit.Stalk.Update += DangleFruitStalk_Update_IL;
+
+        hat.Hook();
+        glasses.Hook();
+
+        DeathPersistentSaveDataRx.AppplyTreatment(new ScientistSaves.CraftingTableEnabledState());
     }
 
     public void OnDisable()
@@ -148,6 +156,70 @@ class Plugin : BaseUnityPlugin
         if (Scientist.ScientistTools.DictionaryKeyHasValue(Scientist.Plugin.modHooked, "BeastMaster", true))
         {
             Scientist.ScientistHooks.BeastMasterHooks.HookOff();
+        }
+    }
+
+    private void DangleFruitStalk_Update_IL(ILContext il)
+    {
+        var c = new ILCursor(il);
+
+        /*if (c.TryGotoNext(MoveType.Before,
+            i => i.MatchLdarg(0),
+            i => i.MatchLdnull(),
+            i => i.MatchStfld<DangleFruit.Stalk>("fruit")
+            ))
+        {
+            c.Emit(OpCodes.Ldarg_0);
+            c.EmitDelegate<Action<DangleFruit.Stalk>>(
+                (stalk) =>
+                {
+                    if (UnityEngine.Random.value > 0.5f)
+                    {
+                        //Debug.Log("变蜥蜴");
+                        var fruit = stalk.fruit;
+                        var room = fruit.room;
+                        var lizard = new AbstractCreature(fruit.room.world, StaticWorld.GetCreatureTemplate(CreatureTemplate.Type.BlueLizard), null, room.GetWorldCoordinate(fruit.firstChunk.pos), room.game.GetNewID());
+                        lizard.RealizeInRoom();
+                        room.PlaySound(SoundID.Water_Nut_Swell, lizard.realizedCreature.firstChunk);
+                        room.AddObject(new ShockWave(lizard.realizedCreature.firstChunk.pos, 30, 1, 10));
+                        stalk.fruit.Destroy();
+
+                    }
+                }
+            );
+
+        }*/
+    }
+
+    public void DangleFruitStalk_Update(On.DangleFruit.Stalk.orig_Update orig, DangleFruit.Stalk self, bool eu)
+    {
+        bool flag = self.fruit != null;
+        WorldCoordinate a = new();
+        WorldCoordinate b = new();
+        if (flag)
+        {
+            a = b = self.fruit.abstractPhysicalObject.pos;
+        }
+        orig(self, eu);
+        if (flag && self.fruit == null)
+        {
+            items.AbstractPhysicalObjects.KnotAbstract knot1 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, a, self.room.world.game.GetNewID());
+            items.AbstractPhysicalObjects.KnotAbstract knot2 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, b, self.room.world.game.GetNewID());
+
+            self.room.abstractRoom.AddEntity(knot1);
+            self.room.abstractRoom.AddEntity(knot2);
+
+            knot1.RealizeInRoom();
+            knot2.RealizeInRoom();
+
+            knot1.realizedObject.bodyChunks[0].pos = self.stuckPos;
+            knot2.realizedObject.bodyChunks[0].pos = self.segs[self.segs.GetLength(0) - 1, 0];
+
+            items.StringShort stringshort = new(self.room, 1, self.ropeLength, knot1, knot2);
+            self.room.AddObject(stringshort);
+
+            self.room.RemoveObject(self);
+            self.Destroy();
         }
     }
 
@@ -568,6 +640,10 @@ class Plugin : BaseUnityPlugin
         {
             self.realizedObject = new items.SmallRock(self, self.world);
         }
+        if (self.type == ScientistEnums.Items.Knot)
+        {
+            self.realizedObject = new items.Knot(new items.AbstractPhysicalObjects.KnotAbstract(self.world, null, self.pos, self.ID), self.world);
+        }
     }
 
     private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -609,6 +685,10 @@ class Plugin : BaseUnityPlugin
             return Player.ObjectGrabability.OneHand;
         }
         if (obj is items.SmallRock)
+        {
+            return Player.ObjectGrabability.OneHand;
+        }
+        if (obj is items.Knot)
         {
             return Player.ObjectGrabability.OneHand;
         }
@@ -752,7 +832,6 @@ class Plugin : BaseUnityPlugin
             AbstractPhysicalObject ApoOne = player.grasps[0].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject ApoTwo = player.grasps[1].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject[] Apos = ScientistSlugcat.GetSpecialCraftingResult(ApoOne.type, ApoTwo.type, player);
-            ScientistLogger.Log($"Apos = [{String.Join(", ", Apos.Select(x => x.ToString()))}]");
             if (Apos != null)
             {
                 player.ReleaseGrasp(0);
@@ -925,10 +1004,7 @@ class Plugin : BaseUnityPlugin
 
     public void ScientistGrabUpdate(Player player, bool eu)
     {
-        if (player.spearOnBack != null)
-        {
-            player.spearOnBack.Update(eu);
-        }
+        player.spearOnBack?.Update(eu);
         if ((ModManager.MSC || ModManager.CoopAvailable) && player.slugOnBack != null)
         {
             player.slugOnBack.Update(eu);

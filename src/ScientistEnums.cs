@@ -33,6 +33,7 @@ namespace Scientist.ScientistEnums
         public static AbstractPhysicalObject.AbstractObjectType AnesthesiaSpear;
         public static AbstractPhysicalObject.AbstractObjectType AnesthesiaNeedle;
         public static AbstractPhysicalObject.AbstractObjectType SmallRock;
+        public static AbstractPhysicalObject.AbstractObjectType Knot;
 
         public static void RegisterValues()
         {
@@ -45,6 +46,7 @@ namespace Scientist.ScientistEnums
             AnesthesiaSpear = new AbstractPhysicalObject.AbstractObjectType("AnesthesiaSpear", true);
             AnesthesiaNeedle = new AbstractPhysicalObject.AbstractObjectType("AnesthesiaNeedle", true);
             SmallRock = new AbstractPhysicalObject.AbstractObjectType("SmallRock", true);
+            Knot = new AbstractPhysicalObject.AbstractObjectType("Knot", true);
         }
 
         public static void UnregisterValues()
@@ -84,6 +86,10 @@ namespace Scientist.ScientistEnums
             AbstractPhysicalObject.AbstractObjectType smallRock = SmallRock;
             smallRock?.Unregister();
             SmallRock = null;
+
+            AbstractPhysicalObject.AbstractObjectType knot = Knot;
+            knot?.Unregister();
+            Knot = null;
         }
     }
 

@@ -128,8 +128,8 @@ sealed class AnesthesiaSpear : Spear
         Vector3 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
         for (int i = 0; i <= 1; i++)
         {
-            sLeaser.sprites[i].x = vector.x - camPos.x + this.rotation.x * 10f;
-            sLeaser.sprites[i].y = vector.y - camPos.y + this.rotation.y * 10f;
+            sLeaser.sprites[i].x = vector.x - camPos.x + this.rotation.x * (this.lastPivotAtTip ? -10f : 10f);
+            sLeaser.sprites[i].y = vector.y - camPos.y + this.rotation.y * (this.lastPivotAtTip ? -10f : 10f);
             sLeaser.sprites[i].anchorY = Mathf.Lerp(this.lastPivotAtTip ? 0.85f : 0.5f, this.pivotAtTip ? 0.85f : 0.5f, timeStacker);
             sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(new Vector2(0f, 0f), vector2);
         }
