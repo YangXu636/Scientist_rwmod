@@ -6,48 +6,52 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace items;
 
-class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
+public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 {
-    public StringShortGraphic graphic;
+    //public StringShortGraphic graphic;
     public Color baseColor;
     public float conRad;
     public float pushApart;
     public Vector2[,] segments;
+    public Vector2[] parts;
     public KnotAbstract stuckPosA;
     public KnotAbstract stuckPosB;
     public Rope[] ropes;
     public List<Vector2> possList;
+    TriangleMesh tm;
 
     public StringShort(Room room, int firstSprite, float length, KnotAbstract spawnPosA, KnotAbstract spawnPosB)
     {
         this.room = room;
         this.stuckPosA = spawnPosA;
         this.stuckPosB = spawnPosB;
+        this.conRad = this.pushApart = 5f;
         this.segments = new Vector2[(int)Mathf.Clamp(length / this.conRad, 1f, 200f), 3];
         for (int i = 0; i < this.segments.GetLength(0); i++)
         {
             float num = (float)i / (float)(this.segments.GetLength(0) - 1);
-            this.segments[i, 0] = Vector2.Lerp(spawnPosA.position, spawnPosB.position, num) + Custom.RNV() * UnityEngine.Random.value;
+            this.segments[i, 0] = Vector2.Lerp(spawnPosA.position, spawnPosB.position, num);//+ Custom.RNV() * UnityEngine.Random.value;
             this.segments[i, 1] = this.segments[i, 0];
-            this.segments[i, 2] = Custom.RNV() * UnityEngine.Random.value;
+            this.segments[i, 2] = Vector2.zero;//Custom.RNV() * UnityEngine.Random.value;
         }
-        this.graphic = new StringShortGraphic(this, Custom.IntClamp((int)(length * 0.3f), 1, 200), firstSprite);
+        //this.graphic = new StringShortGraphic(this, Custom.IntClamp((int)(length / this.conRad), 1, 200), firstSprite);
         if (room.climbableVines == null)
         {
             room.climbableVines = new ClimbableVinesSystem();
             room.AddObject(room.climbableVines);
         }
         room.climbableVines.vines.Add(this);
-        this.ropes = new Rope[this.segments.GetLength(0) - 1];
-        for (int i = 0; i < this.ropes.Length; i++)
+        //this.ropes = new Rope[this.segments.GetLength(0) - 1];
+        /*for (int i = 0; i < this.ropes.Length; i++)
         {
             this.ropes[i] = new Rope(room, this.segments[i, 0], this.segments[i + 1, 0], 2f);
-        }
+        }*/
         this.conRad *= 3f;
         this.pushApart /= 3f;
         this.possList = new List<Vector2>();
@@ -119,35 +123,38 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
             this.Connect(n, n - 1);
         }
         this.ConnectToKnots();
-        this.graphic.Update();/*
-        for (int i = 0; i < this.segments.GetLength(0); i++)
+        //this.graphic.Update();
+    }
+
+    public override void Destroy()
+    {
+        try
         {
-            this.possList[i] = this.segments[i, 0];
-            //this.segments[i, 2] += this.aMountDir * Mathf.InverseLerp(3f, 1f, (float)i) * Mathf.Lerp(0.5f, 0.1f, this.room.gravity);
-            //this.segments[i, 2] += this.bMountDir * Mathf.InverseLerp((float)(this.segments.GetLength(0) - 4), (float)(this.segments.GetLength(0) - 2), (float)i) * Mathf.Lerp(0.5f, 0.1f, this.room.gravity);
-            this.segments[i, 2] += Custom.RNV() * 0.15f * UnityEngine.Random.value * Mathf.Sin((float)i / (float)(this.segments.GetLength(0) - 1) * 3.1415927f) * (1f - this.room.gravity);
-        }
-        for (int j = 0; j < this.ropes.Length; j++)
+            this.stuckPosA.realizedObject.RemoveFromRoom();
+            room.abstractRoom.RemoveEntity(this.stuckPosA);
+            this.stuckPosA = null;
+        } catch (Exception) { }
+        try
         {
-            if (this.ropes[j].bends.Count > 3)
+            this.stuckPosB.realizedObject.RemoveFromRoom();
+            room.abstractRoom.RemoveEntity(this.stuckPosB);
+            this.stuckPosB = null;
+        } catch (Exception) { }
+        try
+        {
+            foreach (var dob in this.room.game.cameras[0].spriteLeasers)
             {
-                this.ropes[j].Reset();
+                if (dob.drawableObject == this)
+                {
+                    dob.RemoveAllSpritesFromContainer();
+                }
             }
-            this.ropes[j].Update(this.segments[j, 0], this.segments[j + 1, 0]);
-            if (this.ropes[j].totalLength > this.conRad)
-            {
-                Vector2 vector = Custom.DirVec(this.segments[j, 0], this.ropes[j].AConnect);
-                this.segments[j, 0] += vector * (this.ropes[j].totalLength - this.conRad) * 0.5f;
-                this.segments[j, 2] += vector * (this.ropes[j].totalLength - this.conRad) * 0.5f;
-                vector = Custom.DirVec(this.segments[j + 1, 0], this.ropes[j].BConnect);
-                this.segments[j + 1, 0] += vector * (this.ropes[j].totalLength - this.conRad) * 0.5f;
-                this.segments[j + 1, 2] += vector * (this.ropes[j].totalLength - this.conRad) * 0.5f;
-            }
-        }
-        if (ModManager.MMF)
+        } catch (Exception) { }
+        try
         {
-            this.graphic.Update();
-        }*/
+            this.room.RemoveObject(this);
+        } catch (Exception) { }
+        base.Destroy();
     }
 
     public void ConnectToKnots()
@@ -155,19 +162,21 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
         if (this.stuckPosA != null)
         {
             this.segments[0, 0] = this.stuckPosA.position;
+            this.segments[0, 2] *= 0.3f;
             if (this.stuckPosA.realizedObject != null)
             {
-                this.stuckPosA.realizedObject.bodyChunks[0].vel += this.segments[0, 2] * 0.1f;
-                this.segments[0, 2] = this.stuckPosA.realizedObject.bodyChunks[0].vel;
+                this.stuckPosA.realizedObject.bodyChunks[0].vel += this.segments[0, 2];
+                //this.segments[0, 2] = this.stuckPosA.realizedObject.bodyChunks[0].vel;
             }
         }
         if (this.stuckPosB != null)
         {
             this.segments[this.segments.GetLength(0) - 1, 0] = this.stuckPosB.position;
+            this.segments[this.segments.GetLength(0) - 1, 2] *= 0.3f;
             if (this.stuckPosB.realizedObject != null)
             {
-                this.stuckPosB.realizedObject.bodyChunks[0].vel += this.segments[this.segments.GetLength(0) - 1, 2] * 0.1f;
-                this.segments[this.segments.GetLength(0) - 1, 2] = this.stuckPosB.realizedObject.bodyChunks[0].vel;
+                this.stuckPosB.realizedObject.bodyChunks[0].vel += this.segments[this.segments.GetLength(0) - 1, 2];
+                //this.segments[this.segments.GetLength(0) - 1, 2] = this.stuckPosB.realizedObject.bodyChunks[0].vel;
             }
         }
     }
@@ -203,7 +212,22 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
     {
     }
 
-    public bool CurrentlyClimbable() => true;
+    public bool CurrentlyClimbable()
+    {
+        var tmpA = this.stuckPosA;
+        var tmpB = this.stuckPosB;
+        if (tmpA == null || tmpB == null)
+        {
+            return false;
+        }
+        var tmpC = this.stuckPosA.realizedObject?.grabbedBy;
+        var tmpD = this.stuckPosB.realizedObject?.grabbedBy;
+        if ((tmpC == null || tmpC.Count == 0) && (tmpD == null || tmpD.Count == 0))
+        {
+            return true;
+        }
+        return false;
+    }
 
     public Vector2 Pos(int index) => this.segments[index, 0];
 
@@ -211,7 +235,7 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 
     public float Rad(int index) => 2f;
 
-    public float Mass(int index) => 0.25f;
+    public float Mass(int index) => 0.5f;
 
     public void Push(int index, Vector2 movement)
     {
@@ -221,25 +245,46 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        this.graphic.InitiateSprites(sLeaser, rCam);
+        sLeaser.sprites = new FSprite[1];
+        TriangleMesh.Triangle[] tmt = new TriangleMesh.Triangle[this.segments.GetLength(0) * 2 - 1];
+        for (int i = 0; i < this.segments.GetLength(0) * 2 - 1; i++)
+        {
+            tmt[i] = new TriangleMesh.Triangle(i, i + 1, i + 2);
+        }
+        tmt[this.segments.GetLength(0) * 2 - 2] = new TriangleMesh.Triangle(this.segments.GetLength(0) * 2 - 3, this.segments.GetLength(0) * 2 - 2, this.segments.GetLength(0) * 2 - 1);
+        tm = new TriangleMesh("pixel", tmt, false, true);
+        sLeaser.sprites[0] = tm;
+        this.AddToContainer(sLeaser, rCam, null);
     }
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        this.graphic.DrawSprite(sLeaser, rCam, timeStacker, camPos);
+        int j = this.segments.GetLength(0);
+        for (int i = 0; i < j - 1; i++)
+        {
+            tm.MoveVertice(i * 2, this.segments[i, 0] - camPos + ScientistTools.Vector2VerticalNormalized(this.segments[i, 0] - this.segments[i + 1, 0]) * -2f);
+            tm.MoveVertice(i * 2 + 1, this.segments[i, 0] - camPos + ScientistTools.Vector2VerticalNormalized(this.segments[i, 0] - this.segments[i + 1, 0]) * 2f);
+        }
+        tm.MoveVertice(j * 2 - 2, this.segments[j - 1, 0] - camPos + ScientistTools.Vector2VerticalNormalized(this.segments[j - 2, 0] - this.segments[j - 1, 0]) * -2f);
+        tm.MoveVertice(j * 2 - 1, this.segments[j - 1, 0] - camPos + ScientistTools.Vector2VerticalNormalized(this.segments[j - 2, 0] - this.segments[j - 1, 0]) * 2f);
     }
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        
+        sLeaser.sprites[0].color = ScientistTools.ColorFromHex("804000");
     }
 
     public void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
-        
+        newContatiner ??= rCam.ReturnFContainer("Items");
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
+        {
+            sLeaser.sprites[i].RemoveFromContainer();
+            newContatiner.AddChild(sLeaser.sprites[i]);
+        }
     }
 
-    public class StringShortGraphic : RopeGraphic
+    /*public class StringShortGraphic : RopeGraphic
     {
         public struct Bump
         {
@@ -336,11 +381,12 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
+            sLeaser.sprites = new FSprite[this.firstSprite + this.totalSprites];
             sLeaser.sprites[this.firstSprite] = TriangleMesh.MakeLongMeshAtlased(this.segments.Length, false, true);
             int num = 0;
             for (int i = 0; i < this.bumps.Length; i++)
             {
-                sLeaser.sprites[this.firstSprite + 1 + i] = new FSprite("Circle4", false);
+                sLeaser.sprites[this.firstSprite + 1 + i] = new FSprite("Circle20", false);
                 sLeaser.sprites[this.firstSprite + 1 + i].scale = Mathf.Lerp(2f, 6f, this.bumps[i].size) / 5f;
                 if (this.bumps[i].eyeSize > 0f)
                 {
@@ -435,5 +481,5 @@ class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
             float num3 = Mathf.InverseLerp((float)num, (float)num2, floatPos * (float)(this.segments.Length - 1));
             return Vector2.Lerp(Vector2.Lerp(this.segments[num].lastPos, this.segments[num2].lastPos, num3), Vector2.Lerp(this.segments[num].pos, this.segments[num2].pos, num3), timeStacker);
         }
-    }
+    }*/
 }

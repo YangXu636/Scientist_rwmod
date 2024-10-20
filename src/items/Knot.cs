@@ -27,7 +27,7 @@ public class Knot : PlayerCarryableItem, IDrawable
     public Knot(items.AbstractPhysicalObjects.KnotAbstract knotAbstract, World world) : base(knotAbstract)
     {
         base.bodyChunks = new BodyChunk[1];
-        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.03f);
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
         base.airFriction = 0.999f;
         base.gravity = 0.9f;
@@ -69,15 +69,16 @@ public class Knot : PlayerCarryableItem, IDrawable
         this.lastRotation = this.rotation;
     }
 
-    public override void PickedUp(Creature upPicker)
+    public override void Destroy()
     {
-        base.PickedUp(upPicker);
+        this.knotAbstract.ss?.Destroy();
+        base.Destroy();
     }
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
         sLeaser.sprites = new FSprite[1];
-        sLeaser.sprites[0] = new FSprite("Circle20", true);
+        sLeaser.sprites[0] = new FSprite("Circle4", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
 
@@ -89,10 +90,10 @@ public class Knot : PlayerCarryableItem, IDrawable
         this.darkness = rCam.room.Darkness(vector) * (1f - rCam.room.LightSourceExposure(vector));
         for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
-            sLeaser.sprites[i].x = vector.x - camPos.x + this.rotation.x * 7f;
-            sLeaser.sprites[i].y = vector.y - camPos.y + this.rotation.x * 7f;
+            sLeaser.sprites[i].x = vector.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y - camPos.y;
             sLeaser.sprites[i].rotation = Custom.VecToDeg(v);
-            sLeaser.sprites[i].scale = 0.4f;
+            sLeaser.sprites[i].scale = 2f;
         }
         this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
     }

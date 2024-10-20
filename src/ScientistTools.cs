@@ -104,6 +104,11 @@ public class ScientistTools
         return AngleToVector2(UnityEngine.Random.Range(range[rangeIndex][0] % 360f, range[rangeIndex][1] % 360f));
     }
 
+    public static Vector2 Vector2VerticalNormalized(Vector2 vector)
+    {
+        return new Vector2(vector.y, -vector.x).normalized;
+    }
+
     public static int[] ArrayAdd(int[] array, int item)
     {
         for (int i = 0; i < array.Length; i++)

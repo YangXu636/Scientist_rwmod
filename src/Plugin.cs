@@ -75,18 +75,16 @@ class Plugin : BaseUnityPlugin
     // Add hooks-添加钩子
     public void OnEnable()
     {
-        /*Content.Register(new IContent[]
-        {
-            new items.ShapeSpears.ShapeSpearFisob()
-        });*/
-        ScientistEnums.ScientistEnums.RegisterValues(); //注册，钩子有时候出问题
+        ScientistEnums.ScientistEnums.RegisterValues(); //注册
 
-        // Load any resources, such as sprites or sounds-加载任何资源 包括图像素材和音效
         On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
         On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
         //On.Room.AddObject += RoomAddObject;
-        On.AbstractRoom.AddEntity += AbstractRoomAddEntity;
+        //On.Room.RemoveObject += Room_RemoveObject;
+        On.AbstractRoom.AddEntity += AbstractRoom_AddEntity;
+        
+        On.UpdatableAndDeletable.RemoveFromRoom += UpdatableAndDeletable_RemoveFromRoom;
 
         // Put your custom hooks here!-在此放置你自己的钩子
         On.Player.Jump += PlayerJump;
@@ -141,7 +139,6 @@ class Plugin : BaseUnityPlugin
         On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
 
         On.DangleFruit.Stalk.Update += DangleFruitStalk_Update;
-        IL.DangleFruit.Stalk.Update += DangleFruitStalk_Update_IL;
 
         hat.Hook();
         glasses.Hook();
@@ -159,38 +156,6 @@ class Plugin : BaseUnityPlugin
         }
     }
 
-    private void DangleFruitStalk_Update_IL(ILContext il)
-    {
-        var c = new ILCursor(il);
-
-        /*if (c.TryGotoNext(MoveType.Before,
-            i => i.MatchLdarg(0),
-            i => i.MatchLdnull(),
-            i => i.MatchStfld<DangleFruit.Stalk>("fruit")
-            ))
-        {
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate<Action<DangleFruit.Stalk>>(
-                (stalk) =>
-                {
-                    if (UnityEngine.Random.value > 0.5f)
-                    {
-                        //Debug.Log("变蜥蜴");
-                        var fruit = stalk.fruit;
-                        var room = fruit.room;
-                        var lizard = new AbstractCreature(fruit.room.world, StaticWorld.GetCreatureTemplate(CreatureTemplate.Type.BlueLizard), null, room.GetWorldCoordinate(fruit.firstChunk.pos), room.game.GetNewID());
-                        lizard.RealizeInRoom();
-                        room.PlaySound(SoundID.Water_Nut_Swell, lizard.realizedCreature.firstChunk);
-                        room.AddObject(new ShockWave(lizard.realizedCreature.firstChunk.pos, 30, 1, 10));
-                        stalk.fruit.Destroy();
-
-                    }
-                }
-            );
-
-        }*/
-    }
-
     public void DangleFruitStalk_Update(On.DangleFruit.Stalk.orig_Update orig, DangleFruit.Stalk self, bool eu)
     {
         bool flag = self.fruit != null;
@@ -205,6 +170,10 @@ class Plugin : BaseUnityPlugin
         {
             items.AbstractPhysicalObjects.KnotAbstract knot1 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, a, self.room.world.game.GetNewID());
             items.AbstractPhysicalObjects.KnotAbstract knot2 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, b, self.room.world.game.GetNewID());
+            items.StringShort stringshort = new(self.room, 1, self.ropeLength, knot1, knot2);
+
+            knot1.ss = stringshort;
+            knot2.ss = stringshort;
 
             self.room.abstractRoom.AddEntity(knot1);
             self.room.abstractRoom.AddEntity(knot2);
@@ -215,7 +184,6 @@ class Plugin : BaseUnityPlugin
             knot1.realizedObject.bodyChunks[0].pos = self.stuckPos;
             knot2.realizedObject.bodyChunks[0].pos = self.segs[self.segs.GetLength(0) - 1, 0];
 
-            items.StringShort stringshort = new(self.room, 1, self.ropeLength, knot1, knot2);
             self.room.AddObject(stringshort);
 
             self.room.RemoveObject(self);
@@ -458,10 +426,33 @@ class Plugin : BaseUnityPlugin
         return orig(self, obj);
     }
 
-    private void AbstractRoomAddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
+    public void Room_RemoveObject(On.Room.orig_RemoveObject orig, Room self, UpdatableAndDeletable obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AbstractRoom_AddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
     { 
-        //Console.WriteLine($"AbstractRoomAddEntity  ent = {ent}");
+        //Console.WriteLine($"AbstractRoom_AddEntity  ent = {ent}");
         orig(self, ent);
+    }
+
+    private void UpdatableAndDeletable_RemoveFromRoom(On.UpdatableAndDeletable.orig_RemoveFromRoom orig, UpdatableAndDeletable self)
+    {
+        if (self is items.Knot)
+        {
+            try
+            {
+                foreach (var dob in self.room.game.cameras[0].spriteLeasers)
+                {
+                    if (dob.drawableObject == self)
+                    {
+                        dob.RemoveAllSpritesFromContainer();
+                    }
+                }
+            } catch (Exception) { }
+        }
+        orig(self);
     }
 
     public void RoomAddObject(On.Room.orig_AddObject orig, Room self, UpdatableAndDeletable obj)
@@ -471,6 +462,7 @@ class Plugin : BaseUnityPlugin
 
     public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
     {
+        ScientistLogger.Log($"{self.bodyMode.value} {self.animation.value}");
         ScientistPlayer.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : ScientistPlayer.offlineTime + 1;
         int index = ScientistTools.PlayerIndex(self);
         orig(self, eu);

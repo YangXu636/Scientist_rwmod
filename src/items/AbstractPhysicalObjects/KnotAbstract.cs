@@ -9,6 +9,7 @@ namespace items.AbstractPhysicalObjects
 	public class KnotAbstract : AbstractPhysicalObject
     {
         public Vector2 position;
+        public StringShort ss;
 
         public KnotAbstract(World world, PhysicalObject realizedObject, WorldCoordinate pos, EntityID ID) : base(world, Scientist.ScientistEnums.Items.Knot, realizedObject, pos, ID)
         {
