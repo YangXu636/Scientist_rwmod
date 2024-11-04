@@ -148,7 +148,7 @@ class SmallRock : Weapon
         {
             sLeaser.sprites[0].color = this.color;
         }
-        sLeaser.sprites[0].scale = sLeaser.sprites[1].scale = 0.7f;
+        sLeaser.sprites[0].scale = 0.7f;
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();

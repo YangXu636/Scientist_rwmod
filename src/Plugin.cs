@@ -9,6 +9,7 @@ using MoreSlugcats;
 using UnityEngine;
 using items.AbstractPhysicalObjects;
 using chats;
+using rss;
 using SlugBase.DataTypes;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ using MonoMod.Cil;
 using Menu;
 using CustomSaveTx;
 using Mono.Cecil.Cil;
+using System.Reflection;
+using Rewired.ControllerExtensions;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -46,8 +49,7 @@ class Plugin : BaseUnityPlugin
     public static HatOnHead hat = new HatOnHead("atlases/slugcat/scientist_hat", "scientist_hat-", HatColor, IsScientist, new List<HatOnHead>() { Plugin.hatbrim });
     public static HatOnHead glasses = new HatOnHead("atlases/slugcat/scientist_glasses", "scientist_glasses-", GlassesColor, IsScientist, new List<HatOnHead>() { Plugin.hat });
 
-    public static string tempAnimation = "";
-
+    public static bool enteredShortCut = false;
     private items.ShowCraftingResult scr;
 
     private static Dictionary<string, bool> modHooked = new Dictionary<string, bool>();
@@ -80,6 +82,9 @@ class Plugin : BaseUnityPlugin
         On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
         On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
+        On.RoomSpecificScript.AddRoomSpecificScript += RoomSpecificScript_AddRoomSpecificScript;
+
+        On.Room.Loaded += Room_Loaded;
         //On.Room.AddObject += RoomAddObject;
         //On.Room.RemoveObject += Room_RemoveObject;
         On.AbstractRoom.AddEntity += AbstractRoom_AddEntity;
@@ -87,15 +92,17 @@ class Plugin : BaseUnityPlugin
         On.UpdatableAndDeletable.RemoveFromRoom += UpdatableAndDeletable_RemoveFromRoom;
 
         // Put your custom hooks here!-在此放置你自己的钩子
-        On.Player.Jump += PlayerJump;
+        On.Player.ctor += Player_ctor;
+        On.Player.Jump += Player_Jump;
         On.Player.Die += Player_Die;
         On.Player.Stun += Player_Stun;
-        On.Player.CanIPickThisUp += PlayerCanIPickThisUp;
-        On.Player.Update += PlayerUpdate;
-        On.Player.GrabUpdate += PlayerGrabUpdate_On;    //在玩家触发拾取时执行PlayerGrabUpdate
-        IL.Player.GrabUpdate += PlayerGrabUpdate_IL;    //兼容原版，在玩家触发拾取时执行PlayerGrabUpdate_IL
-        On.Player.ThrowObject += PlayerThrowObject;
-        On.Player.ThrownSpear += PlayerThrownSpear;
+        On.Player.CanIPickThisUp += Player_CanIPickThisUp;
+        On.Player.IsObjectThrowable += Player_IsObjectThrowable;
+        On.Player.Update += Player_Update;
+        On.Player.GrabUpdate += Player_GrabUpdate_On;    //在玩家触发拾取时执行PlayerGrabUpdate
+        IL.Player.GrabUpdate += Player_GrabUpdate_IL;    //兼容原版
+        On.Player.ThrowObject += Player_ThrowObject;
+        On.Player.ThrownSpear += Player_ThrownSpear;
 
         //On.PlayerGraphics.Update += PlayerGraphics_Update;
 
@@ -110,17 +117,17 @@ class Plugin : BaseUnityPlugin
         On.SSOracleBehavior.SeePlayer += chats.FivePebblesChats.FivePebbles_SeePlayer;
         On.SSOracleBehavior.NewAction += chats.FivePebblesChats.FivePebbles_NewAction;
 
-        On.ItemSymbol.SpriteNameForItem += ItemSymbolSpriteNameForItem;
-        On.ItemSymbol.ColorForItem += ItemSymbolColorForItem;
+        On.ItemSymbol.SpriteNameForItem += ItemSymbol_SpriteNameForItem;
+        On.ItemSymbol.ColorForItem += ItemSymbol_ColorForItem;
 
-        On.AbstractConsumable.IsTypeConsumable += AbstractConsumableIsTypeConsumable;
+        On.AbstractConsumable.IsTypeConsumable += AbstractConsumable_IsTypeConsumable;
 
         //On.SaveState.ApplyCustomEndGame += SaveState_ApplyCustomEndGame;
         //On.SaveState.LoadGame += SaveState_LoadGame;
         //On.SaveState.SessionEnded += SaveState_SessionEnded;
 
-        On.RainWorldGame.ctor += RainWorldGame_ctor;
-        On.RainWorldGame.ShutDownProcess += RainWorldGame_ShutDownProcess;
+        //On.RainWorldGame.ctor += RainWorldGame_ctor;
+        //On.RainWorldGame.ShutDownProcess += RainWorldGame_ShutDownProcess;
         //On.RainWorldGame.GameOver += RainWorldGame_GameOver;
         //On.RainWorldGame.Win += RainWorldGame_Win;
 
@@ -129,16 +136,16 @@ class Plugin : BaseUnityPlugin
         //On.Creature.Violence += Creature_Violence;
         On.Creature.Die += Creature_Die;
 
-        On.Weapon.HitAnotherThrownWeapon += Weapon_HitAnotherThrownWeapon;
-
         On.AbstractCreature.Move += AbstractCreature_Move;
+
+        On.Weapon.HitAnotherThrownWeapon += Weapon_HitAnotherThrownWeapon;
 
         On.MoreSlugcats.GlowWeed.HitByWeapon += MoreSlugcatsGlowWeed_HitByWeapon;
 
         On.KingTusks.Tusk.ShootUpdate += KingTusksTusk_ShootUpdate;
         On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
 
-        On.DangleFruit.Stalk.Update += DangleFruitStalk_Update;
+        //On.DangleFruit.Stalk.Update += DangleFruitStalk_Update;
 
         hat.Hook();
         glasses.Hook();
@@ -149,45 +156,25 @@ class Plugin : BaseUnityPlugin
     public void OnDisable()
     {
         // Remove hooks-删除钩子
-        IL.Player.GrabUpdate -= PlayerGrabUpdate_IL;
-        if (Scientist.ScientistTools.DictionaryKeyHasValue(Scientist.Plugin.modHooked, "BeastMaster", true))
+        IL.Player.GrabUpdate -= Player_GrabUpdate_IL;
+        if (Scientist.Plugin.modHooked.KeyIsValue("BeastMaster", true))
         {
             Scientist.ScientistHooks.BeastMasterHooks.HookOff();
         }
     }
 
-    public void DangleFruitStalk_Update(On.DangleFruit.Stalk.orig_Update orig, DangleFruit.Stalk self, bool eu)
+    public void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
     {
-        bool flag = self.fruit != null;
-        WorldCoordinate a = new();
-        WorldCoordinate b = new();
-        if (flag)
+        orig(self);
+        var list = GameObject.FindObjectsOfType<BaseUnityPlugin>();
+        foreach (var plugin in list)
         {
-            a = b = self.fruit.abstractPhysicalObject.pos;
-        }
-        orig(self, eu);
-        if (flag && self.fruit == null)
-        {
-            items.AbstractPhysicalObjects.KnotAbstract knot1 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, a, self.room.world.game.GetNewID());
-            items.AbstractPhysicalObjects.KnotAbstract knot2 = new items.AbstractPhysicalObjects.KnotAbstract(self.room.world, null, b, self.room.world.game.GetNewID());
-            items.StringShort stringshort = new(self.room, 1, self.ropeLength, knot1, knot2);
-
-            knot1.ss = stringshort;
-            knot2.ss = stringshort;
-
-            self.room.abstractRoom.AddEntity(knot1);
-            self.room.abstractRoom.AddEntity(knot2);
-
-            knot1.RealizeInRoom();
-            knot2.RealizeInRoom();
-
-            knot1.realizedObject.bodyChunks[0].pos = self.stuckPos;
-            knot2.realizedObject.bodyChunks[0].pos = self.segs[self.segs.GetLength(0) - 1, 0];
-
-            self.room.AddObject(stringshort);
-
-            self.room.RemoveObject(self);
-            self.Destroy();
+            if (plugin.GetType().Name == "BeastMaster" && !Scientist.Plugin.modHooked.KeyIsValue("BeastMaster", true))     //"fyre.BeastMaster"
+            {
+                Scientist.ScientistHooks.BeastMasterHooks.HookOn(plugin);
+                Scientist.ScientistLogger.Log("Hooked on BeastMaster");
+                Scientist.Plugin.modHooked["BeastMaster"] = true;
+            }
         }
     }
 
@@ -222,21 +209,6 @@ class Plugin : BaseUnityPlugin
         }
     }
 
-    private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
-    {
-        orig(self);
-        var list = GameObject.FindObjectsOfType<BaseUnityPlugin>();
-        foreach (var plugin in list)
-        {
-            if (plugin.GetType().Name == "BeastMaster" && !Scientist.ScientistTools.DictionaryKeyHasValue(Scientist.Plugin.modHooked, "BeastMaster", true) )     //"fyre.BeastMaster"
-            {
-                Scientist.ScientistHooks.BeastMasterHooks.HookOn(plugin);
-                Scientist.ScientistLogger.Log("Hooked on BeastMaster");
-                Scientist.Plugin.modHooked["BeastMaster"] = true;
-            }
-        }
-    }
-
     private void AbstractCreature_Move(On.AbstractCreature.orig_Move orig, AbstractCreature self, WorldCoordinate newCoord)
     {
         if (Scientist.ScientistPlayer.anesthesiaCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(self)) && Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(self)].IsEnabled())
@@ -267,6 +239,30 @@ class Plugin : BaseUnityPlugin
                 ana.RealizeInRoom();
                 ana.realizedObject.firstChunk.vel = Scientist.ScientistTools.RandomAngleVector2() * 20f;
             }
+            if (self is PoleMimic)
+            {
+                items.AbstractPhysicalObjects.KnotAbstract knot1 = new(self.room.world, null, (self as PoleMimic).abstractCreature.pos, self.room.world.game.GetNewID());
+                items.AbstractPhysicalObjects.KnotAbstract knot2 = new(self.room.world, null, (self as PoleMimic).abstractCreature.pos, self.room.world.game.GetNewID());
+
+                knot1.position = (self as PoleMimic).rootPos;
+                knot2.position = (self as PoleMimic).tipPos;
+
+                items.StringShort stringshort = new(self.room, (self as PoleMimic).length / 4f, knot1, knot2);
+
+                knot1.ss.Add(stringshort);
+                knot2.ss.Add(stringshort);
+
+                self.room.abstractRoom.AddEntity(knot1);
+                self.room.abstractRoom.AddEntity(knot2);
+
+                knot1.RealizeInRoom();
+                knot2.RealizeInRoom();
+
+                knot1.realizedObject.bodyChunks[0].pos = (self as PoleMimic).rootPos;
+                knot2.realizedObject.bodyChunks[0].pos = (self as PoleMimic).tipPos;
+
+                self.room.AddObject(stringshort);
+            }
         }
     }
 
@@ -290,7 +286,14 @@ class Plugin : BaseUnityPlugin
 
     private void GraphicsModule_DrawSprites(On.GraphicsModule.orig_DrawSprites orig, GraphicsModule self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        orig(self, sLeaser, rCam, timeStacker, camPos);
+        if (self.owner is not PoleMimic || (self.owner is PoleMimic && !(self.owner as PoleMimic).dead))
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+        }
+        else
+        {
+            sLeaser.RemoveAllSpritesFromContainer();
+        }
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
         if (Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(fts))
         {
@@ -334,55 +337,18 @@ class Plugin : BaseUnityPlugin
         }
     }
 
-    private void RainWorldGame_ShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)
+    private void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
-        orig(self);
-        ScientistLogger.Log("RainWorldGame_ShutDownProcess");
-    }
-
-    private void RainWorldGame_ctor(On.RainWorldGame.orig_ctor orig, RainWorldGame self, ProcessManager manager)
-    {
-        orig(self, manager);
-        ScientistLogger.Log("RainWorldGame_ctor");
-        Scientist.ScientistPlayer.pfEatTimesInACycle = Enumerable.Repeat(0, self.Players.Count()).ToArray();
-        Scientist.ScientistPlayer.pfAfterActiveDie = Enumerable.Repeat(false, self.Players.Count()).ToArray();
-        Scientist.ScientistPlayer.pfTime = Enumerable.Repeat(0, self.Players.Count()).ToArray();
-    }
-
-    private void RainWorldGame_Win(On.RainWorldGame.orig_Win orig, RainWorldGame self, bool malnourished)
-    {
-        orig(self, malnourished);
-        ScientistLogger.Log("RainWorldGame_Win");
-    }
-
-    private void RainWorldGame_GameOver(On.RainWorldGame.orig_GameOver orig, RainWorldGame self, Creature.Grasp dependentOnGrasp)
-    {
-        orig(self, dependentOnGrasp);
-        ScientistLogger.Log("RainWorldGame_GameOver");
-    }
-
-    private void SaveState_SessionEnded(On.SaveState.orig_SessionEnded orig, SaveState self, RainWorldGame game, bool survived, bool newMalnourished)
-    {
-        orig(self, game, survived, newMalnourished);
-        ScientistLogger.Log("SaveState_SessionEnded");
-    }
-
-    private void SaveState_LoadGame(On.SaveState.orig_LoadGame orig, SaveState self, string str, RainWorldGame game)
-    {
-        orig(self, str, game);
-        ScientistLogger.Log("SaveState_LoadGame");
-    }
-
-    private void SaveState_ApplyCustomEndGame(On.SaveState.orig_ApplyCustomEndGame orig, SaveState self, RainWorldGame game, bool addFiveCycles)
-    {
-        orig(self, game, addFiveCycles);
-        ScientistLogger.Log("SaveState_ApplyCustomEndGame");
+        orig(self, abstractCreature, world);
+        Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.FeaturesTypeString(self)] = 0;
+        Scientist.ScientistPlayer.pfAfterActiveDie[ScientistTools.FeaturesTypeString(self)] = false;
+        Scientist.ScientistPlayer.pfTime[ScientistTools.FeaturesTypeString(self)] = 0;
     }
 
     private void Player_Stun(On.Player.orig_Stun orig, Player self, int st)
     {
-        int index = ScientistTools.PlayerIndex(self);
-        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0)
+        string index = ScientistTools.FeaturesTypeString(self);
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index) && Scientist.ScientistPlayer.pfTime[index] > 0)
         {
             return;
         }
@@ -392,21 +358,21 @@ class Plugin : BaseUnityPlugin
     private void Player_Die(On.Player.orig_Die orig, Player self)
     {
         bool wasDead = self.dead;
-        int index = ScientistTools.PlayerIndex(self);
-        if (index < ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0 && Scientist.ScientistPlayer.pfEatTimesInACycle[index] < 3)
+        string index = ScientistTools.FeaturesTypeString(self);
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index) && Scientist.ScientistPlayer.pfTime[index] > 0 && Scientist.ScientistPlayer.pfEatTimesInACycle[index] < 3)
         {
             Scientist.ScientistPlayer.pfAfterActiveDie[index] = true;
             return;
         }
         orig(self);
-        if (index < ScientistPlayer.pfTime.Length)
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index))
         {
             Scientist.ScientistPlayer.pfAfterActiveDie[index] = false;
             Scientist.ScientistPlayer.pfEatTimesInACycle[index] = 0;
         }
     }
 
-    private bool PlayerCanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
+    private bool Player_CanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
     {
         if (obj is items.SharpSpear)
         {
@@ -426,14 +392,44 @@ class Plugin : BaseUnityPlugin
         return orig(self, obj);
     }
 
+    private bool Player_IsObjectThrowable(On.Player.orig_IsObjectThrowable orig, Player self, PhysicalObject obj)
+    {
+        if (obj is items.StoneKnife)
+        {
+            return false;
+        }
+        return orig(self, obj);
+    }
+
     public void Room_RemoveObject(On.Room.orig_RemoveObject orig, Room self, UpdatableAndDeletable obj)
     {
-        throw new NotImplementedException();
+        orig(self, obj);
+    }
+
+    public void RoomSpecificScript_AddRoomSpecificScript(On.RoomSpecificScript.orig_AddRoomSpecificScript orig, Room room)
+    {
+        orig(room);
+        if (
+            room.abstractRoom.name == "CC_C07" && room.game.session is StoryGameSession
+            && room.game.GetStorySession.saveState.saveStateNumber.value == Scientist.Plugin.MOD_ID
+            && room.abstractRoom.firstTimeRealized && room.game.GetStorySession.saveState.cycleNumber == 0
+            )
+        {
+            room.AddObject(new rss.CC_C07_Spawn(room));
+        }
+    }
+
+    public void Room_Loaded(On.Room.orig_Loaded orig, Room self)
+    {
+        orig(self);
+        if (self.abstractRoom.name == "CC_C07")
+        {
+            RoomSpecificScript.AddRoomSpecificScript(self);
+        }
     }
 
     public void AbstractRoom_AddEntity(On.AbstractRoom.orig_AddEntity orig, AbstractRoom self, AbstractWorldEntity ent)
-    { 
-        //Console.WriteLine($"AbstractRoom_AddEntity  ent = {ent}");
+    {
         orig(self, ent);
     }
 
@@ -450,7 +446,7 @@ class Plugin : BaseUnityPlugin
                         dob.RemoveAllSpritesFromContainer();
                     }
                 }
-            } catch (Exception) { }
+            } catch (Exception ex) {  ScientistLogger.Warning(ex.Message); }
         }
         orig(self);
     }
@@ -460,12 +456,35 @@ class Plugin : BaseUnityPlugin
         orig(self, obj);
     }
 
-    public void PlayerUpdate(On.Player.orig_Update orig, Player self, bool eu) 
+    public void Player_Update(On.Player.orig_Update orig, Player self, bool eu) 
     {
-        ScientistLogger.Log($"{self.bodyMode.value} {self.animation.value}");
         ScientistPlayer.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : ScientistPlayer.offlineTime + 1;
-        int index = ScientistTools.PlayerIndex(self);
+        int playerIndex = ScientistTools.PlayerIndex(self);
+        string index = ScientistTools.FeaturesTypeString(self);
         orig(self, eu);
+        if (self.grasps != null && self.grasps.Length > 0)
+        {
+            if (self.grasps[0] != null && self.grasps[0].grabbed != null && self.grasps[0].grabbed is items.Knot)
+            {
+                if ((self.grasps[0].grabbed.abstractPhysicalObject as items.AbstractPhysicalObjects.KnotAbstract).ss != null)
+                {
+                    foreach (items.StringShort s in (self.grasps[0].grabbed.abstractPhysicalObject as items.AbstractPhysicalObjects.KnotAbstract).ss)
+                    {
+                        s.hasPlayer = !self.inShortcut;
+                    }
+                }
+            }
+            if (self.grasps.Length > 1 && self.grasps[1] != null && self.grasps[1].grabbed != null && self.grasps[1].grabbed is items.Knot)
+            {
+                if ((self.grasps[1].grabbed.abstractPhysicalObject as items.AbstractPhysicalObjects.KnotAbstract).ss != null)
+                {
+                    foreach (items.StringShort s in (self.grasps[1].grabbed.abstractPhysicalObject as items.AbstractPhysicalObjects.KnotAbstract).ss)
+                    {
+                        s.hasPlayer = !self.inShortcut;
+                    }
+                }
+            }
+        }
         if (self.SlugCatClass.value == MOD_ID && (ScientistPlayer.offlineTime <= 10 || ScientistPlayer.offlineTime > 640) && scr != null)
         {
             scr.Destroy();
@@ -485,7 +504,7 @@ class Plugin : BaseUnityPlugin
                 ScientistLogger.Log($"isd = {isd}");
             }
         }
-        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] > 0)   //无痛果效果
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index) && Scientist.ScientistPlayer.pfTime[index] > 0)   //无痛果效果
         {
             if (!self.inShortcut)
             {
@@ -515,24 +534,24 @@ class Plugin : BaseUnityPlugin
         }
         //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
         IL_1S:
-        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfTime[index] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[index])
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index) && Scientist.ScientistPlayer.pfTime[index] < 0 && Scientist.ScientistPlayer.pfAfterActiveDie[index])
         {
             self.Die();
         }
-        if (index < Scientist.ScientistPlayer.pfTime.Length && Scientist.ScientistPlayer.pfEatTimesInACycle[index] >= 3)
+        if (Scientist.ScientistPlayer.pfTime.ContainsKey(index) && Scientist.ScientistPlayer.pfEatTimesInACycle[index] >= 3)
         {
             self.Die();
         }
     }
 
-    public void PlayerThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
+    public void Player_ThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
     {
         ScientistLogger.Log($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
         /*Console.WriteLine($"PlayerThrown  {self.grasps[grasp].grabbed is WaterNut}  {self.grasps[grasp].grabbed is SwollenWaterNut}");*/
         orig(self, grasp, eu);
     }
 
-    public void PlayerThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
+    public void Player_ThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
     {
         orig(self, spear);
         if (self.SlugCatClass.value == MOD_ID && Power.TryGet(self, out var power) && power)
@@ -541,7 +560,7 @@ class Plugin : BaseUnityPlugin
         }
     }
 
-    public void PlayerJump(On.Player.orig_Jump orig, Player self)
+    public void Player_Jump(On.Player.orig_Jump orig, Player self)
     {
         orig(self);
         if (self.SlugCatClass.value == MOD_ID)
@@ -684,10 +703,11 @@ class Plugin : BaseUnityPlugin
         {
             return Player.ObjectGrabability.OneHand;
         }
+
         return orig(self, obj);
     }
 
-    private string ItemSymbolSpriteNameForItem(On.ItemSymbol.orig_SpriteNameForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
+    private string ItemSymbol_SpriteNameForItem(On.ItemSymbol.orig_SpriteNameForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
     {
         /*if (itemType == Scientist.ScientistEnums.Items.ScientistIcon)
         {
@@ -725,11 +745,15 @@ class Plugin : BaseUnityPlugin
         {
             return "Symbol_SmallRock";
         }
+        if (itemType == Scientist.ScientistEnums.Items.Knot)
+        {
+            return "Circle20";
+        }
         return orig(itemType, intData);
             
     }
 
-    private Color ItemSymbolColorForItem(On.ItemSymbol.orig_ColorForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
+    private Color ItemSymbol_ColorForItem(On.ItemSymbol.orig_ColorForItem orig, AbstractPhysicalObject.AbstractObjectType itemType, int intData)
     {
         /*if (itemType == Scientist.ScientistEnums.Items.ScientistIcon)
         {
@@ -737,7 +761,7 @@ class Plugin : BaseUnityPlugin
         }*/
         if (itemType == Scientist.ScientistEnums.Items.SharpSpear)
         {
-            return Color.white;
+            return Color.gray;
         }
         if (itemType == Scientist.ScientistEnums.Items.ConcentratedDangleFruit)
         {
@@ -767,10 +791,14 @@ class Plugin : BaseUnityPlugin
         {
             return Color.gray;
         }
+        if (itemType == Scientist.ScientistEnums.Items.Knot)
+        {
+            return Scientist.ScientistTools.ColorFromHex("804000");
+        }
         return orig(itemType, intData);
     }
 
-    private bool AbstractConsumableIsTypeConsumable(On.AbstractConsumable.orig_IsTypeConsumable orig, AbstractPhysicalObject.AbstractObjectType type)
+    private bool AbstractConsumable_IsTypeConsumable(On.AbstractConsumable.orig_IsTypeConsumable orig, AbstractPhysicalObject.AbstractObjectType type)
     {
         if (type == Scientist.ScientistEnums.Items.ConcentratedDangleFruit)
         {
@@ -787,7 +815,7 @@ class Plugin : BaseUnityPlugin
         return orig(type);
     }
 
-    public void PlayerGrabUpdate_On(On.Player.orig_GrabUpdate orig, Player self, bool eu)
+    public void Player_GrabUpdate_On(On.Player.orig_GrabUpdate orig, Player self, bool eu)
     {
         if (self.SlugCatClass.value == MOD_ID) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate
             ScientistGrabUpdate(self, eu);
@@ -797,13 +825,13 @@ class Plugin : BaseUnityPlugin
         }
     }
 
-    public void PlayerGrabUpdate_IL(ILContext il)
+    public void Player_GrabUpdate_IL(ILContext il)
     {
         ILCursor cur = new(il);
 
         /*if (cur.TryGotoNext(ins => ins.MatchCallOrCallvirt(typeof(Player).GetMethod("AddFood")), ins => ins.MatchLdcI4(1), ins => ins.MatchStloc(0), ins => ins.MatchLdarg(0), ins => ins.MatchCallOrCallvirt(typeof(Player).GetProperty("FoodInStomach").GetGetMethod()), ins => ins.MatchLdarg(0), ins => ins.MatchCallOrCallvirt(typeof(Player).GetProperty("MaxFoodInStomach").GetGetMethod())))
         {
-            Scientist.ScientistLogger.Log($"Player.GrabUpdate IL hooked, index = {cur.Index}");
+            Scientist.ScientistLogger.Log($"Player.GrabUpdate IL hooked, pIndex = {cur.Index}");
             cur.Index += 3;
             cur.RemoveRange(50);
             cur.EmitDelegate(new Func<Player, bool, bool>((player, eu) =>
@@ -824,7 +852,7 @@ class Plugin : BaseUnityPlugin
             AbstractPhysicalObject ApoOne = player.grasps[0].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject ApoTwo = player.grasps[1].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject[] Apos = ScientistSlugcat.GetSpecialCraftingResult(ApoOne.type, ApoTwo.type, player);
-            if (Apos != null)
+            if (Apos != null && Apos.Length > 0)
             {
                 player.ReleaseGrasp(0);
                 ApoOne.realizedObject.RemoveFromRoom();
@@ -865,6 +893,7 @@ class Plugin : BaseUnityPlugin
         else
         {
             abstractPhysicalObject2 = ScientistSlugcat.CraftingResults(player, player.grasps[0], player.grasps[1]);     //配方结果自定义CraftingResults
+            if (abstractPhysicalObject2 == null || abstractPhysicalObject2.type == ScientistEnums.Items.Knot) { return; }
             player.room.abstractRoom.AddEntity(abstractPhysicalObject2);
             abstractPhysicalObject2.RealizeInRoom();
             for (int j = 0; j < player.grasps.Length; j++)
@@ -891,6 +920,7 @@ class Plugin : BaseUnityPlugin
         {
             player.SlugcatGrab(abstractPhysicalObject2.realizedObject, player.FreeHand());
         }
+        return;
     }
 
     public bool GraspsCanBeCrafted(Player player)
@@ -1478,7 +1508,7 @@ class Plugin : BaseUnityPlugin
         }
         if (flag3)
         {
-            if (player.craftingObject)
+            if (player.craftingObject)                          //合成
             {
                 player.swallowAndRegurgitateCounter++;
                 if (player.swallowAndRegurgitateCounter > 105)
@@ -1618,11 +1648,18 @@ class Plugin : BaseUnityPlugin
             {
                 for (int num15 = 0; num15 < 2; num15++)
                 {
-                    if (player.grasps[num15] != null && player.IsObjectThrowable(player.grasps[num15].grabbed))
+                    if (player.grasps[num15] != null)
                     {
-                        player.ThrowObject(num15, eu);
-                        player.wantToThrow = 0;
-                        break;
+                        if (player.IsObjectThrowable(player.grasps[num15].grabbed))
+                        {
+                            player.ThrowObject(num15, eu);
+                            player.wantToThrow = 0;
+                            break;
+                        }
+                        if (player.grasps[num15].grabbed is items.StoneKnife)
+                        {
+                            (player.grasps[num15].grabbed as items.StoneKnife).Attack(player, player.ThrowDirection);
+                        }
                     }
                 }
             }

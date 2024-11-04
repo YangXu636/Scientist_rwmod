@@ -36,6 +36,7 @@ public class FivePebblesChats
                 if (poS == null || poS.Length == 0)
                 {
                     self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First);
+                    self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiThrowOuts++;
                 }
                 if (!ModManager.MSC || self.oracle.ID != MoreSlugcatsEnums.OracleID.DM)
                 {

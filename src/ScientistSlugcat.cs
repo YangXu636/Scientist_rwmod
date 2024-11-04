@@ -5,6 +5,8 @@ using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
 using System.Reflection;
+using items;
+using Unity.Mathematics;
 
 namespace Scientist;
 
@@ -112,6 +114,8 @@ public class ScientistSlugcat
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear] = num;
         num++;
         ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.SharpSpear] = num;
+        num++;
+        ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.Knot] = num;
         num++;
 
         int num2 = 0;
@@ -731,6 +735,10 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.SharpSpear], tableSelect, Scientist.ScientistEnums.Items.InflatableGlowingShield, null);
         key = MoreSlugcatsEnums.AbstractObjectType.DandelionPeach;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, null, null);
+
+        key = ScientistEnums.Items.Knot;
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[ScientistEnums.Items.Knot], tableSelect, ScientistEnums.Items.Knot, null);
+
         tableSelect = 1;
         CreatureTemplate.Type key2 = CreatureTemplate.Type.Fly;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.critsLibrary[key2], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, AbstractPhysicalObject.AbstractObjectType.Mushroom, null);
@@ -916,7 +924,8 @@ public class ScientistSlugcat
         });*/
         if (abstractObjectType == null)
         {
-            return new AbstractPhysicalObject(crafter.room.world, AbstractPhysicalObject.AbstractObjectType.Rock, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID());
+            return null;
+            //return new AbstractPhysicalObject(crafter.room.world, AbstractPhysicalObject.AbstractObjectType.Rock, null, crafter.abstractPhysicalObject.pos, crafter.room.game.GetNewID());
         }
         /*Custom.Log(new string[]
         {
@@ -1237,6 +1246,35 @@ public class ScientistSlugcat
                 new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
                 new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
             };
+        }
+        if (APO_Compare(a, b, ScientistEnums.Items.Knot, ScientistEnums.Items.Knot))
+        {
+            if (!(player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Empty() && !(player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Empty())
+            {
+                items.AbstractPhysicalObjects.KnotAbstract kaNew = new(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
+                items.StringShort[] ss = (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.ToArray();
+                foreach (items.StringShort s in ss)
+                {
+                    s.ChangeKnot((player.grasps[0].grabbed as items.Knot).knotAbstract, kaNew);
+                }
+                ss = (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.ToArray();
+                foreach (items.StringShort s in ss)
+                {
+                    s.ChangeKnot((player.grasps[1].grabbed as items.Knot).knotAbstract, kaNew);
+                }
+                (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Clear();
+                (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Clear();
+                return new AbstractPhysicalObject[] { kaNew };
+            }
+            else
+            {
+                items.StringShort stringshort = new(player.room, 20.0f, (player.grasps[0].grabbed as items.Knot).knotAbstract, (player.grasps[1].grabbed as items.Knot).knotAbstract);
+                (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Add(stringshort);
+                (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Add(stringshort);
+                player.room.AddObject(stringshort);
+                return null;
+            }
+            
         }
         return null;
     }

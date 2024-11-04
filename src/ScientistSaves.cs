@@ -22,25 +22,35 @@ public class ScientistSaves
         {
             base.LoadDatas(data);
             string[] cres = Regex.Split(data, "<creA>");
-            for (int i = 0; i < ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(0); i++)
+            if (cres.Length != 4) return;
+            if (cres[1].Length == ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(0) * ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(1))
             {
-                for (int j = 0; j < ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(1); j++)
+                for (int i = 0; i < ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(0); i++)
                 {
-                    ScientistSlugcat.craftingGrid_ObjectsOnly[i, j].enabled = cres[1][i * ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(1) + j] == '1';
+                    for (int j = 0; j < ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(1); j++)
+                    {
+                        ScientistSlugcat.craftingGrid_ObjectsOnly[i, j].enabled = cres[1][i * ScientistSlugcat.craftingGrid_ObjectsOnly.GetLength(1) + j] == '1';
+                    }
                 }
             }
-            for (int i = 0; i < ScientistSlugcat.craftingGrid_CritterObjects.GetLength(0); i++)
+            if (cres[2].Length == ScientistSlugcat.craftingGrid_CritterObjects.GetLength(0) * ScientistSlugcat.craftingGrid_CritterObjects.GetLength(1))
             {
-                for (int j = 0; j < ScientistSlugcat.craftingGrid_CritterObjects.GetLength(1); j++)
+                for (int i = 0; i < ScientistSlugcat.craftingGrid_CritterObjects.GetLength(0); i++)
                 {
-                    ScientistSlugcat.craftingGrid_CritterObjects[i, j].enabled = cres[2][i * ScientistSlugcat.craftingGrid_CritterObjects.GetLength(1) + j] == '1';
+                    for (int j = 0; j < ScientistSlugcat.craftingGrid_CritterObjects.GetLength(1); j++)
+                    {
+                        ScientistSlugcat.craftingGrid_CritterObjects[i, j].enabled = cres[2][i * ScientistSlugcat.craftingGrid_CritterObjects.GetLength(1) + j] == '1';
+                    }
                 }
             }
-            for (int i = 0; i < ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(0); i++)
+            if (cres[3].Length == ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(0) * ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(1))
             {
-                for (int j = 0; j < ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(1); j++)
+                for (int i = 0; i < ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(0); i++)
                 {
-                    ScientistSlugcat.craftingGrid_CrittersOnly[i, j].enabled = cres[3][i * ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(1) + j] == '1';
+                    for (int j = 0; j < ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(1); j++)
+                    {
+                        ScientistSlugcat.craftingGrid_CrittersOnly[i, j].enabled = cres[3][i * ScientistSlugcat.craftingGrid_CrittersOnly.GetLength(1) + j] == '1';
+                    }
                 }
             }
         }

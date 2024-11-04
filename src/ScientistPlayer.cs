@@ -15,9 +15,12 @@ public static class ScientistPlayer
     public static int offlineTime = 0;
 
     //pf = painlessfruit
-    public static int[] pfEatTimesInACycle;
-    public static int[] pfTime;
-    public static bool[] pfAfterActiveDie;
+    //public static int[] pfEatTimesInACycle;
+    //public static int[] pfTime;
+    //public static bool[] pfAfterActiveDie;
+    public static Dictionary<string, int> pfEatTimesInACycle = new();
+    public static Dictionary<string, int> pfTime = new();
+    public static Dictionary<string, bool> pfAfterActiveDie = new();
 
 #nullable enable
     public static Dictionary<string, ColorfulSprite?> colorfulCreatures = new Dictionary<string, ColorfulSprite?>();

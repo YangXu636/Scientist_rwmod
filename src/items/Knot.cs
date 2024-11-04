@@ -71,7 +71,10 @@ public class Knot : PlayerCarryableItem, IDrawable
 
     public override void Destroy()
     {
-        this.knotAbstract.ss?.Destroy();
+        foreach (items.StringShort s in this.knotAbstract.ss)
+        {
+            s.Destroy();
+        }
         base.Destroy();
     }
 

@@ -94,8 +94,9 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
-            ScientistTools.ArrayAdd(Scientist.ScientistPlayer.pfTime, 2400);
-            Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.PlayerIndex(grasp.grabber as Player)] += 1;
+            Scientist.ScientistPlayer.pfTime.AddAll(1200);
+            ScientistLogger.Log($"{ScientistTools.FeaturesTypeString(grasp.grabber)} {ScientistTools.FeaturesTypeString(grasp.grabber as Player)}");
+            Scientist.ScientistPlayer.pfEatTimesInACycle[ScientistTools.FeaturesTypeString(grasp.grabber as Player)] += 1;
             this.Destroy();
         }
     }

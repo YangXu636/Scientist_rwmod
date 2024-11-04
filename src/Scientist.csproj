@@ -48,6 +48,9 @@
         <Reference Include="HOOKS-Assembly-CSharp">
           <HintPath>..\..\..\Tools\BepInEx\plugins\HOOKS-Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="Rewired_Core">
+          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Rewired_Core.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.Mathematics">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Unity.Mathematics.dll</HintPath>
         </Reference>
