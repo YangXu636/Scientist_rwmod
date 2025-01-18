@@ -1,20 +1,21 @@
-﻿using System;
+﻿using Scientist;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace items.AbstractPhysicalObjects
+namespace Scientist.items.AbstractPhysicalObjects
 {
 	// Token: 0x02000005 RID: 5
 	public class KnotAbstract : AbstractPhysicalObject
     {
         public Vector2 position;
         public List<StringShort> ss;
-        public AbstractPhysicalObject[] connectedObjects;
-        public Creature[] connectedCreatures;
+        public List<AbstractPhysicalObject> connectedObjects;
+        public List<Creature> connectedCreatures;
 
-        public KnotAbstract(World world, PhysicalObject realizedObject, WorldCoordinate pos, EntityID ID) : base(world, Scientist.ScientistEnums.Items.Knot, realizedObject, pos, ID)
+        public KnotAbstract(World world, PhysicalObject realizedObject, WorldCoordinate pos, EntityID ID) : base(world, Scientist.Enums.Items.Knot, realizedObject, pos, ID)
         {
             this.ss = new List<StringShort>(1);
         }
@@ -22,11 +23,11 @@ namespace items.AbstractPhysicalObjects
         public override void ChangeRooms(WorldCoordinate newCoord)
         {
             base.ChangeRooms(newCoord);
-            if (ss != null & ss.Count > 0)
+            if (!ss.Empty())
             {
-                foreach (StringShort s in ss)
+                for (int i = 0; i < ss.Count; i++)
                 {
-                    s.ChangeRooms(newCoord, this.ID);
+                    ss[i].ChangeRooms(newCoord, this.ID);
                 }
             }
         }
@@ -38,7 +39,7 @@ namespace items.AbstractPhysicalObjects
 
         public override string ToString()
         {
-            string text = $"{this.ID}<oA>{this.type}"/*<oA>{this.pos.SaveToString()}"*/;/*<oB>{String.Join("<oC>", this.connectedObjects.SelectMany(x => x.ToString().Replace("<oA>", "<oD>")))}<oB>{String.Join("<oC>", this.connectedCreatures.SelectMany(x => x.ToString().Replace("<oA>", "<oD>")))}";*/
+            string text = $"{this.ID}<oA>{this.type}<oA>{this.pos.SaveToString()}";/*<oB>{String.Join("<oC>", this.connectedObjects.SelectMany(x => x.ToString().Replace("<oA>", "<oD>")))}<oB>{String.Join("<oC>", this.connectedCreatures.SelectMany(x => x.ToString().Replace("<oA>", "<oD>")))}";*/
             return SaveUtils.AppendUnrecognizedStringAttrs(text, "<oA>", this.unrecognizedAttributes);
         }
     }

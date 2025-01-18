@@ -11,7 +11,7 @@ public class ScientistSaves
 {
     public class CraftingTableEnabledState : CustomSaveTx.DeathPersistentSaveDataTx
     {
-        public CraftingTableEnabledState() : base(new SlugcatStats.Name(Scientist.Plugin.MOD_ID))
+        public CraftingTableEnabledState() : base(new SlugcatStats.Name(Scientist.ScientistPlugin.MOD_ID))
         {
 
         }
@@ -88,6 +88,75 @@ public class ScientistSaves
         public override string ToString()
         {
             return base.ToString() + " load:ScientistSaves.CraftingTableEnabledState";
+        }
+    }
+
+    public class FakeAchievementsAcquisitionState : CustomSaveTx.DeathPersistentSaveDataTx
+    {
+        public readonly string[] fasName = new string[] { "NewWorld", "RealCraftsman", "Inventor" };
+        public bool[] fasState = new bool[] { false, false, false };
+        public bool[] fasState_old = new bool[] { false, false, false };
+        public int craftingCount = 0;
+
+        public FakeAchievementsAcquisitionState() : base(new SlugcatStats.Name(Scientist.ScientistPlugin.MOD_ID))
+        {
+
+        }
+
+        public override string header => "XUYANGJERRY_SCIENTIST_FAKEACHIEVEMENTSACQUISITIONSTATE";
+
+        public override void LoadDatas(string data)
+        {
+            base.LoadDatas(data);
+            string[] cres = Regex.Split(data, "<faA>");
+            if (cres.Length != fasName.Length + 1)
+            {
+                this.fasState.SetAll(false);
+                this.fasState_old.SetAll(false);
+                this.craftingCount = cres.Length > 0 ? int.Parse(cres[0]) : 0;
+                return;
+            }
+            this.craftingCount = int.Parse(cres[0]);
+            for (int i = 0; i < fasName.Length; i++)
+            {
+                string[] tmp = cres[i + 1].Split('|');
+                fasState[i] = tmp.Length == 2 && tmp[0] == fasName[i] && tmp[1] == "1";
+                fasState_old[i] = fasState[i];
+            }
+        }
+
+        public override string SaveToString(bool saveAsIfPlayerDied, bool saveAsIfPlayerQuit)
+        {
+            if (saveAsIfPlayerDied || saveAsIfPlayerQuit)
+            {
+                this.fasState = this.fasState_old;
+                return base.origSaveData;
+            }
+            else
+            {
+                this.fasState_old = this.fasState;
+                string cre = $"{this.craftingCount}<faA>";
+                for (int i = 0; i < fasName.Length - 1; i++)
+                {
+                    cre += fasName[i] + "|" + (fasState[i] ? '1' : '0') + "<faA>";
+                }
+                cre += fasName[fasName.Length - 1] + "|" + (fasState[fasName.Length - 1] ? '1' : '0');
+                return cre;
+            }
+        }
+
+        public override void ClearDataForNewSaveState(SlugcatStats.Name newSlugName)
+        {
+            base.ClearDataForNewSaveState(newSlugName);
+            this.fasState.SetAll(false);
+            this.fasState_old.SetAll(false);
+            this.craftingCount = 0;
+            base.origSaveData = "";
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + " load:ScientistSaves.FakeAchievementsAcquisitionState";
         }
     }
 }

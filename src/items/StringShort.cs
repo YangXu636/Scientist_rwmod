@@ -1,5 +1,6 @@
-﻿using items.AbstractPhysicalObjects;
+﻿using Scientist.items.AbstractPhysicalObjects;
 using MoreSlugcats;
+using Rewired;
 using RWCustom;
 using Scientist;
 using System;
@@ -10,7 +11,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace items;
+namespace Scientist.items;
 
 public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 {
@@ -23,15 +24,16 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
     public KnotAbstract stuckPosA;
     public KnotAbstract stuckPosB;
     public Rope[] ropes;
-    public List<Vector2> possList;
     public TriangleMesh tm;
     public int afterChangeRoomTimer = 0;
     public EntityID afterChangeRoomBase;
     public WorldCoordinate afterChangeRoomCoord;
     public bool hasPlayer = true;
+    public EntityID ID;
 
     public StringShort(Room room, float length, KnotAbstract spawnPosA, KnotAbstract spawnPosB)
     {
+        this.ID = room.game.GetNewID();
         this.afterChangeRoomTimer = 0;
         this.room = room;
         this.stuckPosA = spawnPosA;
@@ -57,18 +59,17 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
         {
             this.ropes[i] = new Rope(room, this.segments[i, 0], this.segments[i + 1, 0], 2f);
         }*/
-        this.conRad /= 2f;
-        this.pushApart /= 3f;
-        this.possList = new List<Vector2>();
-        for (int j = 0; j < this.segments.GetLength(0); j++)
-        {
-            this.possList.Add(this.segments[j, 0]);
-        }
+        //this.conRad *= 2f;
+        this.pushApart /= 6f;
     }
 
     public override void Update(bool eu)
     {
         base.Update(eu);
+        if (this.afterChangeRoomTimer > 0 && this.hasPlayer)
+        {
+            this.afterChangeRoomTimer--;
+        }
         for (int i = 2; i < this.segments.GetLength(0); i++)
         {
             Vector2 vector = Custom.DirVec(this.segments[i - 2, 0], this.segments[i, 0]);
@@ -129,27 +130,6 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
         }
         this.ConnectToKnots();
         //this.graphic.Update();
-        if (this.afterChangeRoomTimer > 0 && this.hasPlayer)
-        {
-            ScientistLogger.Log("StringShort.Update: afterChangeRoomTimer > 0");
-            this.afterChangeRoomTimer--;
-            if (this.afterChangeRoomBase == this.stuckPosA.ID)
-            {
-                for (int i = 0; i < this.stuckPosB.realizedObject.bodyChunks.Length; i++)
-                {
-                    this.stuckPosB.realizedObject.bodyChunks[i].HardSetPosition(this.stuckPosA.realizedObject.bodyChunks[i].pos);
-                }
-                this.segments.SetAll(this.stuckPosA.position, 0, 1);
-                this.segments.SetAll(Vector2.zero, 2);
-            }
-            else if (this.afterChangeRoomBase == this.stuckPosB.ID)
-            {
-                for (int i = 0; i < this.stuckPosA.realizedObject.bodyChunks.Length; i++)
-                {
-                    this.stuckPosA.realizedObject.bodyChunks[i].HardSetPosition(this.stuckPosB.realizedObject.bodyChunks[i].pos);
-                }
-            }
-        }
     }
 
     public override void Destroy()
@@ -184,12 +164,18 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 
     public void ChangeRooms(WorldCoordinate newCoord, EntityID knotBase)
     {
-        if (afterChangeRoomTimer >= 38) { return; }
+        if (afterChangeRoomTimer > 0) { return; }
         Room thisRoom = this.room;
         Room newRoom = this.room.world.GetAbstractRoom(newCoord).realizedRoom;
         thisRoom.RemoveObject(this);
         newRoom.AddObject(this);
-        this.afterChangeRoomTimer = 40;
+        if (newRoom.climbableVines == null)
+        {
+            newRoom.climbableVines = new ClimbableVinesSystem();
+            newRoom.AddObject(newRoom.climbableVines);
+        }
+        newRoom.climbableVines.vines.Add(this);
+        this.afterChangeRoomTimer = 2;
         this.afterChangeRoomBase = knotBase;
         this.afterChangeRoomCoord = newCoord;
         if (knotBase == this.stuckPosA.ID)
@@ -222,12 +208,55 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
         }
     }
 
+    public void SetHasplayer(bool hasPlayer)
+    {
+        if (Scientist.ScientistPlugin.dfsStringshortVisited.Contains(this.ID)) { return; }
+        this.hasPlayer = hasPlayer;
+        Scientist.ScientistPlugin.dfsStringshortVisited.Add(this.ID);
+        for (int i = 0; i < this.stuckPosA.ss.Count; i++)
+        {
+            this.stuckPosA.ss[i].SetHasplayer(hasPlayer);
+        }
+        for (int j = 0; j < this.stuckPosB.ss.Count; j++)
+        {
+            this.stuckPosB.ss[j].SetHasplayer(hasPlayer);
+        }
+    }
+
+    /// <summary>
+    /// 玩家出管道时强行固定绳子位置
+    /// </summary>
+    /// <param name="pos"></param>
+    public void SetPositionExitedShortcut(Vector2 pos)
+    {
+        if (Scientist.ScientistPlugin.dfsSsAndKaVisited.Contains(this.ID)) { return; }
+        for (int i = 0; i < this.stuckPosA.realizedObject.bodyChunks.Length; i++)
+        {
+            this.stuckPosA.realizedObject.bodyChunks[i].HardSetPosition(pos);
+        }
+        for (int i = 0; i < this.stuckPosB.realizedObject.bodyChunks.Length; i++)
+        {
+            this.stuckPosB.realizedObject.bodyChunks[i].HardSetPosition(pos);
+        }
+        this.segments.SetAll(this.room.MiddleOfTile(this.stuckPosA.pos), -1, -1, 0, 1);
+        this.segments.SetAll(Vector2.zero, -1, -1, 2);
+        Scientist.ScientistPlugin.dfsSsAndKaVisited.Add(this.ID);
+        for (int i = 0; i < this.stuckPosA.ss.Count; i++)
+        {
+            this.stuckPosA.ss[i].SetPositionExitedShortcut(pos);
+        }
+        for (int j = 0; j < this.stuckPosB.ss.Count; j++)
+        {
+            this.stuckPosB.ss[j].SetPositionExitedShortcut(pos);
+        }
+    }
+
     public void ConnectToKnots()
     {
         if (this.stuckPosA != null)
         {
             this.segments[0, 0] = this.stuckPosA.position;
-            this.segments[0, 2] *= 0.1f;
+            this.segments[0, 2] *= 0.05f;
             if (this.stuckPosA.realizedObject != null)
             {
                 this.stuckPosA.realizedObject.bodyChunks[0].vel += this.segments[0, 2].magnitude < 7 ? this.segments[0, 2] : Vector2.zero;
@@ -237,7 +266,7 @@ public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
         if (this.stuckPosB != null)
         {
             this.segments[this.segments.GetLength(0) - 1, 0] = this.stuckPosB.position;
-            this.segments[this.segments.GetLength(0) - 1, 2] *= 0.1f;
+            this.segments[this.segments.GetLength(0) - 1, 2] *= 0.05f;
             if (this.stuckPosB.realizedObject != null)
             {
                 this.stuckPosB.realizedObject.bodyChunks[0].vel += this.segments[this.segments.GetLength(0) - 1, 2].magnitude < 7 ? this.segments[this.segments.GetLength(0) - 1, 2] : Vector2.zero;

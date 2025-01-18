@@ -2,7 +2,7 @@
 using System.Globalization;
 using UnityEngine;
 
-namespace items.AbstractPhysicalObjects
+namespace Scientist.items.AbstractPhysicalObjects
 {
 	// Token: 0x02000005 RID: 5
 	internal sealed class TemplateAbstract : AbstractConsumable

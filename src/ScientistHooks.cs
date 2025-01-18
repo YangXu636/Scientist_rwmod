@@ -1,8 +1,11 @@
-﻿using items;
+﻿using Scientist.items;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using UnityEngine.PlayerLoop;
+using UnityEngine;
 
 namespace Scientist.ScientistHooks;
 
@@ -69,7 +72,7 @@ public static class BeastMasterHooks
         };
         bms.itemMenu.subMenus.Add(radialItemMenu);
         radialItemMenu.iconName = "Symbol_ScientistIcon";
-        Type type = typeof(ScientistEnums.Items);
+        Type type = typeof(Enums.Items);
         FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
         foreach (FieldInfo field in fields)
         {
@@ -83,5 +86,55 @@ public static class BeastMasterHooks
         {
             radialItemMenu.itemData.Add(0);
         }
+    }
+}
+
+public static class ImprovedInputHooks
+{
+    public static Hook hook;
+
+    public static void HookOn(object iiInstance)
+    {
+        
+    }
+
+    public static void HookOff()
+    {
+        if (hook == null)
+        {
+            Scientist.ScientistLogger.Warning("ImprovedInputInit hook is not active.");
+            return;
+        }
+        hook.Dispose();
+    }
+
+    public static void HookReapply()
+    {
+        if (hook == null)
+        {
+            Scientist.ScientistLogger.Warning("ImprovedInputInit hook is not active.");
+            return;
+        }
+        try
+        {
+            hook.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Scientist.ScientistLogger.Warning("Failed to dispose ImprovedInputInit hook: " + ex.Message);
+        }
+        try
+        {
+            hook.Apply();
+        }
+        catch (Exception ex)
+        {
+            Scientist.ScientistLogger.Error("Failed to apply ImprovedInputInit hook: " + ex.Message);
+        }
+    }
+
+    public static void ChangedOspKeycode()
+    {
+
     }
 }

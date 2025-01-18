@@ -13,11 +13,11 @@ public class FivePebblesChats
 {
     public static void FivePebbles_SeePlayer(On.SSOracleBehavior.orig_SeePlayer orig, SSOracleBehavior self)
     {
-        if (self.oracle.room.game.StoryCharacter.value == Scientist.Plugin.MOD_ID)
+        if (self.oracle.room.game.StoryCharacter.value == Scientist.ScientistPlugin.MOD_ID)
         {
             if (self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiConversationsHad == 0 || (ModManager.MSC && self.oracle.ID == MoreSlugcatsEnums.OracleID.DM))
             {
-                self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_Init);
+                self.NewAction(Scientist.Enums.Action_Fp.MeetScientist_Init);
                 if (!ModManager.MSC || self.oracle.ID != MoreSlugcatsEnums.OracleID.DM)
                 {
                     self.SlugcatEnterRoomReaction();
@@ -35,7 +35,7 @@ public class FivePebblesChats
                 ScientistLogger.Log($"posWithPlayersToString: {posWithPlayersToString}, poSToString: {poSToString}");
                 if (poS == null || poS.Length == 0)
                 {
-                    self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First);
+                    self.NewAction(Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_First);
                     self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiThrowOuts++;
                 }
                 if (!ModManager.MSC || self.oracle.ID != MoreSlugcatsEnums.OracleID.DM)
@@ -45,11 +45,11 @@ public class FivePebblesChats
             }
             else
             {
-                /*if (self.oracle.room.game.GetStorySession.saveStateNumber.value == Scientist.Plugin.MOD_ID)
+                /*if (self.oracle.room.game.GetStorySession.saveStateNumber.value == Scientist.ScientistPlugin.MOD_ID)
                 {
                     
                 }*/
-                self.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_Second);
+                self.NewAction(Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_Second);
                 self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiThrowOuts++;
             }
             self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SSaiConversationsHad++;
@@ -62,7 +62,7 @@ public class FivePebblesChats
 
     public static void FivePebbles_NewAction(On.SSOracleBehavior.orig_NewAction orig, SSOracleBehavior self, SSOracleBehavior.Action nextAction)
     {
-        if (self.oracle.room.game.StoryCharacter.value == Scientist.Plugin.MOD_ID)
+        if (self.oracle.room.game.StoryCharacter.value == Scientist.ScientistPlugin.MOD_ID)
         {
             if (nextAction == self.action)
             {
@@ -70,17 +70,17 @@ public class FivePebblesChats
             }
 
             SSOracleBehavior.SubBehavior.SubBehavID subBehavID = SSOracleBehavior.SubBehavior.SubBehavID.General;
-            if (nextAction ==  Scientist.ScientistEnums.Action_Fp.MeetScientist_Init)
+            if (nextAction ==  Scientist.Enums.Action_Fp.MeetScientist_Init)
             {
-                subBehavID = Scientist.ScientistEnums.SubBehavID_Fp.FirstMeetScientist;
+                subBehavID = Scientist.Enums.SubBehavID_Fp.FirstMeetScientist;
             }
-            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_SeeObject)
+            else if (nextAction == Scientist.Enums.Action_Fp.MeetScientist_SeeObject)
             {
 
             }
-            else if (nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First || nextAction == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_Second)
+            else if (nextAction == Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_First || nextAction == Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_Second)
             {
-                subBehavID = Scientist.ScientistEnums.SubBehavID_Fp.ThrowOutScientist;
+                subBehavID = Scientist.Enums.SubBehavID_Fp.ThrowOutScientist;
             }
             else if (nextAction == SSOracleBehavior.Action.ThrowOut_SecondThrowOut || nextAction == SSOracleBehavior.Action.ThrowOut_ThrowOut || nextAction == SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut)
             {
@@ -111,11 +111,11 @@ public class FivePebblesChats
                 if (subBehavior == null)
                 {
                     self.LockShortcuts();
-                    if (subBehavID == Scientist.ScientistEnums.SubBehavID_Fp.FirstMeetScientist)
+                    if (subBehavID == Scientist.Enums.SubBehavID_Fp.FirstMeetScientist)
                     {
                         subBehavior = new chats.SSOracleMeetScientist(self);
                     }
-                    else if (subBehavID == Scientist.ScientistEnums.SubBehavID_Fp.ThrowOutScientist)
+                    else if (subBehavID == Scientist.Enums.SubBehavID_Fp.ThrowOutScientist)
                     {
                         subBehavior = new chats.ThrowOutScientistBehavior(self);
                     }
@@ -142,7 +142,7 @@ public class FivePebblesChats
     {
 
         orig(self);
-        if (self.id == Scientist.ScientistEnums.ConversationID_Fp.Pebbles_Scientist_Meet_First)
+        if (self.id == Scientist.Enums.ConversationID_Fp.Pebbles_Scientist_Meet_First)
         {
             self.dialogBox.NewMessage(self.Translate(".  .  ."), 0);
             self.events.Add(new Conversation.TextEvent(self, 40, self.Translate("Pebbles_Scientist_Meet_First_Line1"), 80));
@@ -165,7 +165,7 @@ public class FivePebblesChats
 public class SSOracleMeetScientist : SSOracleBehavior.ConversationBehavior
 {
 
-    public SSOracleMeetScientist(SSOracleBehavior owner) : base(owner, Scientist.ScientistEnums.SubBehavID_Fp.FirstMeetScientist, Scientist.ScientistEnums.ConversationID_Fp.Pebbles_Scientist_Meet_First)
+    public SSOracleMeetScientist(SSOracleBehavior owner) : base(owner, Scientist.Enums.SubBehavID_Fp.FirstMeetScientist, Scientist.Enums.ConversationID_Fp.Pebbles_Scientist_Meet_First)
     {
         owner.getToWorking = 0f;
         if (ModManager.MMF && owner.oracle.room.game.IsStorySession && owner.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.memoryArraysFrolicked && base.oracle.room.world.rainCycle.timer > base.oracle.room.world.rainCycle.cycleLength / 4)
@@ -182,32 +182,32 @@ public class SSOracleMeetScientist : SSOracleBehavior.ConversationBehavior
             return;
         }
         this.owner.LockShortcuts();
-        if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_Init)
+        if (base.action == Scientist.Enums.Action_Fp.MeetScientist_Init)
         {
             if (this.owner.playerEnteredWithMark)
             {
                 base.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
-                this.owner.InitateConversation(Scientist.ScientistEnums.ConversationID_Fp.Pebbles_Scientist_Meet_First, this);
+                this.owner.InitateConversation(Scientist.Enums.ConversationID_Fp.Pebbles_Scientist_Meet_First, this);
                 return;
             }
             this.owner.NewAction(SSOracleBehavior.Action.General_GiveMark);
-            this.owner.afterGiveMarkAction = Scientist.ScientistEnums.Action_Fp.MeetScientist_Talk_FirstMeet;
+            this.owner.afterGiveMarkAction = Scientist.Enums.Action_Fp.MeetScientist_Talk_FirstMeet;
             return;
 
         }
-        else if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_Talk_FirstMeet)
+        else if (base.action == Scientist.Enums.Action_Fp.MeetScientist_Talk_FirstMeet)
         {
             base.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
             if (base.inActionCounter == 15 && (this.owner.conversation == null || this.owner.conversation.id != this.convoID))
             {
-                this.owner.InitateConversation(Scientist.ScientistEnums.ConversationID_Fp.Pebbles_Scientist_Meet_First, this);
+                this.owner.InitateConversation(Scientist.Enums.ConversationID_Fp.Pebbles_Scientist_Meet_First, this);
             }
             if (this.owner.conversation != null && this.owner.conversation.id == this.convoID && this.owner.conversation.slatedForDeletion)
             {
                 this.owner.conversation = null;
-                //this.owner.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
+                //this.fcontainer.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
                 this.owner.getToWorking = 1f;
-                this.owner.NewAction(Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First);
+                this.owner.NewAction(Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_First);
             }
         }
     }
@@ -216,7 +216,7 @@ public class SSOracleMeetScientist : SSOracleBehavior.ConversationBehavior
 public class ThrowOutScientistBehavior : SSOracleBehavior.TalkBehavior
 {
     // Token: 0x0600379E RID: 14238 RVA: 0x003EC775 File Offset: 0x003EA975
-    public ThrowOutScientistBehavior(SSOracleBehavior owner) : base(owner, Scientist.ScientistEnums.SubBehavID_Fp.ThrowOutScientist)
+    public ThrowOutScientistBehavior(SSOracleBehavior owner) : base(owner, Scientist.Enums.SubBehavID_Fp.ThrowOutScientist)
     {
     }
 
@@ -341,7 +341,7 @@ public class ThrowOutScientistBehavior : SSOracleBehavior.TalkBehavior
     IL_722:
         if (base.player.room == base.oracle.room || (ModManager.MSC && base.oracle.room.abstractRoom.creatures.Count > 0))
         {
-            if (base.action == Scientist.ScientistEnums.Action_Fp.MeetScientist_ThrowOut_First)
+            if (base.action == Scientist.Enums.Action_Fp.MeetScientist_ThrowOut_First)
             {
                 this.owner.getToWorking = 1f;
                 if (base.player.room == base.oracle.room)

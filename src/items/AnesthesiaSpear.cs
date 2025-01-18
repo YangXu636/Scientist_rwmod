@@ -1,4 +1,4 @@
-﻿using items.AbstractPhysicalObjects;
+﻿using Scientist.items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -7,12 +7,12 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace items;
+namespace Scientist.items;
 
 
 sealed class AnesthesiaSpear : Spear
 {
-    public new items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractSpear
+    public new Scientist.items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractSpear
     {
         get
         {
@@ -28,7 +28,7 @@ sealed class AnesthesiaSpear : Spear
         }
     }
 
-    public AnesthesiaSpear(items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public AnesthesiaSpear(Scientist.items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);
@@ -69,7 +69,7 @@ sealed class AnesthesiaSpear : Spear
                 c.Stun(400);
                 if (c is not Player)
                 {
-                    Scientist.ScientistPlayer.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.AnesthesiaCreature((x, y) => x < y);
+                    Scientist.Data.Player.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y);
                 }
             }
         }

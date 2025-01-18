@@ -1,4 +1,4 @@
-﻿using items.AbstractPhysicalObjects;
+﻿using Scientist.items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using System;
@@ -6,7 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace items;
+namespace Scientist.items;
 
 public class Knot : PlayerCarryableItem, IDrawable
 {
@@ -16,15 +16,15 @@ public class Knot : PlayerCarryableItem, IDrawable
     public float darkness;
     public float lastDarkness;
 
-    public items.AbstractPhysicalObjects.KnotAbstract knotAbstract
+    public Scientist.items.AbstractPhysicalObjects.KnotAbstract knotAbstract
     {
         get
         {
-            return this.abstractPhysicalObject as items.AbstractPhysicalObjects.KnotAbstract;
+            return this.abstractPhysicalObject as Scientist.items.AbstractPhysicalObjects.KnotAbstract;
         }
     }
 
-    public Knot(items.AbstractPhysicalObjects.KnotAbstract knotAbstract, World world) : base(knotAbstract)
+    public Knot(Scientist.items.AbstractPhysicalObjects.KnotAbstract knotAbstract, World world) : base(knotAbstract)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);

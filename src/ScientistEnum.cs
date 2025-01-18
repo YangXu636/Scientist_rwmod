@@ -1,9 +1,9 @@
-﻿using items;
+﻿using Scientist.items;
 
-namespace Scientist.ScientistEnums
+namespace Scientist.Enums
 {
 
-    public static class ScientistEnums
+    public static class ScientistEnum
     {
         public static void RegisterValues()
         {
@@ -34,6 +34,8 @@ namespace Scientist.ScientistEnums
         public static AbstractPhysicalObject.AbstractObjectType AnesthesiaNeedle;
         public static AbstractPhysicalObject.AbstractObjectType SmallRock;
         public static AbstractPhysicalObject.AbstractObjectType Knot;
+        public static AbstractPhysicalObject.AbstractObjectType StoneKnife;
+        public static AbstractPhysicalObject.AbstractObjectType ExplosivePowder;
 
         public static void RegisterValues()
         {
@@ -47,6 +49,8 @@ namespace Scientist.ScientistEnums
             AnesthesiaNeedle = new AbstractPhysicalObject.AbstractObjectType("AnesthesiaNeedle", true);
             SmallRock = new AbstractPhysicalObject.AbstractObjectType("SmallRock", true);
             Knot = new AbstractPhysicalObject.AbstractObjectType("Knot", true);
+            StoneKnife = new AbstractPhysicalObject.AbstractObjectType("StoneKnife", true);
+            ExplosivePowder = new AbstractPhysicalObject.AbstractObjectType("ExplosivePowder", true);
         }
 
         public static void UnregisterValues()
@@ -90,6 +94,14 @@ namespace Scientist.ScientistEnums
             AbstractPhysicalObject.AbstractObjectType knot = Knot;
             knot?.Unregister();
             Knot = null;
+
+            AbstractPhysicalObject.AbstractObjectType stoneKnife = StoneKnife;
+            stoneKnife?.Unregister();
+            StoneKnife = null;
+
+            AbstractPhysicalObject.AbstractObjectType explosivePowder = ExplosivePowder;
+            explosivePowder?.Unregister();
+            ExplosivePowder = null;
         }
     }
 

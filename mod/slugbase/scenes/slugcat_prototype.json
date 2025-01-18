@@ -3,48 +3,57 @@
 	"scene_folder": "scenes/slugcat_scientist",
 	"images": [
 		{
-			"name": "Background",
+			"name": "scientist_select5",
 			"pos": [
-				492,
-				297
+				183,
+				173
 			],
 			"depth": 3.7,
 			"shader": "Basic"
 		},
 		{
-			"name": "Slugcat",
+			"name": "scientist_select4",
 			"pos": [
-				605,
-				427
+				183,
+				173
 			],
 			"depth": 2.8,
 			"shader": "Basic"
 		},
 		{
-			"name": "Grass 3",
+			"name": "scientist_select3",
 			"pos": [
-				602,
-				264
+				183,
+				173
 			],
 			"depth": 2.2,
 			"shader": "Basic"
 		},
 		{
-			"name": "Grass 2",
+			"name": "scientist_select2",
 			"pos": [
-				446,
-				283
+				183,
+				173
 			],
 			"depth": 2.0,
 			"shader": "Basic"
 		},
 		{
-			"name": "Grass 1",
+			"name": "scientist_select1",
 			"pos": [
-				515,
-				265
+				183,
+				173
 			],
 			"depth": 1.8,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_select0",
+			"pos": [
+				183,
+				173
+			],
+			"depth": 1.5,
 			"shader": "Basic"
 		}
 	],

@@ -1,4 +1,4 @@
-﻿using items.AbstractPhysicalObjects;
+﻿using Scientist.items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using System;
@@ -6,16 +6,14 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace items;
+namespace Scientist.items;
 
 //TODO 1.5矛的伤害 OK!
 //TODO 如果你一不小心把削尖的矛插到墙中，它会插的很深，只有胖猫体型且不在力竭状态才能把它拨出 OK!
 
-
-
 sealed class ElectricProd : Spear
 {
-    public new items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
+    public new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
     {
         get
         {
@@ -31,7 +29,7 @@ sealed class ElectricProd : Spear
         }
     }
 
-    public ElectricProd(items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public ElectricProd(Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.07f);

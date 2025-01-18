@@ -1,5 +1,5 @@
 ﻿using Expedition;
-using items;
+using Scientist.items;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -8,9 +8,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Scientist;
+namespace Scientist.Data;
 
-public static class ScientistPlayer
+public static class Player
 {
     public static int offlineTime = 0;
 
@@ -22,10 +22,18 @@ public static class ScientistPlayer
     public static Dictionary<string, int> pfTime = new();
     public static Dictionary<string, bool> pfAfterActiveDie = new();
 
+    //craftingTime
+    public static Dictionary<string, int> craftingTime = new();
+
 #nullable enable
     public static Dictionary<string, ColorfulSprite?> colorfulCreatures = new Dictionary<string, ColorfulSprite?>();
 
     public static Dictionary<string, AnesthesiaCreature> anesthesiaCreatures = new Dictionary<string, AnesthesiaCreature>();
+}
+
+public static class GolbalVariables
+{
+    public static bool isPanelOpen = false;
 }
 
 public class ColorfulSprite
@@ -96,15 +104,21 @@ public class ColorfulSprite
             {
                 if (this.lightSource == null)
                 {
-                    this.lightSource = new LightSource( (c != null ? c.mainBodyChunk.pos : po.firstChunk.pos), false, Color.red, uad);
-                    this.lightSource.requireUpKeep = true;
-                    this.lightSource.setRad = new float?(300f);
-                    this.lightSource.setAlpha = new float?(1f);
+#pragma warning disable CS8602 // 解引用可能出现空引用。
+                    this.lightSource = new((c != null ? c.mainBodyChunk.pos : po.firstChunk.pos), false, Color.red, uad)
+                    {
+#pragma warning restore CS8602 // 解引用可能出现空引用。
+                        requireUpKeep = true,
+                        setRad = new float?(300f),
+                        setAlpha = new float?(1f)
+                    };
                     c?.room.AddObject(this.lightSource);
                     po?.room.AddObject(this.lightSource);
                 }
                 this.lightSource.stayAlive = true;
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 this.lightSource.setPos = new Vector2?(c != null ? c.mainBodyChunk.pos : po.firstChunk.pos);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                 this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.5f);
                 if (this.lightSource.slatedForDeletetion)
                 {

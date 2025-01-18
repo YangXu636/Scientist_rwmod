@@ -5,7 +5,7 @@ using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
 using System.Reflection;
-using items;
+using Scientist.items;
 using Unity.Mathematics;
 
 namespace Scientist;
@@ -113,9 +113,9 @@ public class ScientistSlugcat
         //新增物品
         ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear] = num;
         num++;
-        ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.SharpSpear] = num;
+        ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.SharpSpear] = num;
         num++;
-        ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.Knot] = num;
+        ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.Knot] = num;
         num++;
 
         int num2 = 0;
@@ -295,7 +295,7 @@ public class ScientistSlugcat
 
         int tableSelect = 0;
         AbstractPhysicalObject.AbstractObjectType key = AbstractPhysicalObject.AbstractObjectType.Rock;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, ScientistEnums.Items.SmallRock, null);                                              //null
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Rock], tableSelect, Enums.Items.SmallRock, null);                                               //null
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.PuffBall], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
@@ -307,7 +307,7 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Lantern], tableSelect, AbstractPhysicalObject.AbstractObjectType.FlareBomb, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.KarmaFlower], tableSelect, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, AbstractPhysicalObject.AbstractObjectType.PuffBall, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, Enums.Items.ExplosivePowder, null);                             //AbstractPhysicalObject.AbstractObjectType.ScavengerBomb
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SlimeMold], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure], tableSelect, AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
@@ -324,7 +324,7 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.PuffBall, null);
 
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.ScientistEnums.Items.SharpSpear, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.Enums.Items.SharpSpear, null);
         key = AbstractPhysicalObject.AbstractObjectType.FlareBomb;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlareBomb], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.VultureMask], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
@@ -336,7 +336,7 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.JellyFish], tableSelect, MoreSlugcatsEnums.AbstractObjectType.LillyPuck, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Lantern], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GlowWeed, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.KarmaFlower], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, Scientist.ScientistEnums.Items.ColorfulFruit, null);                                            // AbstractPhysicalObject.AbstractObjectType.PuffBall
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, Scientist.Enums.Items.ColorfulFruit, null);                                            // AbstractPhysicalObject.AbstractObjectType.PuffBall
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SlimeMold], tableSelect, AbstractPhysicalObject.AbstractObjectType.Lantern, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure], tableSelect, AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant, null);
@@ -408,14 +408,14 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GooieDuck, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GooieDuck, null);
         key = AbstractPhysicalObject.AbstractObjectType.DangleFruit;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DangleFruit], tableSelect, Scientist.ScientistEnums.Items.ConcentratedDangleFruit, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DangleFruit], tableSelect, Scientist.Enums.Items.ConcentratedDangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SSOracleSwarmer], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.DataPearl], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.WaterNut], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.JellyFish], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Lantern], tableSelect, AbstractPhysicalObject.AbstractObjectType.FlareBomb, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.KarmaFlower], tableSelect, MoreSlugcatsEnums.AbstractObjectType.Seed, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, Scientist.ScientistEnums.Items.PainlessFruit, null);                  //MoreSlugcatsEnums.AbstractObjectType.GooieDuck
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, Scientist.Enums.Items.PainlessFruit, null);                  //MoreSlugcatsEnums.AbstractObjectType.GooieDuck
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, AbstractPhysicalObject.AbstractObjectType.SporePlant, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SlimeMold], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GooieDuck, null);
@@ -731,13 +731,13 @@ public class ScientistSlugcat
         key = MoreSlugcatsEnums.AbstractObjectType.GlowWeed;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, null, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.ScientistEnums.Items.InflatableGlowingShield, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.ScientistEnums.Items.SharpSpear], tableSelect, Scientist.ScientistEnums.Items.InflatableGlowingShield, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.Enums.Items.InflatableGlowingShield, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.SharpSpear], tableSelect, Scientist.Enums.Items.InflatableGlowingShield, null);
         key = MoreSlugcatsEnums.AbstractObjectType.DandelionPeach;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, null, null);
 
-        key = ScientistEnums.Items.Knot;
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[ScientistEnums.Items.Knot], tableSelect, ScientistEnums.Items.Knot, null);
+        key = Enums.Items.Knot;
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Enums.Items.Knot], tableSelect, Enums.Items.Knot, null);
 
         tableSelect = 1;
         CreatureTemplate.Type key2 = CreatureTemplate.Type.Fly;
@@ -1216,7 +1216,7 @@ public class ScientistSlugcat
     {
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
-            return new AbstractPhysicalObject[] { new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) }; //自定义的ShapeSpearAbstract，覆写了realizedObject
+            return new AbstractPhysicalObject[] { new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) }; //自定义的ShapeSpearAbstract，覆写了realizedObject
         }
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
         {
@@ -1230,7 +1230,7 @@ public class ScientistSlugcat
             }
             if ( (player.grasps[0].grabbed is WaterNut && player.grasps[1].grabbed is SwollenWaterNut) || (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is WaterNut))
             {
-                return new AbstractPhysicalObject[] { new items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) };
+                return new AbstractPhysicalObject[] { new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) };
             }
             if (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is SwollenWaterNut)
             {
@@ -1240,18 +1240,18 @@ public class ScientistSlugcat
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Rock, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
             return new AbstractPhysicalObject[] {
-                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, ScientistEnums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
+                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
             };
         }
-        if (APO_Compare(a, b, ScientistEnums.Items.Knot, ScientistEnums.Items.Knot))
+        if (APO_Compare(a, b, Enums.Items.Knot, Enums.Items.Knot))
         {
             if (!(player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Empty() && !(player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Empty())
             {
-                items.AbstractPhysicalObjects.KnotAbstract kaNew = new(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
+                Scientist.items.AbstractPhysicalObjects.KnotAbstract kaNew = new(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
                 items.StringShort[] ss = (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.ToArray();
                 foreach (items.StringShort s in ss)
                 {

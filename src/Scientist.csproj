@@ -42,11 +42,20 @@
         <Reference Include="EmgTx">
           <HintPath>..\lib\EmgTx.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp">
-          <HintPath>..\..\..\Tools\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
+        <Reference Include="FakeAchievements">
+          <HintPath>..\lib\FakeAchievements.dll</HintPath>
         </Reference>
         <Reference Include="HOOKS-Assembly-CSharp">
           <HintPath>..\..\..\Tools\BepInEx\plugins\HOOKS-Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="ImprovedInput">
+          <HintPath>..\..\..\..\Download\Steam\steamapps\workshop\content\312520\2944727862\plugins\ImprovedInput.dll</HintPath>
+        </Reference>
+        <Reference Include="OptimusPrime">
+          <HintPath>..\..\op\OptimusPrime\plugins\OptimusPrime.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Rewired_Core">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Rewired_Core.dll</HintPath>

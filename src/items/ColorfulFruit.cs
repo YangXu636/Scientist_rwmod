@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 
-namespace items;
+namespace Scientist.items;
 public class ColorfulFruit : Weapon, IPlayerEdible
 {
     /*public Vector2 rotation;
@@ -122,9 +122,9 @@ public class ColorfulFruit : Weapon, IPlayerEdible
                     }
                     this.room.abstractRoom.creatures[i].realizedCreature.Blind((int)Custom.LerpMap(Vector2.Distance(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.VisionPoint), 60f, 600f, 400f, 20f));
                     string c_fts = Scientist.ScientistTools.FeaturesTypeString(this.room.abstractRoom.creatures[i]);
-                    if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
+                    if (!Scientist.Data.Player.colorfulCreatures.ContainsKey(c_fts) || !Scientist.Data.Player.colorfulCreatures[c_fts].enabled || Scientist.Data.Player.colorfulCreatures[c_fts].lightSource == null)
                     {
-                        Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.abstractRoom.creatures[i].realizedCreature, UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
+                        Scientist.Data.Player.colorfulCreatures[c_fts] = new(this.room.abstractRoom.creatures[i].realizedCreature, UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
                     }
                 }
             }
@@ -137,9 +137,9 @@ public class ColorfulFruit : Weapon, IPlayerEdible
                         if (room.physicalObjects[j][k] is Oracle)
                         {
                             string c_fts = Scientist.ScientistTools.FeaturesTypeString(this.room.physicalObjects[j][k]);
-                            if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(c_fts) || !Scientist.ScientistPlayer.colorfulCreatures[c_fts].enabled || Scientist.ScientistPlayer.colorfulCreatures[c_fts].lightSource == null)
+                            if (!Scientist.Data.Player.colorfulCreatures.ContainsKey(c_fts) || !Scientist.Data.Player.colorfulCreatures[c_fts].enabled || Scientist.Data.Player.colorfulCreatures[c_fts].lightSource == null)
                             {
-                                Scientist.ScientistPlayer.colorfulCreatures[c_fts] = new(this.room.physicalObjects[j][k], UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
+                                Scientist.Data.Player.colorfulCreatures[c_fts] = new(this.room.physicalObjects[j][k], UnityEngine.Random.Range(0, 560), true, UnityEngine.Random.Range(10f, 30f));
                             }
                         }
                     }
@@ -209,11 +209,11 @@ public class ColorfulFruit : Weapon, IPlayerEdible
         base.firstChunk.MoveFromOutsideMyUpdate(eu, grasp.grabber.mainBodyChunk.pos);
         if (this.bites < 1)
         {
-            if (!Scientist.ScientistPlayer.colorfulCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)))
+            if (!Scientist.Data.Player.colorfulCreatures.ContainsKey(Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)))
             {
-                Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)] = new(grasp.grabber as Player);
+                Scientist.Data.Player.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)] = new(grasp.grabber as Player);
             }
-            Scientist.ScientistPlayer.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
+            Scientist.Data.Player.colorfulCreatures[Scientist.ScientistTools.FeaturesTypeString(grasp.grabber as Player)].SetEnabled(true);
             (grasp.grabber as Player).mushroomCounter += 320;
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();

@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 
-namespace items;
+namespace Scientist.items;
 public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
 {
     public Vector2 rotation;

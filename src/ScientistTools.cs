@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -101,13 +102,13 @@ public class ScientistTools
 
     public static string ExtenumTypeString(AbstractCreature ac) => ac.type.value;
 
-    public static string FeaturesTypeString(AbstractPhysicalObject apo) => apo.type == AbstractPhysicalObject.AbstractObjectType.Creature ? FeaturesTypeString(apo.realizedObject as Creature) : apo.ToString();
+    public static string FeaturesTypeString(AbstractPhysicalObject apo) => apo.type == AbstractPhysicalObject.AbstractObjectType.Creature ? FeaturesTypeString(apo.realizedObject as Creature) : $"{apo.ID}_{apo.type.value}";
 
     public static string FeaturesTypeString(PhysicalObject po) => FeaturesTypeString(po.abstractPhysicalObject);
 
     public static string FeaturesTypeString(Creature c) => FeaturesTypeString(c.abstractCreature);
 
-    public static string FeaturesTypeString(AbstractCreature ac) => ac.ToString();
+    public static string FeaturesTypeString(AbstractCreature ac) =>$"{ac.ID}_{ac.type.value}";
 }
 
 public static class ArrayExtensions
@@ -129,6 +130,26 @@ public static class ArrayExtensions
             array[i] = value;
         }
         return array;
+    }
+
+    public static bool AllEqualValue<T>(this T[] array, T value)
+    {
+        for (int i = 0; i < array.Length; i++)
+            if (!array[i].Equals(value))
+                return false;
+        return true;
+    }
+
+    public static T FindDifferent<T>(this T[] array)
+    {
+        Dictionary<T, int> dict = new Dictionary<T, int>();
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (!dict.ContainsKey(array[i]))
+                dict.Add(array[i], 0);
+            dict[array[i]]++;
+        }
+        return dict.Where(x => x.Value == 1).ToArray().First().Key;
     }
 
     public static T[,] SetAll<T>(this T[,] array, T value, int layerIStart = -1, int layerIEnd = -1, int layerJStart = -1, int layerJEnd = -1)
@@ -210,6 +231,13 @@ public static class ListExtensions
         if (list == null || list.Count == 0) { return false; }
         if (list.Count == 1) { return !list[0].Equals(item); }
         return true;
+    }
+
+    public static List<T> AddSafe<T>(this List<T> list, T item)
+    {
+        list ??= new List<T>();
+        if (!list.Contains(item)) { list.Add(item); }
+        return list;
     }
 }
 

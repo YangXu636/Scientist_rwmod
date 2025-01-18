@@ -19,3 +19,9 @@ Pebbles_Scientist_Meet_First_Line10|我动了点手脚，这应该能让你轻�
 Pebbles_Scientist_Meet_First_Line11|我会继续观察你的，但现在不管你有什么理由，离开。
 
 Pebbles_Scientist_ThrowOut_Line1|知道你对这里很感兴趣，但你该走了。
+
+Open Scientist Panel|打开科学家面板
+
+Sundries|杂项
+Enable old version PainlessFruit|启用旧版无痛果
+Key used for opening the menu|图鉴菜单按钮
