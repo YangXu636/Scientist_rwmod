@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -9,7 +9,7 @@ using UnityEngine;
 using Noise;
 using Smoke;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 class ExplosivePowder : ScavengerBomb
 {
@@ -67,8 +67,8 @@ class ExplosivePowder : ScavengerBomb
         {
             this.room.AddObject(new Explosion(this.room, this, vector, 7, 160f, 6.2f, 0.98f, 140f, 0.1f, this.thrownBy, 0.7f, 160f, 1f));
         }
-        this.room.AddObject(new Explosion.ExplosionLight(vector, 280f, 1f, 7, this.explodeColor));
-        this.room.AddObject(new Explosion.ExplosionLight(vector, 230f, 1f, 3, new Color(1f, 1f, 1f)));
+        this.room.AddObject(new Explosion.ExplosionLight(vector, 140f, 1f, 7, this.explodeColor));
+        this.room.AddObject(new Explosion.ExplosionLight(vector, 110f, 1f, 3, new Color(1f, 1f, 1f)));
         this.room.AddObject(new ExplosionSpikes(this.room, vector, 14, 30f, 9f, 7f, 170f, this.explodeColor));
         this.room.AddObject(new ShockWave(vector, 200f, 0.045f, 5, false));
         for (int i = 0; i < 25; i++)
@@ -155,9 +155,53 @@ class ExplosivePowder : ScavengerBomb
             }
         }
         Room room1 = this.room;
-        room1.AddObject(new Explosion.ExplosionLight(this.firstChunk.pos, 180f, 1f, 7, this.explodeColor));
+        room1.AddObject(new Explosion.ExplosionLight(this.firstChunk.pos, 90f, 1f, 7, this.explodeColor));
         room1.PlaySound(SoundID.Firecracker_Burn, base.firstChunk.pos);
         room1.abstractRoom.RemoveEntity(this.abstractPhysicalObject);
         this.Destroy();
+    }
+
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    {
+        sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites[0] = new FSprite("Circle4", true);
+        this.AddToContainer(sLeaser, rCam, null);
+    }
+
+    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+    {
+        newContatiner ??= rCam.ReturnFContainer("Items");
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
+        {
+            sLeaser.sprites[i].RemoveFromContainer();
+            newContatiner.AddChild(sLeaser.sprites[i]);
+        }
+    }
+
+    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    {
+        sLeaser.sprites[0].color = Color.red;
+    }
+
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    {
+        Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
+        Vector2 v = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
+        sLeaser.sprites[0].color = Color.red;
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
+        {
+            sLeaser.sprites[i].x = vector.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y - camPos.y;
+            sLeaser.sprites[i].rotation = Custom.VecToDeg(v);
+            sLeaser.sprites[i].scale = 3f;
+        }
+        if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
+        {
+            sLeaser.sprites[0].color = base.blinkColor;
+        }
+        if (base.slatedForDeletetion || this.room != rCam.room)
+        {
+            sLeaser.CleanSpritesAndRemove();
+        }
     }
 }

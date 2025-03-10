@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -7,7 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 class ScientistIcon : UpdatableAndDeletable
 {

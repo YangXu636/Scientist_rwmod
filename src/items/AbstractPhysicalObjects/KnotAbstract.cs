@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Scientist.items.AbstractPhysicalObjects
+namespace Scientist.Items.AbstractPhysicalObjects
 {
 	// Token: 0x02000005 RID: 5
 	public class KnotAbstract : AbstractPhysicalObject
@@ -34,7 +34,7 @@ namespace Scientist.items.AbstractPhysicalObjects
 
         public override void Realize()
 		{
-            this.realizedObject ??= new items.Knot(this, this.world);
+            this.realizedObject ??= new Items.Knot(this, this.world);
         }
 
         public override string ToString()

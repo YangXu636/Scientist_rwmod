@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 
-namespace Scientist.items;
+namespace Scientist.Items;
 public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
 {
     public Vector2 rotation;
@@ -20,7 +20,7 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
     public InflatableGlowingShield(AbstractPhysicalObject abstractPhysicalObject, World world) : base(abstractPhysicalObject)
     {
         base.bodyChunks = new BodyChunk[1];
-        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 24f, 0.3f);
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 18f, 0.3f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
         base.airFriction = 0.999f;
         base.gravity = 0.9f;
@@ -42,6 +42,11 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         if (this.grabbedBy.Count > 0)
         {
             this.rotation = Vector2.up;
+            this.bodyChunks[0].rad = 24f;
+        }
+        else
+        {
+            this.bodyChunks[0].rad = 18f;
         }
         if (this.setRotation != null)
         {
@@ -143,27 +148,22 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         /*rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[0]);//GrabShaders
         rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[1]);
         rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[2]);
-        rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[3]);*/
+        rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[3]);
         sLeaser.sprites[0].MoveInFrontOfOtherNode(sLeaser.sprites[4]);
         //sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
         sLeaser.sprites[2].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
-        sLeaser.sprites[3].MoveInFrontOfOtherNode(sLeaser.sprites[2]);
+        sLeaser.sprites[3].MoveInFrontOfOtherNode(sLeaser.sprites[2]);*/
     }
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
         this.color = new Color(0.8f, 1f, 0.4f);
-        //sLeaser.sprites[0].color = Color.Lerp(palette.waterColor1, palette.waterColor2, 0.5f);
-        sLeaser.sprites[0].color = Scientist.ScientistTools.ColorFromHex("48611C"); //palette.blackColor;
+        sLeaser.sprites[0].color = palette.blackColor;
         sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("81E629");
-        sLeaser.sprites[1].alpha = 0.5f;
-        sLeaser.sprites[2].color = Scientist.ScientistTools.ColorFromHex("7DCF36");
-        sLeaser.sprites[3].color = Scientist.ScientistTools.ColorFromHex("8FAB11");
-        sLeaser.sprites[4].color = Scientist.ScientistTools.ColorFromHex("E5FF63");
-        sLeaser.sprites[5].color = Scientist.ScientistTools.ColorFromHex("81E629");
-        sLeaser.sprites[5].alpha = 0.3f;
-        sLeaser.sprites[6].color = Scientist.ScientistTools.ColorFromHex("7DCF36");
-        sLeaser.sprites[7].color = Scientist.ScientistTools.ColorFromHex("8FAB11");
+        sLeaser.sprites[2].color = Scientist.ScientistTools.ColorFromHex("5D7432");
+        sLeaser.sprites[3].color = Scientist.ScientistTools.ColorFromHex("7A9E31");
+        sLeaser.sprites[4].color = Scientist.ScientistTools.ColorFromHex("A5E81E");
+        sLeaser.sprites[5].color = Color.white;
     }
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -177,6 +177,7 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
             sLeaser.sprites[i].x = vector.x - camPos.x;
             sLeaser.sprites[i].y = vector.y - camPos.y;
             sLeaser.sprites[i].rotation = Custom.VecToDeg(vector2);
+            sLeaser.sprites[i].scale = 1.5f;
         }
         if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
         {
@@ -197,18 +198,13 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[8];
-        //sLeaser.sprites[0] = new FSprite("Futile_White", true);
-        //sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["WaterNut"];
+        sLeaser.sprites = new FSprite[6];
         sLeaser.sprites[0] = new FSprite("InflatableGlowingShieldA", true);
         sLeaser.sprites[1] = new FSprite("InflatableGlowingShieldB", true);
         sLeaser.sprites[2] = new FSprite("InflatableGlowingShieldC", true);
         sLeaser.sprites[3] = new FSprite("InflatableGlowingShieldD", true);
         sLeaser.sprites[4] = new FSprite("InflatableGlowingShieldE", true);
-        //sLeaser.sprites[5] = new FSprite("InflatableGlowingShieldA", true);
-        sLeaser.sprites[5] = new FSprite("InflatableGlowingShieldB", true);
-        sLeaser.sprites[6] = new FSprite("InflatableGlowingShieldC", true);
-        sLeaser.sprites[7] = new FSprite("InflatableGlowingShieldD", true);
+        sLeaser.sprites[5] = new FSprite("InflatableGlowingShieldF", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
 }

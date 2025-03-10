@@ -2,12 +2,14 @@ using System;
 using System.Reflection;
 using BepInEx.Logging;
 using Menu.Remix.MixedUI;
+using MonoMod.Utils;
 using UnityEngine;
 
 namespace Scientist
 {
     public class ScientistOptions : OptionInterface
     {
+        private bool _initializing = false;
         private readonly ManualLogSource Logger;
         public readonly Configurable<bool> EnableOldPf;
         public readonly Configurable<KeyCode> OpenScientistPanelKey;
@@ -16,13 +18,14 @@ namespace Scientist
         public ScientistOptions(ScientistPlugin modInstance, ManualLogSource loggerSource)
         {
             this.Logger = loggerSource;
-            this.EnableOldPf = this.config.Bind("EnableOldPf", false);
-            this.OpenScientistPanelKey = this.config.Bind("OpenScientistPanelKey", ScientistPlugin.OpenSpKeycode);
+            this.EnableOldPf = this.config.Bind("ScientistEnableOldPf", false);
+            this.OpenScientistPanelKey = this.config.Bind("ScientistOpenScientistPanelKey", ScientistPlugin.OpenSpKeycode);
         }
 
         // Token: 0x06000020 RID: 32 RVA: 0x00004D44 File Offset: 0x00002F44
         public override void Initialize()
         {
+            _initializing = true;
             try
             {
                 OpTab opTab = new(this, OptionInterface.Translate("Sundries"));
@@ -43,6 +46,7 @@ namespace Scientist
             catch (Exception ex)
             {
                 this.Logger.LogInfo(ex);
+                ex.LogDetailed();
             }
         }
 
@@ -55,14 +59,19 @@ namespace Scientist
         {
             if (ScientistPlugin.hookedOn.KeyIsValue("ImprovedInput", true))
             {
-                FieldInfo OpenSpIiKeybindFieldinfo = ScientistPlugin.OpenSpIiKeybind.GetType().GetField("keyboard", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo OpenSpIiKeybindFieldinfo = ScientistHooks.ImprovedInputHooks.OpenSpIiKeybind.GetType().GetField("keyboard", BindingFlags.Instance | BindingFlags.NonPublic);
                 ScientistPlugin.OspKeycodeChangedByConfig = true;
-                KeyCode[] oldOspikKeycode = (KeyCode[])OpenSpIiKeybindFieldinfo.GetValue(ScientistPlugin.OpenSpIiKeybind);
-                if (this.OpenScientistPanelKey.Value != oldOspikKeycode[0])
+                KeyCode[] oldOspikKeycode = (KeyCode[])OpenSpIiKeybindFieldinfo.GetValue(ScientistHooks.ImprovedInputHooks.OpenSpIiKeybind);
+                if (this.OpenScientistPanelKey.Value != oldOspikKeycode[0] && !_initializing)
                 {
                     KeyCode[] newOspikKeycode = new KeyCode[16];
                     newOspikKeycode.SetAll(this.OpenScientistPanelKey.Value);
-                    OpenSpIiKeybindFieldinfo.SetValue(ScientistPlugin.OpenSpIiKeybind, newOspikKeycode);
+                    OpenSpIiKeybindFieldinfo.SetValue(ScientistHooks.ImprovedInputHooks.OpenSpIiKeybind, newOspikKeycode);
+                }
+                if (_initializing)
+                {
+                    this.OpenScientistPanelKey.Value = oldOspikKeycode[0];
+                    _initializing = false;
                 }
             }
         }

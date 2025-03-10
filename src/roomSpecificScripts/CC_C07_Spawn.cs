@@ -3,16 +3,16 @@ using System.Security.Permissions;
 using UnityEngine;
 using Scientist;
 using System.Collections.Generic;
-using animations;
+using Scientist.Animations;
 
-namespace rss;
+namespace Scientist.Rss;
 
 public class CC_C07_Spawn : UpdatableAndDeletable
 {
     public readonly Vector2 spawnPos = new(890.0f, 2180.0f);
     public Dictionary<int, int> time = new();
     public Dictionary<int, bool> spawned = new();
-    public Dictionary<int, PlayerAnimations> animations = new();
+    public Dictionary<int, Animations.PlayerAnimations> animations = new();
 
     public AbstractCreature[] aps;
     public Player p;
@@ -41,7 +41,7 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                 }
                 if (!this.animations.ContainsKey(index))
                 {
-                    this.animations.Add(index, new PlayerAnimations(ap.realizedCreature as Player));
+                    this.animations.Add(index, new Animations.PlayerAnimations(ap.realizedCreature as Player));
                 }
             }
             if (
@@ -60,7 +60,7 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                 {
                     this.spawned[index] = true;
                     p.SuperHardSetPosition(spawnPos);
-                    PlayerAnimations pa = this.animations[index];
+                    Animations.PlayerAnimations pa = this.animations[index];
                     this.animations[index].AddAnimationFollow(() => pa.Wait(40));
                     this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(spawnPos, 60f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(895.0f, 2250.0f), -40f, p.bodyChunks));

@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using UnityEngine;
 
-namespace Scientist.items.AbstractPhysicalObjects
+namespace Scientist.Items.AbstractPhysicalObjects
 {
 	// Token: 0x02000005 RID: 5
 	internal sealed class SmallRockAbstract : AbstractPhysicalObject
@@ -16,7 +16,7 @@ namespace Scientist.items.AbstractPhysicalObjects
 
         public override void Realize()
 		{
-            this.realizedObject ??= new items.SmallRock(this, this.world);
+            this.realizedObject ??= new Items.SmallRock(this, this.world);
         }
 	}
 }

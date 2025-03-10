@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using System;
@@ -6,7 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 public class Knot : PlayerCarryableItem, IDrawable
 {
@@ -16,15 +16,15 @@ public class Knot : PlayerCarryableItem, IDrawable
     public float darkness;
     public float lastDarkness;
 
-    public Scientist.items.AbstractPhysicalObjects.KnotAbstract knotAbstract
+    public Scientist.Items.AbstractPhysicalObjects.KnotAbstract knotAbstract
     {
         get
         {
-            return this.abstractPhysicalObject as Scientist.items.AbstractPhysicalObjects.KnotAbstract;
+            return this.abstractPhysicalObject as Scientist.Items.AbstractPhysicalObjects.KnotAbstract;
         }
     }
 
-    public Knot(Scientist.items.AbstractPhysicalObjects.KnotAbstract knotAbstract, World world) : base(knotAbstract)
+    public Knot(Scientist.Items.AbstractPhysicalObjects.KnotAbstract knotAbstract, World world) : base(knotAbstract)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);
@@ -71,7 +71,7 @@ public class Knot : PlayerCarryableItem, IDrawable
 
     public override void Destroy()
     {
-        foreach (items.StringShort s in this.knotAbstract.ss)
+        foreach (Items.StringShort s in this.knotAbstract.ss)
         {
             s.Destroy();
         }

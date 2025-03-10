@@ -1,5 +1,5 @@
 ﻿using Expedition;
-using Scientist.items;
+using Scientist.Items;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -20,7 +20,7 @@ public static class Player
     //public static bool[] pfAfterActiveDie;
     public static Dictionary<string, int> pfEatTimesInACycle = new();
     public static Dictionary<string, int> pfTime = new();
-    public static Dictionary<string, bool> pfAfterActiveDie = new();
+    public static Dictionary<string, int> pfDieInActive = new();
 
     //craftingTime
     public static Dictionary<string, int> craftingTime = new();

@@ -49,9 +49,6 @@
 		"timeline_after": "Yellow",
 		"world_state": "Yellow",
 		"select_menu_scene": "Slugcat_Prototype",
-		"select_menu_scene_ascended": "Ghost_Prototype",
-		"scientist/is_scientist": true,
-		"scientist/lower_jump": 1,
-		"scientist/can_pickup_shapespear_stuckinwall": true
+		"select_menu_scene_ascended": "Ghost_Prototype"
 	}
 }

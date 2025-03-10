@@ -26,53 +26,50 @@ public class HatOnHead
     public string atlasPath;
     public string atlasTopName;
     public int index;
-    public PlayerFeature<bool> playerFeature;
+    public string playerName;
     public Color color;
     public PlayerColor playerColor;
     public bool isOnHead;
     public bool isColorful;
     public List<HatOnHead> BeCovered;
 
-
-
-    public HatOnHead(string atlasPath, string atlasTopName, Color color, PlayerFeature<bool> playerFeature)
+    public HatOnHead(string atlasPath, string atlasTopName, Color color, string playerFeature)
     {
         this.index = -1;
         this.atlasPath = atlasPath;
         this.atlasTopName = atlasTopName;
         this.color = color;
-        this.playerFeature = playerFeature;
+        this.playerName = playerFeature;
         this.isOnHead = true;
         this.isColorful = false;
     }
 
-    public HatOnHead(string atlasPath, string atlasTopName, Color color, PlayerFeature<bool> playerFeature, List<HatOnHead> BeCovered) : this(atlasPath, atlasTopName, color, playerFeature)
+    public HatOnHead(string atlasPath, string atlasTopName, Color color, string playerFeature, List<HatOnHead> BeCovered) : this(atlasPath, atlasTopName, color, playerFeature)
     {
         this.BeCovered = BeCovered;
     }
 
-    public HatOnHead(string atlasPath, string atlasTopName, PlayerColor color, PlayerFeature<bool> playerFeature)
+    public HatOnHead(string atlasPath, string atlasTopName, PlayerColor color, string playerFeature)
     {
         this.index = -1;
         this.atlasPath = atlasPath;
         this.atlasTopName = atlasTopName;
         this.playerColor = color;
-        this.playerFeature = playerFeature;
+        this.playerName = playerFeature;
         this.isOnHead = true;
         this.isColorful = true;
     }
 
-    public HatOnHead(string atlasPath, string atlasTopName, PlayerColor color, PlayerFeature<bool> playerFeature, List<HatOnHead> BeCovered) : this(atlasPath, atlasTopName, color, playerFeature)
+    public HatOnHead(string atlasPath, string atlasTopName, PlayerColor color, string playerFeature, List<HatOnHead> BeCovered) : this(atlasPath, atlasTopName, color, playerFeature)
     {
         this.BeCovered = BeCovered;
     }
-
 
     public void PlayerGraphics_InitiateSprites(On.PlayerGraphics.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
         orig.Invoke(self, sLeaser, rCam);
         bool flag = atlas._elementsByName.TryGetValue(atlasTopName + "HeadA0", out var element);
-        bool flag2 = playerFeature.TryGet(self.player, out var flag3) && flag3;
+        bool flag2 = playerName == (self.owner as Player).SlugCatClass.value;
         if (flag2 && flag)
         {
             index = sLeaser.sprites.Length;
@@ -83,13 +80,11 @@ public class HatOnHead
         }
     }
 
-
-
     public void PlayerGraphics_AddToContainer(On.PlayerGraphics.orig_AddToContainer orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         orig.Invoke(self, sLeaser, rCam, newContatiner);
 
-        bool flag = playerFeature.TryGet(self.player, out var flag0) && flag0;
+        bool flag = playerName == (self.owner as Player).SlugCatClass.value;
         bool flag2 = index > 0 && index < sLeaser.sprites.Length;
 
         if (flag2 && flag)
@@ -121,7 +116,7 @@ public class HatOnHead
     public void PlayerGraphics_DrawSprites(On.PlayerGraphics.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, UnityEngine.Vector2 camPos)
     {
         orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
-        bool flag = playerFeature.TryGet(self.player, out bool flag1) && flag1;//玩家是否可以获取仙女特征,并开启仙女特征
+        bool flag = playerName == (self.owner as Player).SlugCatClass.value;//玩家是否可以获取仙女特征,并开启仙女特征
         bool flag2 = atlas._elementsByName.TryGetValue(atlasTopName + "HeadA0", out var element);//玩家是否加载仙女材质
 
         //如果玩家有此特征就让外套同步到身体上,跟随脖子旋转
@@ -149,12 +144,4 @@ public class HatOnHead
         orig.Invoke(self);
         atlas = Futile.atlasManager.LoadAtlas(atlasPath);
     }
-
-
-
-
-
-
-
-
 }

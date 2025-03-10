@@ -1,4 +1,4 @@
-﻿using Scientist.items;
+﻿using Scientist.Items;
 
 namespace Scientist.Enums
 {
@@ -8,6 +8,7 @@ namespace Scientist.Enums
         public static void RegisterValues()
         {
             Items.RegisterValues();
+            SandboxUnlockID.RegisterValues();
             SubBehavID_Fp.RegisterValues();
             Action_Fp.RegisterValues();
             ConversationID_Fp.RegisterValues();
@@ -16,6 +17,7 @@ namespace Scientist.Enums
         public static void UnregisterValues()
         {
             Items.UnregisterValues();
+            SandboxUnlockID.UnregisterValues();
             SubBehavID_Fp.UnregisterValues();
             Action_Fp.UnregisterValues();
             ConversationID_Fp.UnregisterValues();
@@ -36,6 +38,10 @@ namespace Scientist.Enums
         public static AbstractPhysicalObject.AbstractObjectType Knot;
         public static AbstractPhysicalObject.AbstractObjectType StoneKnife;
         public static AbstractPhysicalObject.AbstractObjectType ExplosivePowder;
+        public static AbstractPhysicalObject.AbstractObjectType ExpansionBomb;
+        public static AbstractPhysicalObject.AbstractObjectType BreathingBubble;
+        public static AbstractPhysicalObject.AbstractObjectType KongmingLantern;
+        public static AbstractPhysicalObject.AbstractObjectType TremblingFruit;
 
         public static void RegisterValues()
         {
@@ -51,6 +57,10 @@ namespace Scientist.Enums
             Knot = new AbstractPhysicalObject.AbstractObjectType("Knot", true);
             StoneKnife = new AbstractPhysicalObject.AbstractObjectType("StoneKnife", true);
             ExplosivePowder = new AbstractPhysicalObject.AbstractObjectType("ExplosivePowder", true);
+            ExpansionBomb = new AbstractPhysicalObject.AbstractObjectType("ExpansionBomb", true);
+            BreathingBubble = new AbstractPhysicalObject.AbstractObjectType("BreathingBubble", true);
+            KongmingLantern = new AbstractPhysicalObject.AbstractObjectType("KongmingLantern", true);
+            TremblingFruit = new AbstractPhysicalObject.AbstractObjectType("TremblingFruit", true);
         }
 
         public static void UnregisterValues()
@@ -102,6 +112,120 @@ namespace Scientist.Enums
             AbstractPhysicalObject.AbstractObjectType explosivePowder = ExplosivePowder;
             explosivePowder?.Unregister();
             ExplosivePowder = null;
+
+            AbstractPhysicalObject.AbstractObjectType expansionBomb = ExpansionBomb;
+            expansionBomb?.Unregister();
+            ExpansionBomb = null;
+
+            AbstractPhysicalObject.AbstractObjectType breathingBubble = BreathingBubble;
+            breathingBubble?.Unregister();
+            BreathingBubble = null;
+
+            AbstractPhysicalObject.AbstractObjectType kongmingLantern = KongmingLantern;
+            kongmingLantern?.Unregister();
+            KongmingLantern = null;
+
+            AbstractPhysicalObject.AbstractObjectType tremblingFruit = TremblingFruit;
+            tremblingFruit?.Unregister();
+            TremblingFruit = null;
+        }
+    }
+
+    public class SandboxUnlockID
+    {
+        public static MultiplayerUnlocks.SandboxUnlockID SharpSpear;
+        public static MultiplayerUnlocks.SandboxUnlockID ConcentratedDangleFruit;
+        public static MultiplayerUnlocks.SandboxUnlockID PainlessFruit;
+        public static MultiplayerUnlocks.SandboxUnlockID ColorfulFruit;
+        public static MultiplayerUnlocks.SandboxUnlockID InflatableGlowingShield;
+        public static MultiplayerUnlocks.SandboxUnlockID AnesthesiaSpear;
+        public static MultiplayerUnlocks.SandboxUnlockID AnesthesiaNeedle;
+        public static MultiplayerUnlocks.SandboxUnlockID SmallRock;
+        public static MultiplayerUnlocks.SandboxUnlockID Knot;
+        public static MultiplayerUnlocks.SandboxUnlockID StoneKnife;
+        public static MultiplayerUnlocks.SandboxUnlockID ExplosivePowder;
+        public static MultiplayerUnlocks.SandboxUnlockID ExpansionBomb;
+        public static MultiplayerUnlocks.SandboxUnlockID BreathingBubble;
+        public static MultiplayerUnlocks.SandboxUnlockID KongmingLantern;
+        public static MultiplayerUnlocks.SandboxUnlockID TremblingFruit;
+
+        public static void RegisterValues()
+        {
+            SharpSpear = new MultiplayerUnlocks.SandboxUnlockID("SharpSpear", true);
+            ConcentratedDangleFruit = new MultiplayerUnlocks.SandboxUnlockID("ConcentratedDangleFruit", true);
+            PainlessFruit = new MultiplayerUnlocks.SandboxUnlockID("PainlessFruit", true);
+            ColorfulFruit = new MultiplayerUnlocks.SandboxUnlockID("PainlessFruit", true);
+            InflatableGlowingShield = new MultiplayerUnlocks.SandboxUnlockID("InflatableGlowingShield", true);
+            AnesthesiaSpear = new MultiplayerUnlocks.SandboxUnlockID("AnesthesiaSpear", true);
+            AnesthesiaNeedle = new MultiplayerUnlocks.SandboxUnlockID("AnesthesiaNeedle", true); 
+            SmallRock = new MultiplayerUnlocks.SandboxUnlockID("SmallRock", true);
+            Knot = new MultiplayerUnlocks.SandboxUnlockID("Knot", true);
+            StoneKnife = new MultiplayerUnlocks.SandboxUnlockID("StoneKnife", true);
+            ExplosivePowder = new MultiplayerUnlocks.SandboxUnlockID("ExplosivePowder", true);
+            ExpansionBomb = new MultiplayerUnlocks.SandboxUnlockID("ExpansionBomb", true);
+            BreathingBubble = new MultiplayerUnlocks.SandboxUnlockID("BreathingBubble", true);
+            KongmingLantern = new MultiplayerUnlocks.SandboxUnlockID("KongmingLantern", true);
+            TremblingFruit = new MultiplayerUnlocks.SandboxUnlockID("TremblingFruit", true);
+        }
+
+        // Token: 0x06004043 RID: 16451 RVA: 0x0047A3D0 File Offset: 0x004785D0
+        public static void UnregisterValues()
+        {
+            MultiplayerUnlocks.SandboxUnlockID sharpSpear = SharpSpear;
+            sharpSpear?.Unregister();
+            SharpSpear = null;
+
+            MultiplayerUnlocks.SandboxUnlockID concentratedDangleFruit = ConcentratedDangleFruit;
+            concentratedDangleFruit?.Unregister();
+            ConcentratedDangleFruit = null;
+
+            MultiplayerUnlocks.SandboxUnlockID painlessFruit = PainlessFruit;
+            painlessFruit?.Unregister();
+            PainlessFruit = null;
+
+            MultiplayerUnlocks.SandboxUnlockID colorfulFruit = ColorfulFruit;
+            colorfulFruit?.Unregister();
+            ColorfulFruit = null;
+
+            MultiplayerUnlocks.SandboxUnlockID anesthesiaSpear = AnesthesiaSpear;
+            anesthesiaSpear?.Unregister();
+            AnesthesiaSpear = null;
+
+            MultiplayerUnlocks.SandboxUnlockID anesthesiaNeedle = AnesthesiaNeedle;
+            anesthesiaNeedle?.Unregister();
+            AnesthesiaNeedle = null;
+
+            MultiplayerUnlocks.SandboxUnlockID smallRock = SmallRock;
+            smallRock?.Unregister();
+            SmallRock = null;
+
+            MultiplayerUnlocks.SandboxUnlockID knot = Knot;
+            knot?.Unregister();
+            Knot = null;
+
+            MultiplayerUnlocks.SandboxUnlockID stoneKnife = StoneKnife;
+            stoneKnife?.Unregister();
+            StoneKnife = null;
+
+            MultiplayerUnlocks.SandboxUnlockID explosivePowder = ExplosivePowder;
+            explosivePowder?.Unregister();
+            ExplosivePowder = null;
+
+            MultiplayerUnlocks.SandboxUnlockID expansionBomb = ExpansionBomb;
+            expansionBomb?.Unregister();
+            ExpansionBomb = null;
+
+            MultiplayerUnlocks.SandboxUnlockID breathingBubble = BreathingBubble;
+            breathingBubble?.Unregister();
+            BreathingBubble = null;
+
+            MultiplayerUnlocks.SandboxUnlockID kongmingLantern = KongmingLantern;
+            kongmingLantern?.Unregister();
+            KongmingLantern = null;
+
+            MultiplayerUnlocks.SandboxUnlockID tremblingFruit = TremblingFruit;
+            tremblingFruit?.Unregister();
+            TremblingFruit = null;
         }
     }
 

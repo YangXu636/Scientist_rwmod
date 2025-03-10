@@ -2,7 +2,7 @@
 using System.Globalization;
 using UnityEngine;
 
-namespace Scientist.items.AbstractPhysicalObjects
+namespace Scientist.Items.AbstractPhysicalObjects
 {
 	// Token: 0x02000005 RID: 5
 	internal sealed class StoneKnifeAbstract : AbstractPhysicalObject
@@ -21,7 +21,7 @@ namespace Scientist.items.AbstractPhysicalObjects
 
         public override void Realize()
 		{
-            this.realizedObject ??= new Scientist.items.StoneKnife(this, this.world);
+            this.realizedObject ??= new Scientist.Items.StoneKnife(this, this.world);
 		}
 	}
 }

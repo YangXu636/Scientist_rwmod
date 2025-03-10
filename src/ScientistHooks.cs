@@ -1,4 +1,4 @@
-﻿using Scientist.items;
+﻿using Scientist.Items;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine.PlayerLoop;
 using UnityEngine;
+using ImprovedInput;
 
 namespace Scientist.ScientistHooks;
 
@@ -93,9 +94,15 @@ public static class ImprovedInputHooks
 {
     public static Hook hook;
 
+    public static Assembly iiAssembly;
+    public static Type iiPlayerKeybind;
+    public static object OpenSpIiKeybind;
+
     public static void HookOn(object iiInstance)
     {
-        
+        iiAssembly = iiInstance.GetType().Assembly;
+        iiPlayerKeybind = iiAssembly.GetType("ImprovedInput.PlayerKeybind");
+        OpenSpIiKeybind = iiPlayerKeybind.GetMethod("Register", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string), typeof(string), typeof(string), typeof(KeyCode), typeof(KeyCode) }, null).Invoke(null, new object[] { $"{Scientist.ScientistPlugin.MOD_ID}:openspiikeybind", "Scientist", "Open Scientist Panel", Scientist.ScientistPlugin.OpenSpKeycode, KeyCode.None });
     }
 
     public static void HookOff()

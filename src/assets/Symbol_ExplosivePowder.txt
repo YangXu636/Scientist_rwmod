@@ -1,0 +1,10 @@
+{"frames": {
+
+"Symbol_ExplosivePowder.png":
+{
+	"frame": {"x":0,"y":0,"w":20,"h":14},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":14},
+	"sourceSize": {"w":20,"h":14}
+}}}

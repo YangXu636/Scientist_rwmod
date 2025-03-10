@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -7,12 +7,12 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 
 sealed class AnesthesiaSpear : Spear
 {
-    public new Scientist.items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractSpear
+    public new Scientist.Items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractSpear
     {
         get
         {
@@ -28,7 +28,7 @@ sealed class AnesthesiaSpear : Spear
         }
     }
 
-    public AnesthesiaSpear(Scientist.items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public AnesthesiaSpear(Scientist.Items.AbstractPhysicalObjects.AnesthesiaSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);

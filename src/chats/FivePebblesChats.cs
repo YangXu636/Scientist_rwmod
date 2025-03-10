@@ -7,7 +7,7 @@ using MoreSlugcats;
 using Scientist;
 using UnityEngine;
 
-namespace chats;
+namespace Scientist.Chats;
 
 public class FivePebblesChats
 {
@@ -113,11 +113,11 @@ public class FivePebblesChats
                     self.LockShortcuts();
                     if (subBehavID == Scientist.Enums.SubBehavID_Fp.FirstMeetScientist)
                     {
-                        subBehavior = new chats.SSOracleMeetScientist(self);
+                        subBehavior = new Chats.SSOracleMeetScientist(self);
                     }
                     else if (subBehavID == Scientist.Enums.SubBehavID_Fp.ThrowOutScientist)
                     {
-                        subBehavior = new chats.ThrowOutScientistBehavior(self);
+                        subBehavior = new Chats.ThrowOutScientistBehavior(self);
                     }
                     else if (subBehavID == SSOracleBehavior.SubBehavior.SubBehavID.ThrowOut)
                     {

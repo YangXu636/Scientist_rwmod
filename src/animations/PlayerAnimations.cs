@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using Scientist;
 
-namespace animations;
+namespace Scientist.Animations;
 
 public class PlayerAnimations
 {
@@ -21,6 +21,8 @@ public class PlayerAnimations
     public bool isJumped;
     public float whRightMost;
     public TutorialControlsPageOwner tutCntrlPgOwner;
+
+    public bool isHardSetStartPos = false;
 
     public int x = 0;
     public int y = 0;
@@ -61,6 +63,7 @@ public class PlayerAnimations
         {
             this.ResetInput();
             ScientistLogger.Log($"Animation {func.Method.Name}({this.lastAnimationIndex}) finished, time = {DateTime.Now}");
+            this.isHardSetStartPos = false;
             this.queue.Dequeue();
             this.lastAnimationIndex++;
         }
@@ -102,6 +105,27 @@ public class PlayerAnimations
     {
         this.queue.Enqueue(func);
         this.totalAnimationIndex++;
+    }
+
+    /// <summary>
+    /// 添加动画到队列（并行执行，且模式）（即所有并行动画均返回true才算完成，重叠数据的处理为后面的函数覆盖前面的函数）
+    /// </summary>
+    /// <param name="funcs">匿名函数</param>
+    public void AddAnimationFollowAnd(params Func<bool>[] funcs)
+    {
+        this.queue.Enqueue(() => _AnimationsAnd(funcs));
+        this.totalAnimationIndex++;
+    }
+
+    private bool _AnimationsAnd(params Func<bool>[] funcs)
+    {
+        bool flag = true;
+        for (int i = 0; i < funcs.Length; i++)
+        {
+            Func<bool> func = funcs[i];
+            flag &= func();
+        }
+        return flag;
     }
 
     /// <summary>
@@ -167,7 +191,8 @@ public class PlayerAnimations
         {
             return false;
         }
-        this.x = (int)Mathf.Sign(dis);
+        if (!this.isHardSetStartPos) { player.mainBodyChunk.HardSetPosition(startPos); this.isHardSetStartPos = true; }
+        this.x = (Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.x < startPos.x + dis : this.player.bodyChunks[0].pos.x > startPos.x + dis).ToInt() * (int)Mathf.Sign(dis);
         return Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.x > startPos.x + dis : this.player.bodyChunks[0].pos.x < startPos.x + dis;
     }
 
@@ -184,7 +209,8 @@ public class PlayerAnimations
         {
             return false;
         }
-        this.y = (int)Mathf.Sign(dis);
+        if (!this.isHardSetStartPos) { player.mainBodyChunk.HardSetPosition(startPos); this.isHardSetStartPos = true; }
+        this.y = (Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.y < startPos.y + dis : this.player.bodyChunks[0].pos.y > startPos.y + dis).ToInt() * (int)Mathf.Sign(dis);
         return Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.y > startPos.y + dis : this.player.bodyChunks[0].pos.y < startPos.y + dis;
     }
 
@@ -214,6 +240,7 @@ public class PlayerAnimations
             return false;
         }
         this.player.standing = true;
+        this.y = 1;
         return true;
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace chats;
+namespace Scientist.Chats;
 public class MoonChats
 {
 

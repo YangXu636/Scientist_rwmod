@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using Rewired;
 using RWCustom;
@@ -11,7 +11,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 public class StringShort : UpdatableAndDeletable, IClimbableVine, IDrawable
 {

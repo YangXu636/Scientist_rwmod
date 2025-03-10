@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using System;
@@ -6,11 +6,11 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 sealed class SharpSpear : Spear
 {
-    public new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
+    public new Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
     {
         get
         {
@@ -26,7 +26,7 @@ sealed class SharpSpear : Spear
         }
     }
 
-    public SharpSpear(Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public SharpSpear(Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);

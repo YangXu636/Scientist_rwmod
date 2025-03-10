@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 
-namespace Scientist.items;
+namespace Scientist.Items;
 public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 {
     public Vector2 rotation;
@@ -94,8 +94,7 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
-            Scientist.Data.Player.pfTime.AddAll(1200);
-            ScientistLogger.Log($"{ScientistTools.FeaturesTypeString(grasp.grabber)} {ScientistTools.FeaturesTypeString(grasp.grabber as Player)}");
+            Scientist.Data.Player.pfTime.AddAll(3200);
             Scientist.Data.Player.pfEatTimesInACycle[ScientistTools.FeaturesTypeString(grasp.grabber as Player)] += 1;
             this.Destroy();
         }

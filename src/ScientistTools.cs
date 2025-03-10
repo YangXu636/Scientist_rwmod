@@ -68,7 +68,7 @@ public class ScientistTools
         }
         catch (Exception ex)
         {
-            ScientistLogger.Warning("Could not parse color from hex: " + ex.Message + " " + hex + "ScienistTools.ColorFromHex");
+            ScientistLogger.Warning("Could not parse color from hex: \n\tex: " + ex.Message + " \n\thex: " + hex + "\nScienistTools.ColorFromHex");
             return Color.white;
         }
     }
@@ -108,10 +108,10 @@ public class ScientistTools
 
     public static string FeaturesTypeString(Creature c) => FeaturesTypeString(c.abstractCreature);
 
-    public static string FeaturesTypeString(AbstractCreature ac) =>$"{ac.ID}_{ac.type.value}";
+    public static string FeaturesTypeString(AbstractCreature ac) =>$"{ac.ID}_{ac.creatureTemplate.name}";
 }
 
-public static class ArrayExtensions
+public static class _ArrayExtensions
 {
 
     public static int[] AddAll(this int[] array, int item)
@@ -177,7 +177,7 @@ public static class ArrayExtensions
     }
 }
 
-public static class DictionaryExtensions
+public static class _DictionaryExtensions
 {
     public static bool KeyIsValue<K, V>(this Dictionary<K, V> dictionary, K key, V value)
     {
@@ -201,9 +201,19 @@ public static class DictionaryExtensions
         }
         return dict;
     }
+
+    public static Dictionary<T, K> SetAll<T, K>(this Dictionary<T, K> dict, K item)
+    {
+        List<T> keys = new(dict.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            dict[keys[i]] = item;
+        }
+        return dict;
+    }
 }
 
-public static class ListExtensions
+public static class _ListExtensions
 {
     public static bool Empty<T>(this List<T> list)
     {
@@ -241,7 +251,7 @@ public static class ListExtensions
     }
 }
 
-public static class Vector2Extensions
+public static class _Vector2Extensions
 {
     public static Vector2 VerticalNormalized(this Vector2 vector)
     {
@@ -249,10 +259,30 @@ public static class Vector2Extensions
     }
 }
 
-public static class QueueExtensions
+public static class _QueueExtensions
 {
     public static bool Empty(this Queue queue)
     {
         return queue == null || (queue != null && queue.Count == 0);
+    }
+}
+
+public static class _BooleanExtensions
+{
+    public static int ToInt(this bool boolean) => boolean ? 1 : 0;
+}
+
+public static class _ColorExtensions
+{
+    public static Color ColorChangeAlpha(this Color color, float a) => new Color(color.r, color.g, color.b, a);
+
+    public static string ToHex(this Color color)
+    {
+        string hex = ((int)(color.r * 255)).ToString("X2") + ((int)(color.g * 255)).ToString("X2") + ((int)(color.b * 255)).ToString("X2");
+        if (color.a != 1f)
+        {
+            hex += ((int)(color.a * 255)).ToString("X2");
+        }
+        return hex;
     }
 }

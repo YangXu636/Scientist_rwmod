@@ -5,7 +5,7 @@ using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
 using System.Reflection;
-using Scientist.items;
+using Scientist.Items;
 using Unity.Mathematics;
 
 namespace Scientist;
@@ -131,6 +131,8 @@ public class ScientistSlugcat
         ScientistSlugcat.critsLibrary[CreatureTemplate.Type.Fly] = num2;
         num2++;
         //新增生物
+        ScientistSlugcat.critsLibrary[CreatureTemplate.Type.Snail] = num2;
+        num2++;
 
         ScientistSlugcat.craftingGrid_ObjectsOnly = new ScientistSlugcat.CraftDat[num, num];
         ScientistSlugcat.craftingGrid_CritterObjects = new ScientistSlugcat.CraftDat[num2, num];
@@ -485,21 +487,21 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Lantern], tableSelect, MoreSlugcatsEnums.AbstractObjectType.GlowWeed, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.KarmaFlower], tableSelect, MoreSlugcatsEnums.AbstractObjectType.Seed, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Mushroom], tableSelect, AbstractPhysicalObject.AbstractObjectType.NeedleEgg, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, AbstractPhysicalObject.AbstractObjectType.BubbleGrass, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FirecrackerPlant], tableSelect, Scientist.Enums.Items.ExpansionBomb, null);                 //AbstractPhysicalObject.AbstractObjectType.BubbleGrass
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SlimeMold], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.FlyLure], tableSelect, AbstractPhysicalObject.AbstractObjectType.BubbleGrass, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.ScavengerBomb], tableSelect, null, CreatureTemplate.Type.Snail);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.SporePlant], tableSelect, null, CreatureTemplate.Type.Hazer);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.EggBugEgg], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.NeedleEgg], tableSelect, null, CreatureTemplate.Type.Hazer);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.BubbleGrass], tableSelect, MoreSlugcatsEnums.AbstractObjectType.LillyPuck, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.BubbleGrass], tableSelect, Scientist.Enums.Items.BreathingBubble, null);                    //MoreSlugcatsEnums.AbstractObjectType.LillyPuck
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.OverseerCarcass], tableSelect, AbstractPhysicalObject.AbstractObjectType.DataPearl, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.SingularityBomb], tableSelect, MoreSlugcatsEnums.AbstractObjectType.FireEgg, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.FireEgg], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.Seed], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GooieDuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, Scientist.Enums.Items.KongmingLantern, null);                            //AbstractPhysicalObject.AbstractObjectType.DangleFruit
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         key = AbstractPhysicalObject.AbstractObjectType.JellyFish;
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.JellyFish], tableSelect, null, null);
@@ -885,6 +887,9 @@ public class ScientistSlugcat
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.critsLibrary[key2], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.LillyPuck], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.critsLibrary[key2], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.critsLibrary[key2], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
+        
+        key2 = CreatureTemplate.Type.Snail;
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.critsLibrary[key2], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.GlowWeed], tableSelect, Scientist.Enums.Items.TremblingFruit, null);
         /*Custom.Log(new string[]
         {
                 "--Setup Creature + Creature table"
@@ -1193,9 +1198,9 @@ public class ScientistSlugcat
         return ans;
     }
 
-    public static bool APO_Compare(AbstractPhysicalObject grasp1, AbstractPhysicalObject grasp2, AbstractPhysicalObject.AbstractObjectType item1, AbstractPhysicalObject.AbstractObjectType item2)
+    public static bool APO_Compare(CreatureTemplate.Type grasp1, CreatureTemplate.Type grasp2, CreatureTemplate.Type item1, CreatureTemplate.Type item2)
     {
-        return APO_Compare(grasp1.type, grasp2.type, item1, item2);
+        return ((grasp1 == item1 && grasp2 == item2) || (grasp1 == item2 && grasp2 == item1));
     }
 
     public static bool APO_Compare(AbstractPhysicalObject.AbstractObjectType grasp1, AbstractPhysicalObject.AbstractObjectType grasp2, AbstractPhysicalObject.AbstractObjectType item1, AbstractPhysicalObject.AbstractObjectType item2)
@@ -1205,9 +1210,33 @@ public class ScientistSlugcat
 
     public static AbstractPhysicalObject[] GetSpecialCraftingResult(Player player)
     {
-        if (player.grasps[0] != null && player.grasps[1] != null)
+        if (player.grasps[0] == null || player.grasps[1] == null || player.grasps[0].grabbed == null || player.grasps[1].grabbed == null) { return null; }
+        if (player.grasps[0].grabbed is Creature && player.grasps[1].grabbed is Creature)
+        {
+            return GetSpecialCraftingResult((player.grasps[0].grabbed.abstractPhysicalObject as AbstractCreature).creatureTemplate.type, (player.grasps[1].grabbed.abstractPhysicalObject as AbstractCreature).creatureTemplate.type, player);
+        }
+        else if ((player.grasps[0]?.grabbed is Creature && player.grasps[1].grabbed is PhysicalObject) || (player.grasps[0].grabbed is PhysicalObject && player.grasps[1].grabbed is Creature))
+        {
+            return GetSpecialCraftingResult(player.grasps[0].grabbed is Creature ? (player.grasps[0].grabbed.abstractPhysicalObject as AbstractCreature).creatureTemplate.type : (player.grasps[1].grabbed.abstractPhysicalObject as AbstractCreature).creatureTemplate.type, player.grasps[0].grabbed is Creature ? player.grasps[1].grabbed.abstractPhysicalObject.type : player.grasps[0].grabbed.abstractPhysicalObject.type, player.grasps[0].grabbed is Creature ? 0 : 1, player.grasps[0].grabbed is Creature ? 1 : 0, player);
+        }
+        else if (player.grasps[0].grabbed is PhysicalObject && player.grasps[1].grabbed is PhysicalObject)
         {
             return GetSpecialCraftingResult(player.grasps[0].grabbed.abstractPhysicalObject.type, player.grasps[1].grabbed.abstractPhysicalObject.type, player);
+        }
+        return null;
+    }
+
+    public static AbstractPhysicalObject[] GetSpecialCraftingResult(CreatureTemplate.Type a, CreatureTemplate.Type b, Player player)
+    {
+        return null;
+    }
+
+    public static AbstractPhysicalObject[] GetSpecialCraftingResult(CreatureTemplate.Type a, AbstractPhysicalObject.AbstractObjectType b, int ci, int poi, Player player)
+    {
+        if (a == CreatureTemplate.Type.Snail && b == MoreSlugcatsEnums.AbstractObjectType.GlowWeed)
+        {
+            Snail snail = player.grasps[ci].grabbed as Snail;
+            return new AbstractPhysicalObject[] { new Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract(player.room.world, null, player.abstractCreature.pos, snail.abstractCreature.ID, snail.shellColor) };
         }
         return null;
     }
@@ -1216,7 +1245,7 @@ public class ScientistSlugcat
     {
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
-            return new AbstractPhysicalObject[] { new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) }; //自定义的ShapeSpearAbstract，覆写了realizedObject
+            return new AbstractPhysicalObject[] { new Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) }; //自定义的ShapeSpearAbstract，覆写了realizedObject
         }
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Spear, AbstractPhysicalObject.AbstractObjectType.ScavengerBomb))
         {
@@ -1230,7 +1259,7 @@ public class ScientistSlugcat
             }
             if ( (player.grasps[0].grabbed is WaterNut && player.grasps[1].grabbed is SwollenWaterNut) || (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is WaterNut))
             {
-                return new AbstractPhysicalObject[] { new Scientist.items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) };
+                return new AbstractPhysicalObject[] { new Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID()) };
             }
             if (player.grasps[0].grabbed is SwollenWaterNut && player.grasps[1].grabbed is SwollenWaterNut)
             {
@@ -1240,41 +1269,40 @@ public class ScientistSlugcat
         if (APO_Compare(a, b, AbstractPhysicalObject.AbstractObjectType.Rock, AbstractPhysicalObject.AbstractObjectType.Rock))
         {
             return new AbstractPhysicalObject[] {
-                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
-                new Scientist.items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
+                new Scientist.Items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.Items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.Items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.Items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID()),
+                new Scientist.Items.AbstractPhysicalObjects.SmallRockAbstract(player.room.world, Enums.Items.SmallRock, null, player.abstractCreature.pos, player.room.game.GetNewID())
             };
         }
         if (APO_Compare(a, b, Enums.Items.Knot, Enums.Items.Knot))
         {
-            if (!(player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Empty() && !(player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Empty())
+            if (!(player.grasps[0].grabbed as Items.Knot).knotAbstract.ss.Empty() && !(player.grasps[1].grabbed as Items.Knot).knotAbstract.ss.Empty())
             {
-                Scientist.items.AbstractPhysicalObjects.KnotAbstract kaNew = new(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
-                items.StringShort[] ss = (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.ToArray();
-                foreach (items.StringShort s in ss)
+                Scientist.Items.AbstractPhysicalObjects.KnotAbstract kaNew = new(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID());
+                Items.StringShort[] ss = (player.grasps[0].grabbed as Items.Knot).knotAbstract.ss.ToArray();
+                foreach (Items.StringShort s in ss)
                 {
-                    s.ChangeKnot((player.grasps[0].grabbed as items.Knot).knotAbstract, kaNew);
+                    s.ChangeKnot((player.grasps[0].grabbed as Items.Knot).knotAbstract, kaNew);
                 }
-                ss = (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.ToArray();
-                foreach (items.StringShort s in ss)
+                ss = (player.grasps[1].grabbed as Items.Knot).knotAbstract.ss.ToArray();
+                foreach (Items.StringShort s in ss)
                 {
-                    s.ChangeKnot((player.grasps[1].grabbed as items.Knot).knotAbstract, kaNew);
+                    s.ChangeKnot((player.grasps[1].grabbed as Items.Knot).knotAbstract, kaNew);
                 }
-                (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Clear();
-                (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Clear();
+                (player.grasps[0].grabbed as Items.Knot).knotAbstract.ss.Clear();
+                (player.grasps[1].grabbed as Items.Knot).knotAbstract.ss.Clear();
                 return new AbstractPhysicalObject[] { kaNew };
             }
             else
             {
-                items.StringShort stringshort = new(player.room, 20.0f, (player.grasps[0].grabbed as items.Knot).knotAbstract, (player.grasps[1].grabbed as items.Knot).knotAbstract);
-                (player.grasps[0].grabbed as items.Knot).knotAbstract.ss.Add(stringshort);
-                (player.grasps[1].grabbed as items.Knot).knotAbstract.ss.Add(stringshort);
+                Items.StringShort stringshort = new(player.room, 20.0f, (player.grasps[0].grabbed as Items.Knot).knotAbstract, (player.grasps[1].grabbed as Items.Knot).knotAbstract);
+                (player.grasps[0].grabbed as Items.Knot).knotAbstract.ss.Add(stringshort);
+                (player.grasps[1].grabbed as Items.Knot).knotAbstract.ss.Add(stringshort);
                 player.room.AddObject(stringshort);
                 return null;
             }
-            
         }
         return null;
     }

@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 
-namespace Scientist.items;
+namespace Scientist.Items;
 public class ColorfulFruit : Weapon, IPlayerEdible
 {
     /*public Vector2 rotation;

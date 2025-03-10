@@ -51,9 +51,10 @@ public class ScientistPanel : Menu.Menu
     {
         this.WarpPreInit(game);
         this.game = game;
-        this.pages.Add(new Page(this, null, "objects", 0));
-        this.pages.Add(new Page(this, null, "craftingtable", 1));
-        this.pages.Add(new Page(this, null, "advancements", 2));
+        this.pages.Add(new Page(this, null, "main", 0));
+        this.pages.Add(new Page(this, this.pages[0], "objects", 1));
+        this.pages.Add(new Page(this, this.pages[0], "craftingtable", 2));
+        this.pages.Add(new Page(this, this.pages[0], "advancements", 3));
         this.blackSprite = new FSprite("pixel", true);
         this.blackSprite.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black);
         this.blackSprite.scaleX = 1400f;
@@ -62,8 +63,6 @@ public class ScientistPanel : Menu.Menu
         this.blackSprite.y = manager.rainWorld.options.ScreenSize.y / 2f;
         this.blackSprite.alpha = 0.5f;
         this.pages[0].Container.AddChild(this.blackSprite);
-        this.pages[1].Container.AddChild(this.blackSprite);
-        this.pages[2].Container.AddChild(this.blackSprite);
         this.SetupLayout();
         this.selectedObject = null;
         this.blackFade = 0f;
@@ -225,7 +224,7 @@ public class ScientistPanel : Menu.Menu
         return AssetManager.SafeWWWLoadTexture(ref texture2D, path, false, true);
     }
 
-    public static FAtlas LoadIcon(string id)
+    public static FAtlas LoadObjectsIcon(string id)
     {
         FAtlasManager atlasManager = Futile.atlasManager;
         bool flag = atlasManager.DoesContainAtlas(id);
@@ -246,7 +245,7 @@ public class ScientistPanel : Menu.Menu
         return result;
     }
 
-    public static FAtlas LoadImage(string id)
+    public static FAtlas LoadObjectsImage(string id)
     {
         FAtlasManager atlasManager = Futile.atlasManager;
         bool flag = atlasManager.DoesContainAtlas(id);

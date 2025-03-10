@@ -1,4 +1,4 @@
-﻿using Scientist.items.AbstractPhysicalObjects;
+﻿using Scientist.Items.AbstractPhysicalObjects;
 using MoreSlugcats;
 using RWCustom;
 using Scientist;
@@ -8,7 +8,7 @@ using System.Diagnostics;
 using UnityEngine;
 using System.Linq;
 
-namespace Scientist.items;
+namespace Scientist.Items;
 
 
 sealed class StoneKnife : Weapon
@@ -25,7 +25,7 @@ sealed class StoneKnife : Weapon
         get { return this.abstractPhysicalObject as StoneKnifeAbstract; }
     }
 
-    public StoneKnife(Scientist.items.AbstractPhysicalObjects.StoneKnifeAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public StoneKnife(Scientist.Items.AbstractPhysicalObjects.StoneKnifeAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.07f);

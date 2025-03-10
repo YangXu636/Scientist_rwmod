@@ -2,7 +2,7 @@
 using System.Globalization;
 using UnityEngine;
 
-namespace Scientist.items.AbstractPhysicalObjects
+namespace Scientist.Items.AbstractPhysicalObjects
 {
 	internal sealed class SharpSpearAbstract : AbstractSpear
 	{
@@ -24,7 +24,7 @@ namespace Scientist.items.AbstractPhysicalObjects
 
 		public override void Realize()
 		{
-            this.realizedObject ??= new items.SharpSpear(this, this.world);
+            this.realizedObject ??= new Items.SharpSpear(this, this.world);
 		}
 	}
 }

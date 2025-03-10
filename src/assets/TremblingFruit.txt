@@ -1,0 +1,36 @@
+{"frames": {
+
+"TremblingFruitA.png":
+{
+	"frame": {"x":0,"y":0,"w":21,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":21,"h":28},
+	"sourceSize": {"w":21,"h":28}
+},
+"TremblingFruitB.png":
+{
+	"frame": {"x":21,"y":0,"w":21,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":21,"h":28},
+	"sourceSize": {"w":21,"h":28}
+},
+"TremblingFruitC.png":
+{
+	"frame": {"x":42,"y":0,"w":21,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":21,"h":28},
+	"sourceSize": {"w":21,"h":28}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "TremblingFruit.png",
+	"format": "RGBA8888",
+	"size": {"w":63,"h":28},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:f4567467a60290eb70b82a40108276bd:e1c098d1b5e3652e0e2066cadced653e:b061bac44bb4945694828549e10ee37f$"
+}
+}

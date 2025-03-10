@@ -2,7 +2,7 @@
 using System.Globalization;
 using UnityEngine;
 
-namespace Scientist.items.AbstractPhysicalObjects
+namespace Scientist.Items.AbstractPhysicalObjects
 {
 	internal sealed class AnesthesiaNeedleAbstract : AbstractSpear
 	{
@@ -14,7 +14,7 @@ namespace Scientist.items.AbstractPhysicalObjects
 
 		public override void Realize()
 		{
-            this.realizedObject ??= new items.AnesthesiaNeedle(this, this.world);
+            this.realizedObject ??= new Items.AnesthesiaNeedle(this, this.world);
 		}
 	}
 }
