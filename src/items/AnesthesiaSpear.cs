@@ -66,7 +66,7 @@ sealed class AnesthesiaSpear : Spear
             }
             if (!c.dead)
             {
-                c.Stun(400);
+                c.Stun(600);
                 if (c is not Player)
                 {
                     Scientist.Data.Player.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y);

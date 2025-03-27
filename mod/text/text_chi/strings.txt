@@ -24,4 +24,12 @@ Open Scientist Panel|打开科学家面板
 
 Sundries|杂项
 Enable old version PainlessFruit|启用旧版无痛果
+Enable TremblingFruit keeps shaking|启用震颤果一直震颤
+Pause the game when opening the panel|开启面板后暂停游戏
+Restore the original page after reopening the panel|重新打开面板后恢复原来的页面
 Key used for opening the menu|图鉴菜单按钮
+
+SCIENCE_PANEL_TITLE|科学家面板
+OBJECTS_PAGE|物品
+CRAFTING_TABLE_PAGE|配方
+ADVANCEMENTS_PAGE|成就

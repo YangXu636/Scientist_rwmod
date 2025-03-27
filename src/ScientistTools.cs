@@ -94,6 +94,14 @@ public class ScientistTools
         return AngleToVector2(UnityEngine.Random.Range(range[rangeIndex][0] % 360f, range[rangeIndex][1] % 360f));
     }
 
+    public static Vector2 RandomAngleVector2(UnityEngine.Random.State state, params float[][] range)
+    {
+        UnityEngine.Random.state = state;
+        if (range.Length == 0) { return AngleToVector2(UnityEngine.Random.Range(0f, 360f)); }
+        int rangeIndex = UnityEngine.Random.Range(0, range.Length);
+        return AngleToVector2(UnityEngine.Random.Range(range[rangeIndex][0] % 360f, range[rangeIndex][1] % 360f));
+    }
+
     public static string ExtenumTypeString(AbstractPhysicalObject apo) => apo.type == AbstractPhysicalObject.AbstractObjectType.Creature ? ExtenumTypeString(apo.realizedObject as Creature) : apo.type.value;
 
     public static string ExtenumTypeString(PhysicalObject po) => ExtenumTypeString(po.abstractPhysicalObject);

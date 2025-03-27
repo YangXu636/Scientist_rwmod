@@ -69,6 +69,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public ScientistPlugin scientistInstance;
     public ScientistOptions scientistOptions;
+    public ScientistPanel scientistPanel;
 
     public static Dictionary<string, bool> hookedOn = new();
 
@@ -80,6 +81,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         this.scientistInstance = this;
         this.scientistOptions = new ScientistOptions(this, Logger);
+        this.scientistOptions.SynchronousVariable();
+        this.scientistPanel = null;
     }
 
     public void Awake()
@@ -125,6 +128,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 this.scientistOptions.OpenScientistPanelKey.Value = oldOspikKeycode[0];
                 this.scientistOptions.OpenScientistPanelKey.BoxedValue = oldOspikKeycode[0];
                 this.scientistOptions.OpenScientistPanelKey._typedValue = oldOspikKeycode[0];
+                Scientist.Data.GolbalVariables.SOpenScientistPanelKey = oldOspikKeycode[0];
+                this.scientistOptions.SynchronousVariable();
             }
             if (ScientistPlugin.OspKeycodeChangedByConfig)
             {
@@ -142,6 +147,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
         On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
         On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
+        On.RainWorldGame.Update += RainWorldGame_Update;
+        On.RainWorldGame.GrafUpdate += RainWorldGame_GrafUpdate;
         On.RainWorldGame.ShutDownProcess += RainWorldGameOnShutDownProcess;
         On.GameSession.ctor += GameSessionOnctor;
 
@@ -234,10 +241,31 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
     {
-
-        if (Scientist.Data.GolbalVariables.isPanelOpen)
+        // 开关面板
+        if (Input.GetKeyDown(this.scientistOptions.OpenScientistPanelKey.Value))
         {
-            return;
+            Scientist.Data.GolbalVariables.isPanelOpen = !Scientist.Data.GolbalVariables.isPanelOpen;
+            Scientist.Data.GolbalVariables.isPanelChanged = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.BackQuote))  //按下ESC、Backspace、Delete、BackQuote(`)关闭面板
+        {
+            Scientist.Data.GolbalVariables.isPanelOpen = false;
+            Scientist.Data.GolbalVariables.isPanelChanged = true;
+        }
+
+        if (Scientist.Data.GolbalVariables.isPanelOpen && this.scientistPanel != null)
+        {
+            this.scientistPanel.Update();
+            //this.scientistPanel.GrafUpdate(ScientistTools.GetFractionalPart(Time.deltaTime * 40f));
+            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame)
+            {
+                return;
+            }
+        }
+        if (!Scientist.Data.GolbalVariables.isPanelOpen && Scientist.Data.GolbalVariables.isPanelChanged)
+        {
+            this.scientistPanel?.SetVisible(false);
+            Scientist.Data.GolbalVariables.isPanelChanged = false;
         }
         orig(self);
     }
@@ -246,7 +274,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self);
 
-        if (!hookedOn.KeyIsValue("ScientistOptionsMenu", true)) { hookedOn["ScientistOptionsMenu"] = true; MachineConnector.SetRegisteredOI(MOD_ID, this.scientistOptions); }
+        if (!hookedOn.KeyIsValue("ScientistOptionsMenu", true)) { hookedOn["ScientistOptionsMenu"] = true; MachineConnector.SetRegisteredOI(MOD_ID, this.scientistOptions); Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.scientistOptions.OpenScientistPanelKey.Value; }
         if (!hookedOn.KeyIsValue("Player_GrabUpdate_IL", true)) { hookedOn["Player_GrabUpdate_IL"] = true; IL.Player.GrabUpdate += Player_GrabUpdate_IL; }
         if (!hookedOn.KeyIsValue("MOD_PATH", true)) { hookedOn["MOD_PATH"] = true; ScientistPlugin.MOD_PATH = Path.GetDirectoryName(Path.GetDirectoryName(this.Info.Location)); ScientistLogger.Log("MOD_PATH: " + MOD_PATH); }
 
@@ -282,7 +310,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 try
                 {
                     Scientist.ScientistHooks.ImprovedInputHooks.HookOn(plugin);
-                    this.scientistOptions.OpenScientistPanelKey.OnChange += this.scientistOptions.ChangedInConfig;
+                    //this.scientistOptions.OpenScientistPanelKey.OnChange += this.scientistOptions.ChangedInConfig;
                     Scientist.ScientistLogger.Log("Hooked on ImprovedInput");
                     Scientist.ScientistPlugin.hookedOn["ImprovedInput"] = true;
                 }
@@ -293,6 +321,35 @@ public partial class ScientistPlugin : BaseUnityPlugin
                     Scientist.ScientistPlugin.hookedOn["ImprovedInput"] = false;
                 }
             }
+        }
+    }
+
+    private void RainWorldGame_Update(On.RainWorldGame.orig_Update orig, RainWorldGame self)
+    {
+        if (Scientist.Data.GolbalVariables.isPanelOpen && Scientist.Data.GolbalVariables.isPanelChanged)
+        {
+            Scientist.ScientistLogger.Log("ScientistPanel created");
+            if (this.scientistPanel == null || !Scientist.Data.GolbalVariables.SEnableKeepLastPage)
+            {
+                this.scientistPanel?.ShutDownProcess();
+                this.scientistPanel = new Scientist.ScientistPanel(self.manager, self);
+            }
+            this.scientistPanel.SetVisible(true);
+            Scientist.Data.GolbalVariables.isPanelChanged = false;
+            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame)
+            {
+                return;
+            }
+        }
+        orig(self);
+    }
+
+    private void RainWorldGame_GrafUpdate(On.RainWorldGame.orig_GrafUpdate orig, RainWorldGame self, float timeStacker)
+    {
+        orig(self, timeStacker);
+        if (Scientist.Data.GolbalVariables.isPanelOpen && this.scientistPanel != null)
+        {
+            this.scientistPanel.GrafUpdate(timeStacker);
         }
     }
 
@@ -1026,15 +1083,15 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         if (itemType == Scientist.Enums.Items.BreathingBubble)
         {
-
+            return "Symbol_BreathingBubble";
         }
         if (itemType == Scientist.Enums.Items.KongmingLantern)
         {
-
+            return "Symbol_KongmingLantern";
         }
         if (itemType == Scientist.Enums.Items.TremblingFruit)
         {
-            //return "Symbol_TremblingFruit";
+            return "Symbol_TremblingFruit";
         }
         return orig(itemType, intData);
             

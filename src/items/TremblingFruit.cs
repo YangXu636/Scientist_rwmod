@@ -78,24 +78,17 @@ public class TremblingFruit : Weapon
             if (this.sleepTimer <= 0f)
             {
                 this.sleepTimer = 0f;
-                this.bodyChunks[0].vel += (this.tremblingTimer > 0f ? UnityEngine.Random.Range(5, 10) : UnityEngine.Random.Range(1, 5)) * ScientistTools.RandomAngleVector2(new float[1][] { new float[2] { 0f, 180f } });
                 this.lastRotationAsSwing = this.rotation;
             }
         }
-        else
+        else if (Scientist.Data.GolbalVariables.SEnableTfKeepShaking)
         {
-            float degree = Mathf.PI / 12.000f * Mathf.Sin(2.000f * Mathf.PI * this.swingDegree * (this.tremblingTimer <= 0f ? 1f : 2f)) * (this.tremblingTimer <= 0f ? 1f : 3f);
-            this.rotation = this.lastRotationAsSwing + new Vector2(Mathf.Cos(degree), Mathf.Sin(degree));
-            this.swingDegree += Mathf.PI / 20.000f * UnityEngine.Random.Range(1, 5);
-            if (this.swingDegree > Mathf.PI * 2f * UnityEngine.Random.Range(1, 5))
-            {
-                this.swingDegree = 0f;
-                this.sleepTimer = this.tremblingTimer > 0f ? 1.000f / 20.000f : UnityEngine.Random.value > 0.7f ? UnityEngine.Random.Range(3f, 10f) : UnityEngine.Random.Range(0.3f, 3f);
-            }
+            this.Shake(1f, 1f);
         }
         if (this.tremblingTimer > 0f)
         {
             this.tremblingTimer += 1.000f / 40.000f;
+            this.Shake(UnityEngine.Random.Range(1f, 2f), UnityEngine.Random.Range(1f, 5f));
             for (int i = 0; i < this.room.abstractRoom.creatures.Count; i++)
             {
                 if (this.room.abstractRoom.creatures[i].realizedCreature != null && (Custom.DistLess(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos, 40f) || (Custom.DistLess(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos, 120f) && this.room.VisualContact(base.firstChunk.pos, this.room.abstractRoom.creatures[i].realizedCreature.mainBodyChunk.pos))))
@@ -120,6 +113,22 @@ public class TremblingFruit : Weapon
         base.Thrown(thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
         this.tremblingTimer = 1.000f / 40.000f;
         this.sleepTimer = 0f;
+    }
+
+    public void Shake(float rotateCoefficient = 1f, float vibrationCoefficient = 1f)
+    {
+        if (this.IsTileSolid(0, 0, -1) || this.IsTileSolid(0, 1, -1) || this.IsTileSolid(0, -1, -1) || this.IsTileSolid(0, 1, 0) || this.IsTileSolid(0, -1, 0))
+        {
+            this.bodyChunks[0].vel += (this.tremblingTimer > 0f ? UnityEngine.Random.Range(5, 10) : UnityEngine.Random.Range(1, 5)) * ScientistTools.RandomAngleVector2(UnityEngine.Random.state, new float[][] { new float[2] { 0f, 180f }, new float[2] { 60f, 120f }, new float[2] { 30f, 150f }, new float[2] { 75f, 105f } });
+        }
+        float degree = Mathf.PI / 12.000f * Mathf.Sin(2.000f * Mathf.PI * this.swingDegree * rotateCoefficient) * vibrationCoefficient;
+        this.rotation = this.lastRotationAsSwing + new Vector2(Mathf.Cos(degree), Mathf.Sin(degree));
+        this.swingDegree += Mathf.PI / 20.000f * UnityEngine.Random.Range(1, 5);
+        if (this.swingDegree > Mathf.PI * 2f /* * UnityEngine.Random.Range(1, 5)*/)
+        {
+            this.swingDegree = 0f;
+            this.sleepTimer = this.tremblingTimer > 0f ? 1.000f / 20.000f : UnityEngine.Random.value > 0.7f ? UnityEngine.Random.Range(1f, 1.8f) : UnityEngine.Random.Range(0.3f, 1f);
+        }
     }
 
     public void Bomb()

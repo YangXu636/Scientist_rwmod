@@ -126,7 +126,7 @@ public class HatOnHead
             //外套颜色设定
             sLeaser.sprites[index].color = color;
             //给外套材质样式赋值
-            sLeaser.sprites[index].element = new FSprite(atlasTopName + sLeaser.sprites[3].element.name, true).element;
+            sLeaser.sprites[index].element = new FSprite(atlasTopName + sLeaser.sprites[3].element.name.Replace("HeadC", "HeadA"), true).element;
 
 
             sLeaser.sprites[index].scaleX = sLeaser.sprites[3].scaleX;
