@@ -15,7 +15,6 @@ namespace Scientist
         public readonly Configurable<bool> EnableOldPf;                 //pf = painless fruit
         public readonly Configurable<bool> EnableTfKeepShaking;         //tf = trembling fruit
         public readonly Configurable<bool> EnableOpenPanelPauseGame;
-        public readonly Configurable<bool> EnableKeepLastPage;
         public readonly Configurable<KeyCode> OpenScientistPanelKey;
         private UIelement[] UIArrPlayerOptions_Sundries;
 
@@ -25,7 +24,6 @@ namespace Scientist
             this.EnableOldPf = this.config.Bind("ScientistEnableOldPf", false);
             this.EnableTfKeepShaking = this.config.Bind("ScientistEnableTfKeepShaking", false);
             this.EnableOpenPanelPauseGame = this.config.Bind("ScientistEnableOpenPanelPauseGame", true);
-            this.EnableKeepLastPage = this.config.Bind("ScientistEnableKeepLastPage", false);
             this.OpenScientistPanelKey = this.config.Bind("ScientistOpenScientistPanelKey", ScientistPlugin.OpenSpKeycode);
 
             this.OnConfigChanged += ScientistOptions_OnConfigChanged;
@@ -50,10 +48,8 @@ namespace Scientist
                     new OpLabel(40f, 480f, OptionInterface.Translate("Enable TremblingFruit keeps shaking"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
                     new OpCheckBox(this.EnableOpenPanelPauseGame, 10f, 440f),
                     new OpLabel(40f, 440f, OptionInterface.Translate("Pause the game when opening the panel"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
-                    new OpCheckBox(this.EnableKeepLastPage, 10f, 400f),
-                    new OpLabel(40f, 400f, OptionInterface.Translate("Restore the original page after reopening the panel"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
-                    new OpKeyBinder(this.OpenScientistPanelKey, new Vector2(10f, 360f), new Vector2(150f, 30f), true, OpKeyBinder.BindController.AnyController),
-                    new OpLabel(166f, 360f, OptionInterface.Translate("Key used for opening the menu"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center }
+                    new OpKeyBinder(this.OpenScientistPanelKey, new Vector2(10f, 400f), new Vector2(150f, 30f), true, OpKeyBinder.BindController.AnyController),
+                    new OpLabel(166f, 400f, OptionInterface.Translate("Key used for opening the menu"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center }
                 };
                 opTab.AddItems(this.UIArrPlayerOptions_Sundries);
             }
@@ -119,9 +115,8 @@ namespace Scientist
         {
             Scientist.Data.GolbalVariables.SEnableOldPf = this.EnableOldPf.Value;
             Scientist.Data.GolbalVariables.SEnableTfKeepShaking = this.EnableTfKeepShaking.Value;
-            Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.OpenScientistPanelKey.Value;
             Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame = this.EnableOpenPanelPauseGame.Value;
-            Scientist.Data.GolbalVariables.SEnableKeepLastPage = this.EnableKeepLastPage.Value;
+            Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.OpenScientistPanelKey.Value;
         }
     }
 }

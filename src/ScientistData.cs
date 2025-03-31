@@ -36,7 +36,6 @@ public static class GolbalVariables
     public static bool SEnableOldPf = false;
     public static bool SEnableTfKeepShaking = false;
     public static bool SEnableOpenPanelPauseGame = true;
-    public static bool SEnableKeepLastPage = false;
     public static KeyCode SOpenScientistPanelKey = KeyCode.E;
 
     public static bool isPanelOpen = false;

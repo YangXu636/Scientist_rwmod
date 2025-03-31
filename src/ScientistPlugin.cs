@@ -256,9 +256,9 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (Scientist.Data.GolbalVariables.isPanelOpen && this.scientistPanel != null)
         {
             this.scientistPanel.Update();
-            //this.scientistPanel.GrafUpdate(ScientistTools.GetFractionalPart(Time.deltaTime * 40f));
-            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame)
+            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame && !Scientist.Data.GolbalVariables.isPanelChanged)
             {
+                this.scientistPanel.GrafUpdate(ScientistTools.GetFractionalPart(Time.deltaTime * 40f));
                 return;
             }
         }
@@ -329,11 +329,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (Scientist.Data.GolbalVariables.isPanelOpen && Scientist.Data.GolbalVariables.isPanelChanged)
         {
             Scientist.ScientistLogger.Log("ScientistPanel created");
-            if (this.scientistPanel == null || !Scientist.Data.GolbalVariables.SEnableKeepLastPage)
-            {
-                this.scientistPanel?.ShutDownProcess();
-                this.scientistPanel = new Scientist.ScientistPanel(self.manager, self);
-            }
+            this.scientistPanel ??= new Scientist.ScientistPanel(self.manager, self);
             this.scientistPanel.SetVisible(true);
             Scientist.Data.GolbalVariables.isPanelChanged = false;
             if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame)
@@ -363,6 +359,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self, game);
         this.ClearMemory();
+        this.scientistOptions.config.Reload();  //解决：设置读取必须打开配置页面才会更新的问题
     }
 
     public void Weapon_HitAnotherThrownWeapon(On.Weapon.orig_HitAnotherThrownWeapon orig, Weapon self, Weapon obj)
@@ -2504,6 +2501,9 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void ClearMemory()
     {
+        this.scientistPanel?.ShutDownProcess();
+        this.scientistPanel = null;
+
         Scientist.Data.Player.pfEatTimesInACycle.SetAll(0);
         Scientist.Data.Player.pfDieInActive.SetAll(0);
         Scientist.Data.Player.pfTime.SetAll(0);

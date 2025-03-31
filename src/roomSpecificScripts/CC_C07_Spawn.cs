@@ -64,9 +64,10 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                     this.animations[index].AddAnimationFollow(() => pa.Wait(40));
                     this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(spawnPos, 45f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));
+                    this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(895.0f, 2240.0f), -1, 20, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(895.0f, 2240.0f), -40f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));
-                    this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(new Vector2(855.0f, 2240.0f), 1f, p.bodyChunks));
+                    this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(new Vector2(855.0f, 2240.0f), 20f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));
                     this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(855.0f, 2270.0f), -485f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));

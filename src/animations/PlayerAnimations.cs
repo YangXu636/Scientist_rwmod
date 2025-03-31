@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using Scientist;
+using System.Collections.Generic;
 
 namespace Scientist.Animations;
 
@@ -21,6 +22,7 @@ public class PlayerAnimations
     public bool isJumped;
     public float whRightMost;
     public TutorialControlsPageOwner tutCntrlPgOwner;
+    public Dictionary<string, int> animationTimeCounter = new Dictionary<string, int>();
 
     public bool isHardSetStartPos = false;
 
@@ -185,15 +187,42 @@ public class PlayerAnimations
     /// <param name="startPos">起始位置</param>
     /// <param name="dis">距离</param>
     /// <returns>是否到达</returns>
-    public bool HorizontallyMove(Vector2 startPos, float dis, BodyChunk[] bodyChunks)
+    public bool HorizontallyMove(Vector2 startPos, float dis, BodyChunk[] bodyChunks, bool setStartPos = true)
     {
         if (!isPlaying)
         {
             return false;
         }
+        this.isHardSetStartPos = setStartPos;
         if (!this.isHardSetStartPos) { player.mainBodyChunk.HardSetPosition(startPos); this.isHardSetStartPos = true; }
         this.x = (Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.x < startPos.x + dis : this.player.bodyChunks[0].pos.x > startPos.x + dis).ToInt() * (int)Mathf.Sign(dis);
         return Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.x > startPos.x + dis : this.player.bodyChunks[0].pos.x < startPos.x + dis;
+    }
+
+    /// <summary>
+    /// 蛞蝓猫水平移动动画
+    /// </summary>
+    /// <param name="startPos">起始位置</param>
+    /// <param name="direction">方向</param>
+    /// <param name="time">时间(40单位1秒)</param>
+    /// <returns>是否到达</returns>
+    public bool HorizontallyMove(Vector2 startPos, int direction, int time, BodyChunk[] bodyChunks, bool setStartPos = true, string name = "HorizontallyMove")
+    {
+        if (!isPlaying)
+        {
+            return false;
+        }
+        this.isHardSetStartPos = setStartPos;
+        if (!this.isHardSetStartPos) { player.mainBodyChunk.HardSetPosition(startPos); this.isHardSetStartPos = true; }
+        this.x = (int)Mathf.Sign(direction);
+        if (!this.animationTimeCounter.ContainsKey(name)) { this.animationTimeCounter.Add(name, 0); }
+        this.animationTimeCounter[name] += 1;
+        if (this.animationTimeCounter[name] > time)
+        {
+            this.animationTimeCounter[name] = 0;
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -203,12 +232,13 @@ public class PlayerAnimations
     /// <param name="dis">距离</param>
     /// <param name="bodyChunks">初始玩家身体块</param>
     /// <returns></returns>
-    public bool VerticallyMove(Vector2 startPos, float dis, BodyChunk[] bodyChunks)
+    public bool VerticallyMove(Vector2 startPos, float dis, BodyChunk[] bodyChunks, bool setStartPos = true)
     {
         if (!isPlaying)
         {
             return false;
         }
+        this.isHardSetStartPos = setStartPos;
         if (!this.isHardSetStartPos) { player.mainBodyChunk.HardSetPosition(startPos); this.isHardSetStartPos = true; }
         this.y = (Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.y < startPos.y + dis : this.player.bodyChunks[0].pos.y > startPos.y + dis).ToInt() * (int)Mathf.Sign(dis);
         return Mathf.Sign(dis) == 1 ? this.player.bodyChunks[0].pos.y > startPos.y + dis : this.player.bodyChunks[0].pos.y < startPos.y + dis;

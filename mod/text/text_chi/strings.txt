@@ -31,5 +31,5 @@ Key used for opening the menu|图鉴菜单按钮
 
 SCIENCE_PANEL_TITLE|科学家面板
 OBJECTS_PAGE|物品
-CRAFTING_TABLE_PAGE|配方
+CRAFTINGTABLE_PAGE|配方
 ADVANCEMENTS_PAGE|成就

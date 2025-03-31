@@ -294,3 +294,8 @@ public static class _ColorExtensions
         return hex;
     }
 }
+
+public static class _StringExtensions
+{
+    public static string FirstCharToUpper(this string str) => str.First().ToString().ToUpper() + str.Substring(1);
+}

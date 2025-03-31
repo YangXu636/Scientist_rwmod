@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using BepInEx.Logging;
 using Expedition;
 using Menu;
@@ -10,14 +11,13 @@ using MonoMod.Utils;
 using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
+using static BeastMaster.BeastMaster;
 
 namespace Scientist;
 
 public class ScientistPanel : Menu.Menu
 {
     public RainWorldGame game;
-    public OpScrollBox objectsScrollBox;
-    public List<OpSimpleImageButton> objectButtons;
     public FSprite[] blackSprite;
     public float blackFade;
     public float lastBlackFade;
@@ -29,6 +29,14 @@ public class ScientistPanel : Menu.Menu
     public bool isShowing = false;
     public Player playerOpen;
     public MenuLabel uselessMessage;
+    public Scientist.ScientistPanel.PageModeIndex pageMode;
+    public SimpleButton objectsPageButton;
+    public SimpleButton craftingTablePageButton;
+    public SimpleButton advancementsPageButton;
+    public SimpleButton debugPageButton;
+    public MenuTabWrapper objectsTabwrapper;
+    public OpScrollBox objectsScrollBox;
+    public List<OpSimpleImageButton> objectButtons;
 
     public void WarpPreInit(RainWorldGame game)
     {
@@ -55,10 +63,10 @@ public class ScientistPanel : Menu.Menu
         this.WarpPreInit(game);
         this.game = game;
         this.pages.Add(new Page(this, null, "main", 0));
-        this.pages.Add(new Page(this, this.pages[0], "objects", 1));
-        this.pages.Add(new Page(this, this.pages[0], "craftingtable", 2));
-        this.pages.Add(new Page(this, this.pages[0], "advancements", 3));
-        this.pages.Add(new Page(this, this.pages[0], "debug", 4));
+        this.pages.Add(new Page(this, this.pages[0], "Objects", 1));
+        this.pages.Add(new Page(this, this.pages[0], "CraftingTable", 2));
+        this.pages.Add(new Page(this, this.pages[0], "Advancements", 3));
+        this.pages.Add(new Page(this, this.pages[0], "Debug", 4));
         this.blackSprite = new FSprite[5];
         for (int i = 0; i < this.blackSprite.Length; i++)
         {
@@ -76,8 +84,8 @@ public class ScientistPanel : Menu.Menu
                 this.blackSprite[i].scaleY = 720f;
                 this.blackSprite[i].alpha = 0.2f;
             }
-            this.blackSprite[i].x = manager.rainWorld.options.ScreenSize.x / 2f;
-            this.blackSprite[i].y = manager.rainWorld.options.ScreenSize.y / 2f;
+            this.blackSprite[i].x = this.manager.rainWorld.options.ScreenSize.x / 2f;
+            this.blackSprite[i].y = this.manager.rainWorld.options.ScreenSize.y / 2f;
         }
         for (int i = 0; i < this.blackSprite.Length; i++)
         {
@@ -125,18 +133,64 @@ public class ScientistPanel : Menu.Menu
             }
         }*/
         this.WarpInit(game);
+        this.container.MoveToFront();
+        for (int i = 1; i < this.pages.Count; i++)
+        {
+            this.pages[i].Container.isVisible = false;
+        }
+        base.currentPage = 0;
     }
 
     private void SetupLayout()
     {
         this.uselessMessage = new MenuLabel(this, this.pages[0], $"{base.Translate("SCIENCE_PANEL_TITLE")}", new Vector2(0f, 0f), new Vector2(300f, 30f), false);
         this.pages[0].subObjects.Add(this.uselessMessage);
-        SimpleButton objectsPageButton = new SimpleButton(this, this.pages[0], base.Translate("OBJECTS_PAGE"), "OBJECTS_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 60f), new Vector2(110f, 30f));
-        this.pages[0].subObjects.Add(objectsPageButton);
-        SimpleButton craftingTablePageButton = new SimpleButton(this, this.pages[0], base.Translate("CRAFTING_TABLE_PAGE"), "CRAFTING_TABLE_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 100f), new Vector2(110f, 30f));
-        this.pages[0].subObjects.Add(craftingTablePageButton);
-        SimpleButton advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("ADVANCEMENTS_PAGE"), "ADVANCEMENTS_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 140f), new Vector2(110f, 30f));
-        this.pages[0].subObjects.Add(advancementsPageButton);
+        this.objectsPageButton = new SimpleButton(this, this.pages[0], base.Translate("OBJECTS_PAGE"), "OBJECTS_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 60f), new Vector2(110f, 30f));
+        this.pages[0].subObjects.Add(this.objectsPageButton);
+        this.craftingTablePageButton = new SimpleButton(this, this.pages[0], base.Translate("CRAFTINGTABLE_PAGE"), "CRAFTINGTABLE_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 100f), new Vector2(110f, 30f));
+        this.pages[0].subObjects.Add(this.craftingTablePageButton);
+        this.advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("ADVANCEMENTS_PAGE"), "ADVANCEMENTS_PAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 140f), new Vector2(110f, 30f));
+        this.pages[0].subObjects.Add(this.advancementsPageButton);
+        this.debugPageButton = new SimpleButton(this, this.pages[0], base.Translate("DEBUG_PAGE"), "DEBUG_PAGE", new Vector2(10f, 30f), new Vector2(110f, 30f));
+        this.pages[0].subObjects.Add(this.debugPageButton);
+
+        this.objectsPageButton.nextSelectable[1] = this.objectsPageButton.nextSelectable[2] = this.debugPageButton;                  //1:up 2:left 3:down 4:right
+        this.objectsPageButton.nextSelectable[3] = this.craftingTablePageButton;
+        this.craftingTablePageButton.nextSelectable[1] = this.craftingTablePageButton.nextSelectable[2] = this.objectsPageButton;
+        this.craftingTablePageButton.nextSelectable[3] = this.advancementsPageButton;
+        this.advancementsPageButton.nextSelectable[1] = this.advancementsPageButton.nextSelectable[2] = this.craftingTablePageButton;
+        this.advancementsPageButton.nextSelectable[3] = this.debugPageButton;
+        this.debugPageButton.nextSelectable[1] = this.debugPageButton.nextSelectable[2] = this.advancementsPageButton;
+        this.debugPageButton.nextSelectable[3] = this.objectsPageButton;
+
+        this.objectButtons = new();
+        FieldInfo[] fields = typeof(Enums.Items).GetFields(BindingFlags.Public | BindingFlags.Static);
+        AbstractPhysicalObject.AbstractObjectType apo = null;
+        foreach (FieldInfo field in fields)
+        {
+            apo = field.GetValue(null) as AbstractPhysicalObject.AbstractObjectType;
+            if (apo != null)
+            {
+                this.objectButtons.Add(new OpSimpleImageButton(new Vector2(100f, this.objectButtons.Count * 60f + 10f), new Vector2(40f, 40f), ItemSymbol.SpriteNameForItem(apo, 0))
+                {
+                    description = apo.ToString(),
+                    colorEdge = ItemSymbol.ColorForItem(apo, 0)
+                });
+            }
+        }
+        this.objectsTabwrapper = new MenuTabWrapper(this, this.pages[1]);
+        this.pages[1].subObjects.Add(this.objectsTabwrapper);
+        this.objectsScrollBox = new OpScrollBox(new Vector2(300f, (manager.rainWorld.options.ScreenSize.y - 750f) / 2f), new Vector2(80f, 700f), (float)objectButtons.Count * 40f + 40f);
+        new UIelementWrapper(this.objectsTabwrapper, this.objectsScrollBox);
+        for (int i = 0; i < this.objectButtons.Count; i++)
+        {
+            new UIelementWrapper(this.objectsTabwrapper, this.objectButtons[i]);
+        }
+        for (int i = 0; i < this.objectButtons.Count; i++)
+        {
+            this.objectsScrollBox.AddItems(this.objectButtons[i]);
+        }
+        /*this.pages[1].subObjects.Add(objectsScrollBox.wrapper);*/
     }
 
     public override void Update()
@@ -162,14 +216,14 @@ public class ScientistPanel : Menu.Menu
         }
         try
         {
-            this.playerOpen = game.cameras[0].followAbstractCreature.realizedCreature as Player;
+            this.playerOpen = this.game.cameras[0].followAbstractCreature.realizedCreature as Player;
             this.uselessMessage.text = $"{base.Translate("SCIENCE_PANEL_TITLE")} {(this.playerOpen != null && this.playerOpen.room.game.session is StoryGameSession ? "" : "?")}{base.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region")} {base.Translate(this.playerOpen != null ? this.playerOpen.room.abstractRoom.name : "NRE_Room")}  playerNumber = {(this.playerOpen == null ? "NRE_PlayerNumber" : this.playerOpen.playerState.playerNumber)}";
         }
         catch (Exception /*e*/) { /*ScientistLogger.Log(e); e.LogDetailed();*/ }
         //string regionName = base.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region");
         //string roomName = this.playerOpen != null ? this.playerOpen.room.abstractRoom.name : "NRE_Room";
         //string playerName = $"{(this.playerOpen != null ? this.playerOpen.playerState.slugcatCharacter.value : "NREPlayerType")}_{(this.playerOpen == null ? "NREPlayerNumber" : this.playerOpen.playerState.playerNumber)}";
-        this.uselessMessage.pos = new Vector2((manager.rainWorld.options.ScreenSize.x - this.uselessMessage.size.x) / 2.000f, 0f);
+        this.uselessMessage.pos = new Vector2((this.manager.rainWorld.options.ScreenSize.x - this.uselessMessage.size.x) / 2.000f, 0f);
         base.Update();
         this.WarpUpdate();
     }
@@ -177,9 +231,9 @@ public class ScientistPanel : Menu.Menu
     public override void GrafUpdate(float timeStacker)
     {
         base.GrafUpdate(timeStacker);
-        if (this.game.IsArenaSession && this.game.GetArenaGameSession is SandboxGameSession && (this.game.GetArenaGameSession as SandboxGameSession).overlay != null)
+        if (this.game.IsArenaSession && this.game.GetArenaGameSession is SandboxGameSession sgs && sgs.overlay != null)
         {
-            (this.game.GetArenaGameSession as SandboxGameSession).overlay.GrafUpdate(timeStacker);
+            sgs.overlay.GrafUpdate(timeStacker);
         }
         for (int i = 0; i < this.game.cameras.Length; i++)
         {
@@ -192,6 +246,10 @@ public class ScientistPanel : Menu.Menu
         if (message != null)
         {
             ScientistLogger.Log(message);
+            if (message.EndsWith("_PAGE"))
+            {
+                this.ChangePage(new Scientist.ScientistPanel.PageModeIndex(message.Substring(0, message.Length - 5).ToLower().FirstCharToUpper()));
+            }
         }
         this.WarpSignal(sender, message);
     }
@@ -200,6 +258,7 @@ public class ScientistPanel : Menu.Menu
     {
         this.isShowing = visible;
         this.container.isVisible = visible;
+        if (visible) { this.container.MoveToFront(); }
     }
 
     public override void ShutDownProcess()
@@ -211,15 +270,25 @@ public class ScientistPanel : Menu.Menu
                 this.game.cameras[j].virtualMicrophone.volumeGroups[k] = this.micVolumes[j, k];
             }
         }
-        for (int i = 0; i < this.blackSprite.Length; i++)
-        {
-            this.blackSprite[i].RemoveFromContainer();
-        }
-        for (int i = 0; i < this.pages.Count; i++)
-        {
-            this.pages[i].RemoveSprites();
-        }
+        this.SetVisible(false);
         base.ShutDownProcess();
+    }
+
+    public void ChangePage(Scientist.ScientistPanel.PageModeIndex mode)
+    {
+        if (this.pageMode == mode) { return; }
+        for (int i = 1; i < this.pages.Count; i++)
+        {
+            if (pages[i].name.ToUpper() == mode.ToString().ToUpper())
+            {
+                this.pages[i].Container.isVisible = true;
+                base.currentPage = i;
+            }
+            else
+            {
+                this.pages[i].Container.isVisible = false;
+            }
+        }
     }
 
     //以下代码均参考了FakeAchievements
@@ -269,5 +338,18 @@ public class ScientistPanel : Menu.Menu
             result = atlas;
         }
         return result;
+    }
+
+    public class PageModeIndex : ExtEnum<Scientist.ScientistPanel.PageModeIndex>
+    {
+
+        public PageModeIndex(string value, bool register = false) : base(value, register)
+        {
+        }
+
+        public static readonly Scientist.ScientistPanel.PageModeIndex Objects = new Scientist.ScientistPanel.PageModeIndex("Objects", true);
+        public static readonly Scientist.ScientistPanel.PageModeIndex CraftingTable = new Scientist.ScientistPanel.PageModeIndex("CraftingTable", true);
+        public static readonly Scientist.ScientistPanel.PageModeIndex Advancements = new Scientist.ScientistPanel.PageModeIndex("Advancements", true);
+        public static readonly Scientist.ScientistPanel.PageModeIndex Debug = new Scientist.ScientistPanel.PageModeIndex("Debug", true);
     }
 }
