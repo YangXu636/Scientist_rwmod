@@ -237,6 +237,17 @@ public static class _ListExtensions
         return list;
     }
 
+    public static bool TryGetWithIndex<T>(this List<T> list, int index, out T item)
+    {
+        if (index >= 0 && index < list.Count)
+        {
+            item = list[index];
+            return true;
+        }
+        item = default;
+        return false;
+    }
+
     /// <summary>
     /// 查询列表中是否有除此元素外的其他元素
     /// </summary>

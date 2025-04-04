@@ -112,9 +112,20 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f);
-        sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f);
-        sLeaser.sprites[2].color = new Color(1f, 0f, 0f);
+        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        {
+            sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f);
+            sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f);
+            sLeaser.sprites[2].color = new Color(1f, 0f, 0f);
+        }
+        else
+        {
+            sLeaser.sprites[0].color = Color.white;
+            sLeaser.sprites[1].color = ScientistTools.ColorFromHex("#00BBFF");
+            sLeaser.sprites[2].color = ScientistTools.ColorFromHex("#52F218");
+            sLeaser.sprites[3].color = ScientistTools.ColorFromHex("#C22FF7");
+            sLeaser.sprites[4].color = ScientistTools.ColorFromHex("#F70A0A");
+        }
         if (ModManager.MSC && rCam.room.game.session is StoryGameSession && rCam.room.world.name == "HR")
         {
             this.color = Color.Lerp(RainWorld.SaturatedGold, palette.blackColor, this.darkness);
@@ -133,10 +144,21 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
         }
-        sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f, (3 <= this.bites) ? 1f : 0f);
-        sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f, (2 <= this.bites) ? 1f : 0f);
-        sLeaser.sprites[2].color = new Color(1f, 0f, 0f, (1 <= this.bites) ? 1f : 0f);
-        for (int i = 0; i < 3; i++)
+        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        {
+            sLeaser.sprites[0].color = sLeaser.sprites[0].color.ColorChangeAlpha((this.bites >= 3) ? 1f : 0f);
+            sLeaser.sprites[1].color = sLeaser.sprites[1].color.ColorChangeAlpha((this.bites >= 2) ? 1f : 0f);
+            sLeaser.sprites[2].color = sLeaser.sprites[2].color.ColorChangeAlpha((this.bites >= 1) ? 1f : 0f);
+        }
+        else
+        {
+            sLeaser.sprites[0].color = sLeaser.sprites[0].color.ColorChangeAlpha((this.bites >= 1) ? 1f : 0f);
+            sLeaser.sprites[1].color = sLeaser.sprites[1].color.ColorChangeAlpha((this.bites >= 1) ? 1f : 0f);
+            sLeaser.sprites[2].color = sLeaser.sprites[2].color.ColorChangeAlpha((this.bites >= 1) ? 1f : 0f);
+            sLeaser.sprites[3].color = sLeaser.sprites[3].color.ColorChangeAlpha((this.bites >= 2) ? 1f : 0f);
+            sLeaser.sprites[4].color = sLeaser.sprites[4].color.ColorChangeAlpha((this.bites >= 3) ? 1f : 0f);
+        }
+        for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
             sLeaser.sprites[i].x = vector.x - camPos.x;
             sLeaser.sprites[i].y = vector.y - camPos.y;
@@ -154,10 +176,22 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[3];
-        sLeaser.sprites[0] = new FSprite("PainlessFruitLeft", true);
-        sLeaser.sprites[1] = new FSprite("PainlessFruitRight", true);
-        sLeaser.sprites[2] = new FSprite("PainlessFruitHeart", true);
+        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        {
+            sLeaser.sprites = new FSprite[3];
+            sLeaser.sprites[0] = new FSprite("old_PainlessFruitLeft", true);
+            sLeaser.sprites[1] = new FSprite("old_PainlessFruitRight", true);
+            sLeaser.sprites[2] = new FSprite("old_PainlessFruitHeart", true);
+        }
+        else
+        {
+            sLeaser.sprites = new FSprite[5];
+            sLeaser.sprites[0] = new FSprite("PainlessFruitBottom", true);
+            sLeaser.sprites[1] = new FSprite("PainlessFruitGap", true);
+            sLeaser.sprites[2] = new FSprite("PainlessFruitLeft", true);
+            sLeaser.sprites[3] = new FSprite("PainlessFruitRight", true);
+            sLeaser.sprites[4] = new FSprite("PainlessFruitHeart", true);
+        }
         this.AddToContainer(sLeaser, rCam, null);
     }
 }

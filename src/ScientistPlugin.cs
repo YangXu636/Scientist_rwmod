@@ -551,7 +551,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void Player_Die(On.Player.orig_Die orig, Player self)
     {
         string pin = ScientistTools.FeaturesTypeString(self);
-        if (Scientist.Data.Player.pfTime.TryGetValue(pin, out int time) && time > 0 && Scientist.Data.Player.pfEatTimesInACycle[pin] < 2 + this.scientistOptions.EnableOldPf.Value.ToInt() && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && Scientist.Data.Player.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
+        if (Scientist.Data.Player.pfTime.TryGetValue(pin, out int time) && time > 0 && Scientist.Data.Player.pfEatTimesInACycle[pin] < 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/ && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && Scientist.Data.Player.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
         {
             Scientist.Data.Player.pfDieInActive[pin]++;
             self.Stun(4);
@@ -775,7 +775,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             self.Die();
         }
-        if (Scientist.Data.Player.pfTime.ContainsKey(pin) && Scientist.Data.Player.pfEatTimesInACycle[pin] >= 2 + this.scientistOptions.EnableOldPf.Value.ToInt())
+        if (Scientist.Data.Player.pfTime.ContainsKey(pin) && Scientist.Data.Player.pfEatTimesInACycle[pin] >= 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/)
         {
             self.Die();
         }
@@ -842,6 +842,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
         Futile.atlasManager.LoadAtlas("atlases/textures/SharpSpear");
         Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
+        Futile.atlasManager.LoadAtlas("atlases/textures/old_PainlessFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/PainlessFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/ColorfulFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/InflatableGlowingShield");

@@ -78,11 +78,11 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                     RoomCamera roomCamera = p.abstractCreature.world.game.cameras[0];
                     roomCamera.ChangeCameraToPlayer(p.abstractCreature);
                 }
-                if (this.time[index] == 120 + (index * 20)) //80 + (index * 5)
+                if (this.time[index] == 120 + (index * 40)) //80 + (index * 5)
                 {
                     this.animations[index].StartPlaying(spawnPos);
                 }
-                if (this.time[index] > 120 + (index * 20))
+                if (this.time[index] > 120 + (index * 40))
                 {
                     this.animations[index].Update();
                 }
