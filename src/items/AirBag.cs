@@ -7,28 +7,25 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 using Smoke;
+using static MonoMod.InlineRT.MonoModRule;
 
 namespace Scientist.Items;
 
-public class AirBag : PlayerCarryableItem, IDrawable
+public class AirBag : Weapon
 {
-    public Vector2 rotation;
-    public Vector2 lastRotation;
-    public Vector2? setRotation;
-    public float prop;
-    public float lastProp;
-    public float propSpeed;
     public float darkness;
     public float lastDarkness;
-    public float plop;
-    public float lastPlop;
     public bool isTriggered;
     public float expansionDegree;
+    public Player ownerPlayer;
+    public AirBreatherCreature ownerCreature;
 
-    public AirBag(Items.AbstractPhysicalObjects.BreathingBubbleAbstract abstractPhysicalObject) : base(abstractPhysicalObject)
+    public float ScaleFactor => 0.40f + 6.60f * Mathf.Sin(Mathf.PI / 2.00f * this.expansionDegree);
+
+    public AirBag(AbstractPhysicalObject abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
-        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 9f, 0.04f);
+        base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), this.ScaleFactor, 0.04f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
         base.airFriction = 0.999f;
         base.gravity = 0.7f;
@@ -38,10 +35,10 @@ public class AirBag : PlayerCarryableItem, IDrawable
         base.waterFriction = 0.98f;
         base.buoyancy = 0.4f;
         base.firstChunk.loudness = 9f;
-        this.prop = 0f;
-        this.lastProp = 0f;
-        this.plop = this.lastPlop = 0f;
         this.isTriggered = false;
+        this.expansionDegree = 0f;
+        //this.ownerPlayer = null;
+        this.ownerCreature = null;
     }
 
     public override void Update(bool eu)
@@ -52,11 +49,38 @@ public class AirBag : PlayerCarryableItem, IDrawable
         {
             this.rotation = Custom.PerpendicularVector(Custom.DirVec(base.firstChunk.pos, this.grabbedBy[0].grabber.mainBodyChunk.pos));
             this.rotation.y = Mathf.Abs(this.rotation.y);
+            if (!this.isTriggered && this.grabbedBy[0].grabber is Player player)
+            {
+                this.ownerPlayer = player;
+            }
+            else if (!this.isTriggered && this.grabbedBy[0].grabber is AirBreatherCreature abCreature)
+            {
+                this.ownerCreature = abCreature;
+            }
+            if (this.isTriggered)
+            {
+                bool flag = false;
+                for (int i = 0; i < this.grabbedBy.Count; i++)
+                {
+                    if (this.grabbedBy[i].grabber is Player player2 && player2 == this.ownerPlayer) { flag = true; }
+                    this.grabbedBy[i].Release();
+                }
+                if (flag) { this.Explode(); }
+            }
+        }
+        else if (!this.isTriggered)
+        {
+            this.ownerPlayer = null;
+            this.ownerCreature = null;
         }
         if (this.setRotation != null)
         {
             this.rotation = this.setRotation.Value;
             this.setRotation = null;
+        }
+        if (base.firstChunk.ContactPoint.y != 0)
+        {
+            if (!this.isTriggered) { this.rotationSpeed = (this.rotationSpeed * 2f + base.firstChunk.vel.x * 5f) / 3f; }
         }
         if (base.firstChunk.ContactPoint.y < 0)
         {
@@ -64,21 +88,52 @@ public class AirBag : PlayerCarryableItem, IDrawable
             BodyChunk firstChunk = base.firstChunk;
             firstChunk.vel.x *= 0.8f;
         }
-        this.lastProp = this.prop;
-        this.prop += this.propSpeed;
-        this.propSpeed *= 0.85f;
-        this.propSpeed -= this.prop / 10f;
-        this.prop = Mathf.Clamp(this.prop, -15f, 15f);
-        if (this.grabbedBy.Count == 0)
+        if (this.isTriggered)
         {
-            this.prop += (base.firstChunk.lastPos.x - base.firstChunk.pos.x) / 15f;
-            this.prop -= (base.firstChunk.lastPos.y - base.firstChunk.pos.y) / 15f;
+            this.expansionDegree = Mathf.Min(1f, this.expansionDegree + Time.deltaTime * 2f);
+            this.bodyChunks[0].rad = 2f * this.ScaleFactor;
+            this.rotation = Vector2.right;
+            if (this.Submersion > 0f)
+            {
+                this.bodyChunks[0].vel.y += 4f;
+            }
+            if (this.ownerPlayer != null)
+            {
+                this.ownerPlayer.mainBodyChunk.pos = this.bodyChunks[0].pos;
+                this.ownerPlayer.airInLungs = 1f;
+                this.bodyChunks[0].vel.x += this.ownerPlayer.input[0].x * 0.1f;
+            }
+            if (this.ownerCreature != null)
+            {
+                this.ownerCreature.mainBodyChunk.pos = this.bodyChunks[0].pos;
+                this.ownerCreature.lungs = 1f;
+            }
+            if (this.Submersion <= 0f)
+            {
+                this.Explode();
+            }
         }
-        this.lastPlop = this.plop;
-        if (this.plop > 0f && this.plop < 1f)
+        else
         {
-            this.plop = Mathf.Min(1f, this.plop + 0.1f);
+            this.isTriggered = 
+                (this.ownerPlayer != null && this.ownerPlayer.airInLungs < 0.15f)
+                || (this.ownerCreature != null && this.ownerCreature.lungs < 0.15f)
+                ;
+            if (this.isTriggered && this.grabbedBy.Count > 0)
+            {
+                for (int i = 0; i < this.grabbedBy.Count; i++)
+                {
+                    this.grabbedBy[i].Release();
+                }
+            }
         }
+    }
+
+    public void Explode(float rad = 230f)
+    {
+        this.room.AddObject(new ShockWave(this.bodyChunks[0].pos, rad, 0.045f, 5, false));
+        this.room.AddObject(new Explosion.ExplosionLight(this.bodyChunks[0].pos, rad, 1f, 3, Color.white));
+        this.Destroy();
     }
 
     public override void PlaceInRoom(Room placeRoom)
@@ -90,97 +145,145 @@ public class AirBag : PlayerCarryableItem, IDrawable
     public override void TerrainImpact(int chunk, IntVector2 direction, float speed, bool firstContact)
     {
         base.TerrainImpact(chunk, direction, speed, firstContact);
-        if (direction.y != 0)
+    }
+
+    public override void HitByWeapon(Weapon weapon)
+    {
+        base.HitByWeapon(weapon);
+        if (weapon is Spear)
         {
-            this.prop += speed;
-            this.propSpeed += speed / 10f;
-        }
-        else
-        {
-            this.prop -= speed;
-            this.propSpeed -= speed / 10f;
-        }
-        if (speed > 1.2f && firstContact)
-        {
-            Vector2 pos = base.firstChunk.pos + direction.ToVector2() * base.firstChunk.rad;
-            for (int i = 0; i < Mathf.RoundToInt(Custom.LerpMap(speed, 1.2f, 6f, 2f, 5f, 1.2f)); i++)
-            {
-                this.room.AddObject(new WaterDrip(pos, Custom.RNV() * (2f + speed) * UnityEngine.Random.value * 0.5f + -direction.ToVector2() * (3f + speed) * 0.35f, true));
-            }
-            this.room.PlaySound(SoundID.Swollen_Water_Nut_Terrain_Impact, pos, Custom.LerpMap(speed, 1.2f, 6f, 0.2f, 1f), 1f);
+            this.Explode(1000f);
         }
     }
 
-    public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[3];
-        sLeaser.sprites[0] = new FSprite("JetFishEyeA", true);
+        sLeaser.sprites = new FSprite[5];
+        sLeaser.sprites[0] = new FSprite("Futile_White", true);
+        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["WaterNut"];
         sLeaser.sprites[0].scaleX = 1.2f;
-        sLeaser.sprites[0].scaleY = 1.4f;
-        sLeaser.sprites[1] = new FSprite("tinyStar", true);
-        sLeaser.sprites[1].scaleX = 1.5f;
-        sLeaser.sprites[1].scaleY = 2.4f;
-        sLeaser.sprites[2] = new FSprite("Futile_White", true);
-        sLeaser.sprites[2].shader = rCam.game.rainWorld.Shaders["WaterNut"];
+        sLeaser.sprites[0].scaleY = 1.6f;
+        sLeaser.sprites[1] = new FSprite("DangleFruit0A", true);
+        sLeaser.sprites[2] = new FSprite("DangleFruit0B", true);
+        for (int i = 1; i < 3; i++)
+        {
+            sLeaser.sprites[i].scaleX = 0.9f;
+            sLeaser.sprites[i].scaleY = 1.3f;
+        }
+        sLeaser.sprites[3] = new FSprite("DangleFruit2A", true);
+        sLeaser.sprites[3].scaleX = 1.1f;
+        sLeaser.sprites[3].scaleY = -1.4f;
+        sLeaser.sprites[4] = new FSprite("DangleFruit2A", true);
+        sLeaser.sprites[4].scaleY = 1.4f;
+        sLeaser.sprites[4].scaleX = 1.1f;
         this.AddToContainer(sLeaser, rCam, null);
     }
 
-    public void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         newContatiner ??= rCam.ReturnFContainer("Items");
         for (int i = 0; i < sLeaser.sprites.Length; i++)
         {
             sLeaser.sprites[i].RemoveFromContainer();
+            newContatiner.AddChild(sLeaser.sprites[i]);
         }
-        newContatiner.AddChild(sLeaser.sprites[0]);
-        newContatiner.AddChild(sLeaser.sprites[1]);
-        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[2]);
+        rCam.ReturnFContainer("GrabShaders").AddChild(sLeaser.sprites[0]);
     }
 
-    public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
         Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
-        Vector2 v = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
-        this.lastDarkness = this.darkness;
-        this.darkness = rCam.room.Darkness(vector) * (1f - rCam.room.LightSourceExposure(vector));
-        if (this.darkness != this.lastDarkness)
-        {
-            this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
-        }
-        for (int i = 0; i < 3; i++)
-        {
-            sLeaser.sprites[i].x = vector.x - camPos.x;
-            sLeaser.sprites[i].y = vector.y - camPos.y;
-        }
-        sLeaser.sprites[0].rotation = Custom.VecToDeg(v);
-        sLeaser.sprites[1].rotation = Custom.VecToDeg(v);
-        sLeaser.sprites[2].alpha = (1f - this.darkness) * (1f - base.firstChunk.submersion);
-        float num = Mathf.Lerp(this.lastPlop, this.plop, timeStacker);
-        num = Mathf.Lerp(0f, 1f + Mathf.Sin(num * 3.1415927f), num);
-        sLeaser.sprites[0].scaleX = 1.2f * (0.5f + 2f * this.plop);
-        sLeaser.sprites[0].scaleY = 1.4f * 2f;
-        sLeaser.sprites[1].scaleX = 1.5f * 2f;
-        sLeaser.sprites[1].scaleY = 2.4f * 2f;
-        sLeaser.sprites[2].scaleX = (1.2f * Custom.LerpMap(3f, 3f, 1f, 1f, 0.2f) * 1f + Mathf.Lerp(this.lastProp, this.prop, timeStacker) / 20f);
-        sLeaser.sprites[2].scaleY = (1.2f * Custom.LerpMap(3f, 3f, 1f, 1f, 0.2f) * 1f - Mathf.Lerp(this.lastProp, this.prop, timeStacker) / 20f);
+        Vector2 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
+        sLeaser.sprites[0].x = vector.x - camPos.x;
+        sLeaser.sprites[0].y = vector.y - camPos.y;
+        sLeaser.sprites[0].rotation = Custom.VecToDeg(vector2);
+        sLeaser.sprites[0].alpha = 0.6f + rCam.PaletteDarkness() / 2f;
+        sLeaser.sprites[0].scaleX = /*1.2f **/ this.ScaleFactor;
+        sLeaser.sprites[0].scaleY = /*1.6f **/ this.ScaleFactor;
+        sLeaser.sprites[1].x = vector.x - camPos.x;
+        sLeaser.sprites[1].y = vector.y - camPos.y;
+        sLeaser.sprites[1].rotation = Custom.VecToDeg(vector2);
+        sLeaser.sprites[1].scaleX = /*0.9f **/ this.ScaleFactor;
+        sLeaser.sprites[1].scaleY = /*1.3f **/ this.ScaleFactor;
+        sLeaser.sprites[2].x = vector.x - camPos.x;
+        sLeaser.sprites[2].y = vector.y - camPos.y;
+        sLeaser.sprites[2].rotation = Custom.VecToDeg(vector2);
+        sLeaser.sprites[2].scaleX = /*0.9f **/ this.ScaleFactor;
+        sLeaser.sprites[2].scaleY = /*1.3f **/ this.ScaleFactor;
         if (this.blink > 0 && UnityEngine.Random.value < 0.5f)
         {
-            sLeaser.sprites[0].color = new Color(1f, 1f, 1f);
+            sLeaser.sprites[1].color = base.blinkColor;
+            sLeaser.sprites[2].color = base.blinkColor;
+            sLeaser.sprites[3].color = base.blinkColor;
+            sLeaser.sprites[4].color = base.blinkColor;
         }
         else
         {
-            sLeaser.sprites[0].color = this.color;
+            sLeaser.sprites[1].color = this.color;
+            sLeaser.sprites[2].color = this.color;
+            sLeaser.sprites[3].color = Color.Lerp(this.color, rCam.currentPalette.blackColor, 0.4f);
+            sLeaser.sprites[4].color = Color.Lerp(this.color, rCam.currentPalette.blackColor, 0.4f);
         }
+        vector2 = Custom.DirVec(default(Vector2), vector2);
+        sLeaser.sprites[3].x = vector.x + vector2.x * (10f * this.ScaleFactor) - camPos.x;
+        sLeaser.sprites[3].y = vector.y + vector2.y * (10f * this.ScaleFactor) - camPos.y;
+        sLeaser.sprites[3].rotation = sLeaser.sprites[0].rotation;
+        sLeaser.sprites[4].x = vector.x + vector2.x * (-10f * this.ScaleFactor) - camPos.x;
+        sLeaser.sprites[4].y = vector.y + vector2.y * (-10f * this.ScaleFactor) - camPos.y;
+        sLeaser.sprites[4].rotation = sLeaser.sprites[0].rotation;
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();
         }
     }
 
-    public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        this.color = palette.blackColor;
-        sLeaser.sprites[1].color = Color.Lerp(Color.green, palette.blackColor, Mathf.Lerp(0f, 0.5f, rCam.PaletteDarkness()));
-        sLeaser.sprites[2].color = Color.Lerp(palette.waterColor1, palette.waterColor2, 0.5f);
+        this.color = new Color(0.8f, 1f, 0.4f);
+        sLeaser.sprites[0].color = Color.Lerp(palette.waterColor1, palette.waterColor2, 0.5f);
+    }
+
+    public class AbstractOnBackStick : AbstractPhysicalObject.AbstractObjectStick
+    {
+        public AbstractPhysicalObject Creature
+        {
+            get
+            {
+                return this.A;
+            }
+            set
+            {
+                this.A = value;
+            }
+        }
+
+        public AbstractPhysicalObject Airbag
+        {
+            get
+            {
+                return this.B;
+            }
+            set
+            {
+                this.B = value;
+            }
+        }
+
+        public AbstractOnBackStick(AbstractPhysicalObject creature, AbstractPhysicalObject airbag) : base(creature, airbag)
+        {
+        }
+
+        // Token: 0x0600420E RID: 16910 RVA: 0x00498CDC File Offset: 0x00496EDC
+        public override string SaveToString(int roomIndex)
+        {
+            return string.Concat(new string[]
+            {
+                roomIndex.ToString(),
+                "<stkA>sprOnBackStick<stkA>",
+                this.A.ID.ToString(),
+                "<stkA>",
+                this.B.ID.ToString()
+            });
+        }
     }
 }

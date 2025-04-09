@@ -16,7 +16,7 @@ using static BeastMaster.BeastMaster;
 
 namespace Scientist;
 
-public class ScientistPanel : Menu.Menu
+public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
 {
     public RainWorldGame game;
     public FSprite[] blackSprite;
@@ -46,6 +46,8 @@ public class ScientistPanel : Menu.Menu
     public Dictionary<string, SimpleButton> itemsObjectInfoButtons;
     public Dictionary<string, OpImage> itemsObjectInfoPic;
     public string selectedItemType = "";
+
+    public Dictionary<string, CheckBox> debugCheckboxes;
 
     public void WarpPreInit(RainWorldGame game)
     {
@@ -124,11 +126,11 @@ public class ScientistPanel : Menu.Menu
     {
         this.uselessMessage = new MenuLabel(this, this.pages[0], $"{base.Translate("SCIENCEPANEL_TITLE")}", new Vector2(0f, 0f), new Vector2(300f, 30f), false);
 
-        this.itemsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ITEMS_CHANGEtoPAGE"), "ITEMS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 60f), new Vector2(110f, 30f));
-        this.creaturesPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CREATURES_CHANGEtoPAGE"), "CREATURES_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 100f), new Vector2(110f, 30f));
-        this.craftingtablePageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 140f), new Vector2(110f, 30f));
-        this.advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 180f), new Vector2(110f, 30f));
-        this.debugPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 30f), new Vector2(110f, 30f));
+        this.itemsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ITEMS_CHANGEtoPAGE"), "ITEMS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 75f), new Vector2(110f, 30f));
+        this.creaturesPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CREATURES_CHANGEtoPAGE"), "CREATURES_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 115f), new Vector2(110f, 30f));
+        this.craftingtablePageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 155f), new Vector2(110f, 30f));
+        this.advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 195f), new Vector2(110f, 30f));
+        this.debugPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 35f), new Vector2(110f, 30f));
 
         this.itemsPageButton.nextSelectable[1] = this.itemsPageButton.nextSelectable[2] = this.debugPageButton;                  //1:up 2:left 3:down 4:right
         this.itemsPageButton.nextSelectable[3] = this.craftingtablePageButton;
@@ -190,7 +192,11 @@ public class ScientistPanel : Menu.Menu
             this.pages[0].RemoveSubObject(this.itemsObjectChangeGroupIndexButtons[i]);
             this.itemsObjectChangeGroupIndexButtons[i] = null;
         }
-        for (int i = 0; i < this.itemsObjectChangeGroupIndexButtonIcons.Count; i++) { if (this.itemsObjectChangeGroupIndexButtonIcons[i] == null) { continue; } this.itemsObjectChangeGroupIndexButtonIcons[i].RemoveFromContainer(); }
+        for (int i = 0; i < this.itemsObjectChangeGroupIndexButtonIcons.Count; i++) 
+        { 
+            if (this.itemsObjectChangeGroupIndexButtonIcons[i] == null) { continue; } 
+            this.itemsObjectChangeGroupIndexButtonIcons[i].RemoveFromContainer(); 
+        }
         this.RemoveItemsObjectInfo();
     }
 
@@ -226,12 +232,22 @@ public class ScientistPanel : Menu.Menu
 
     public void SetupDebugPage()
     {
-
+        this.debugCheckboxes = new();
+        this.debugCheckboxes["showBodyChunks"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 70f), -25f, this.Translate("DEBUG_showBodyChunks"), "DEBUG_showBodyChunks", false);
+        this.pages[0].subObjects.AddSafe(this.debugCheckboxes["showBodyChunks"]);
     }
 
     public void RemoveDebugPage()
     {
-
+        List<string> keys = this.debugCheckboxes.Keys.ToList();
+        for (int i = 0; i < keys.Count; i++)
+        {
+            if (this.debugCheckboxes[keys[i]] == null) { continue; }
+            this.debugCheckboxes[keys[i]].RemoveSprites();
+            this.pages[0].RemoveSubObject(this.debugCheckboxes[keys[i]]);
+            this.debugCheckboxes[keys[i]] = null;
+        }
+        this.debugCheckboxes.Clear();
     }
 
     public void ChangeItemsObjectButtonIcon()
@@ -262,6 +278,8 @@ public class ScientistPanel : Menu.Menu
             this.itemsObjectButtonIcons[i].Value.RemoveFromContainer();
         }
         this.itemsObjectButtons.Clear();
+
+        this.selectedItemType = "";
     }
 
     public void ChangeItemsObjectInfo(string itemType)
@@ -415,6 +433,40 @@ public class ScientistPanel : Menu.Menu
         this.pageMode = mode;
     }
 
+    public bool GetChecked(CheckBox box)
+    {
+        if (box.IDString.StartsWith("DEBUG_"))
+        {
+            FieldInfo[] fields = typeof(Scientist.Data.DebugVariables).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (FieldInfo field in fields)
+            {
+                bool? b = field.GetValue(null) as bool?;
+                if (b != null && field.Name == box.IDString.Replace("DEBUG_", ""))
+                {
+                    return b.Value;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void SetChecked(CheckBox box, bool c)
+    {
+        if (box.IDString.StartsWith("DEBUG_"))
+        {
+            FieldInfo[] fields = typeof(Scientist.Data.DebugVariables).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (FieldInfo field in fields)
+            {
+                bool? b = field.GetValue(null) as bool?;
+                if (b != null && field.Name == box.IDString.Replace("DEBUG_", ""))
+                {
+                    field.SetValue(null, c);
+                    Scientist.Data.DebugVariables.changed = true;
+                }
+            }
+        }
+    }
+
     //以下代码均参考了FakeAchievements
     public static Texture2D LoadTexture(string path)
     {
@@ -463,6 +515,8 @@ public class ScientistPanel : Menu.Menu
         }
         return result;
     }
+
+    
 
     public class PageModeIndex : ExtEnum<Scientist.ScientistPanel.PageModeIndex>
     {

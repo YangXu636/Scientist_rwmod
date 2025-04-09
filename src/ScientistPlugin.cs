@@ -27,6 +27,8 @@ using System.IO;
 using ImprovedInput;
 using BepInEx.Logging;
 using MonoMod.Utils;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -70,6 +72,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
     public ScientistPlugin scientistInstance;
     public ScientistOptions scientistOptions;
     public ScientistPanel scientistPanel;
+
+    public FContainer scientistDebugContainer = null;
 
     public static Dictionary<string, bool> hookedOn = new();
 
@@ -338,6 +342,67 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
         }
         orig(self);
+        if (self.cameras[0].room != null && Scientist.Data.DebugVariables.showBodyChunks)
+        {
+            if (self.cameras[0].room.abstractRoom.name != Scientist.Data.DebugVariables.ShowbodychunksRoomName)
+            {
+                for (int i = 0; i < Scientist.Data.DebugVariables.ShowbodychunksList.Count; i++)
+                {
+                    Scientist.Data.DebugVariables.ShowbodychunksList[i].RemoveSprites();
+                    Scientist.Data.DebugVariables.ShowbodychunksList[i] = null;
+                }
+                Scientist.Data.DebugVariables.ShowbodychunksList.Clear();
+                Scientist.Data.DebugVariables.ShowbodychunksGrid = new bool[Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.x / 20.00f) - 4, Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.y / 20.00f) - 4].SetAll(false);
+                Scientist.Data.DebugVariables.ShowbodychunksRoomName = self.cameras[0].room.abstractRoom.name;
+            }
+            if (this.scientistDebugContainer == null)
+            {
+                this.scientistDebugContainer = new FContainer();
+                Futile.stage.AddChild(this.scientistDebugContainer);
+                this.scientistDebugContainer.MoveToFront();
+            }
+            this.scientistDebugContainer.RemoveAllChildren();
+            Scientist.Data.DebugVariables.ShowbodychunksGrid.SetAll(false);
+            for (int i = 0; i < self.cameras[0].room.physicalObjects.Length; i++)
+            {
+                for (int j = 0; j < self.cameras[0].room.physicalObjects[i].Count; j++)
+                {
+                    if (self.cameras[0].room.physicalObjects[i][j] == null) { continue; }
+                    for (int k = 0; k < self.cameras[0].room.physicalObjects[i][j].bodyChunks.Length; k++)
+                    {
+                        if (self.cameras[0].room.physicalObjects[i][j].bodyChunks[k] == null) { continue; }
+                        FSprite sprite = new FSprite("Circle20", true) { alpha = 0.7f };
+                        //Scientist.Data.DebugVariables.showBodyChunkSprites.Add(self.room.physicalObjects[i][j].bodyChunks[k], sprite);
+                        this.scientistDebugContainer.AddChild(sprite);
+                        Vector2 vector = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].pos - self.cameras[0].room.world.game.cameras[0].pos;
+                        sprite.x = vector.x;
+                        sprite.y = vector.y;
+                        sprite.scale = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].rad / 10f;
+                        FLabel fLabel1 = new(Custom.GetFont(), $"{self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].pos}")
+                        {
+                            x = vector.x,
+                            y = vector.y + 10f,
+                            color = ScientistTools.ColorFromHex("#CCE5FF")
+                        };
+                        this.scientistDebugContainer.AddChild(fLabel1);
+                        FLabel fLabel2 = new(Custom.GetFont(), $"{k}")
+                        {
+                            x = vector.x,
+                            y = vector.y,
+                            color = ScientistTools.ColorFromHex("#000004")
+                        };
+                        this.scientistDebugContainer.AddChild(fLabel2);
+                    }
+                }
+            }
+        }
+        else if (Scientist.Data.DebugVariables.changed)
+        {
+            Scientist.Data.DebugVariables.changed = false;
+            this.scientistDebugContainer.RemoveAllChildren();
+            this.scientistDebugContainer.RemoveFromContainer();
+            this.scientistDebugContainer = null;
+        }
     }
 
     private void RainWorldGame_GrafUpdate(On.RainWorldGame.orig_GrafUpdate orig, RainWorldGame self, float timeStacker)
@@ -478,7 +543,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     private void GraphicsModule_DrawSprites(On.GraphicsModule.orig_DrawSprites orig, GraphicsModule self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        if (self.owner is not PoleMimic || (self.owner is PoleMimic && !(self.owner as PoleMimic).dead))
+        if (self.owner is not PoleMimic || (self.owner is PoleMimic pm && !pm.dead))
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
         }
@@ -608,7 +673,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(room);
         if (
-            room.abstractRoom.name == "CC_C07" && room.game.session is StoryGameSession
+            room.abstractRoom.name == "CC_C07" && room.game.IsStorySession
             && room.game.GetStorySession.saveState.saveStateNumber.value == Scientist.ScientistPlugin.MOD_ID
             && room.abstractRoom.firstTimeRealized && room.game.GetStorySession.saveState.cycleNumber == 0
             )
@@ -652,15 +717,22 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private AbstractPhysicalObject SaveState_AbstractPhysicalObjectFromString(On.SaveState.orig_AbstractPhysicalObjectFromString orig, World world, string objString)
     {
         string[] data = objString.Split(new[] { "<oA>" }, StringSplitOptions.None);
+        int rippleLayer = 0;
         try
         {
+            if (data[0].Contains("<oB>"))
+            {
+                string[] array2 = Regex.Split(data[0], "<oB>");
+                data[0] = array2[0];
+                rippleLayer = int.TryParse(array2[1], NumberStyles.Any, CultureInfo.InvariantCulture, out int i1) ? i1 : 0;
+            }
             if (data[1] == "BreathingBubble" && data.Length == 4)
             {
-                return new Scientist.Items.AbstractPhysicalObjects.BreathingBubbleAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]), float.TryParse(data[3], out float oxygenLeft) ? oxygenLeft : 60.00000f);
+                return new Scientist.Items.AbstractPhysicalObjects.BreathingBubbleAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]), float.TryParse(data[3], out float oxygenLeft) ? oxygenLeft : 60.00000f) { rippleLayer = rippleLayer };
             }
             else if (data[1] == "TremblingFruit" && data.Length == 5)
             {
-                return new Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]), new Color[2] { ScientistTools.ColorFromHex(data[3]) , ScientistTools.ColorFromHex(data[4]) });
+                return new Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]), new Color[2] { ScientistTools.ColorFromHex(data[3]) , ScientistTools.ColorFromHex(data[4]) }) { rippleLayer = rippleLayer };
             }
         }
         catch (Exception e) { ScientistLogger.Warning(e); e.LogDetailed(); return null; }
@@ -933,6 +1005,14 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             self.realizedObject = new Items.TremblingFruit(self is Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract tfa ? tfa : new Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract(self.world, null, self.pos, self.ID), self.world);
         }
+        if (self.type == Enums.Items.AirBag)
+        {
+            self.realizedObject = new Items.AirBag(self, self.world);
+        }
+        if (self.type == Enums.Items.BlastingStoneBomb)
+        {
+            self.realizedObject = new Items.BlastingStoneBomb(self, self.world);
+        }
     }
 
     private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -1019,6 +1099,15 @@ public partial class ScientistPlugin : BaseUnityPlugin
             return Player.ObjectGrabability.TwoHands;
         }
         if (obj is Items.TremblingFruit)
+        {
+            return Player.ObjectGrabability.OneHand;
+        }
+        if (obj is Items.AirBag airBag)
+        {
+            //if (airBag.isTriggered) return Player.ObjectGrabability.CantGrab;
+            return Player.ObjectGrabability.OneHand;
+        }
+        if (obj is Items.BlastingStoneBomb)
         {
             return Player.ObjectGrabability.OneHand;
         }
@@ -1787,7 +1876,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                         creature.SetKillTag(player.abstractCreature);
                         creature.Violence(player.bodyChunks[0], new Vector2?(new Vector2(0f, 0f)), player.grasps[num11].grabbedChunk, null, Creature.DamageType.Bite, 1f, 15f);
                         creature.stun = 5;
-                        if (creature.abstractCreature.creatureTemplate.type == MoreSlugcatsEnums.CreatureTemplateType.Inspector)
+                        if (creature.abstractCreature.creatureTemplate.type == DLCSharedEnums.CreatureTemplateType.Inspector)
                         {
                             creature.Die();
                         }
@@ -2518,6 +2607,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         Scientist.Data.Player.colorfulCreatures.Clear();
 
         Scientist.Data.Player.anesthesiaCreatures.Clear();
+
+        this.scientistDebugContainer?.RemoveAllChildren();
+        this.scientistDebugContainer?.RemoveFromContainer();
+        this.scientistDebugContainer = null;
     }
 } 
 

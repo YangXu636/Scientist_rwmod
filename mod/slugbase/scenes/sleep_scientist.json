@@ -1,0 +1,64 @@
+{
+	"id": "Sleep_Scientist",
+	"scene_folder": "scenes/sleep_scientist",
+	"images": [
+		{
+			"name": "scientist_sleep5",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2.7,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_sleep4",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2.6,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_sleep3",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2.4,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_sleep2",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2.3,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_sleep1",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2.1,
+			"shader": "Basic"
+		},
+		{
+			"name": "scientist_sleep0",
+			"pos": [
+				0,
+				0
+			],
+			"depth": 2,
+			"shader": "Basic"
+		}
+	],
+	"idle_depths": [
+		2.1
+	],
+	"slugcat_depth": 2.1
+}

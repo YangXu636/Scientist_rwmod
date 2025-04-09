@@ -1,6 +1,6 @@
 {
-	"id": "Ghost_Prototype",
-	"scene_folder": "scenes/slugcat_scientist",
+	"id": "Ghost_Scientist",
+	"scene_folder": "scenes/ghost_scientist",
 	"images": [
 		{
 			"name": "Background",

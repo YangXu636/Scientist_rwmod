@@ -7,6 +7,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.CompilerServices;
+using System.Reflection;
+using Scientist.Debug;
 
 namespace Scientist.Data;
 
@@ -40,6 +43,20 @@ public static class GolbalVariables
 
     public static bool isPanelOpen = false;
     public static bool isPanelChanged = false;
+
+
+    public static List<AbstractPhysicalObject.AbstractObjectType> apoTypeList = new();
+}
+
+public static class DebugVariables
+{
+    public static bool changed = false;
+
+    public static bool showBodyChunks = false;
+    //public static ConditionalWeakTable<BodyChunk, FSprite> showBodyChunkSprites = new ConditionalWeakTable<BodyChunk, FSprite>();
+    public static List<ShowBodychunk> ShowbodychunksList = new List<ShowBodychunk>();
+    public static bool[,] ShowbodychunksGrid = new bool[100, 100].SetAll(false);
+    public static string ShowbodychunksRoomName = "";
 }
 
 public class ColorfulSprite

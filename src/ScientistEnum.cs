@@ -27,6 +27,7 @@ namespace Scientist.Enums
     public static class Items
     {
         //public static AbstractPhysicalObject.AbstractObjectType ScientistIcon;
+        public static AbstractPhysicalObject.AbstractObjectType WaterNut;
         public static AbstractPhysicalObject.AbstractObjectType SharpSpear;
         public static AbstractPhysicalObject.AbstractObjectType ConcentratedDangleFruit;
         public static AbstractPhysicalObject.AbstractObjectType PainlessFruit;
@@ -42,10 +43,13 @@ namespace Scientist.Enums
         public static AbstractPhysicalObject.AbstractObjectType BreathingBubble;
         public static AbstractPhysicalObject.AbstractObjectType KongmingLantern;
         public static AbstractPhysicalObject.AbstractObjectType TremblingFruit;
+        public static AbstractPhysicalObject.AbstractObjectType AirBag;
+        public static AbstractPhysicalObject.AbstractObjectType BlastingStoneBomb;
 
         public static void RegisterValues()
         {
             //ScientistIcon = new AbstractPhysicalObject.AbstractObjectType("ScientistIcon", true);
+            WaterNut = new AbstractPhysicalObject.AbstractObjectType("WaterNut", true);
             SharpSpear = new AbstractPhysicalObject.AbstractObjectType("SharpSpear", true);
             ConcentratedDangleFruit = new AbstractPhysicalObject.AbstractObjectType("ConcentratedDangleFruit", true);
             PainlessFruit = new AbstractPhysicalObject.AbstractObjectType("PainlessFruit", true);
@@ -61,6 +65,8 @@ namespace Scientist.Enums
             BreathingBubble = new AbstractPhysicalObject.AbstractObjectType("BreathingBubble", true);
             KongmingLantern = new AbstractPhysicalObject.AbstractObjectType("KongmingLantern", true);
             TremblingFruit = new AbstractPhysicalObject.AbstractObjectType("TremblingFruit", true);
+            AirBag = new AbstractPhysicalObject.AbstractObjectType("AirBag", true);
+            BlastingStoneBomb = new AbstractPhysicalObject.AbstractObjectType("BlastingStoneBomb", true);
         }
 
         public static void UnregisterValues()
@@ -68,6 +74,10 @@ namespace Scientist.Enums
             /*AbstractPhysicalObject.AbstractObjectType scientistIcon = ScientistIcon;
             scientistIcon?.Unregister();
             ScientistIcon = null;*/
+
+            AbstractPhysicalObject.AbstractObjectType waterNut = WaterNut;
+            waterNut?.Unregister();
+            WaterNut = null;
 
             AbstractPhysicalObject.AbstractObjectType sharpSpear = SharpSpear;
             sharpSpear?.Unregister();
@@ -128,6 +138,14 @@ namespace Scientist.Enums
             AbstractPhysicalObject.AbstractObjectType tremblingFruit = TremblingFruit;
             tremblingFruit?.Unregister();
             TremblingFruit = null;
+
+            AbstractPhysicalObject.AbstractObjectType airBag = AirBag;
+            airBag?.Unregister();
+            AirBag = null;
+
+            AbstractPhysicalObject.AbstractObjectType blastingStoneBomb = BlastingStoneBomb;
+            blastingStoneBomb?.Unregister();
+            BlastingStoneBomb = null;
         }
     }
 
@@ -148,6 +166,7 @@ namespace Scientist.Enums
         public static MultiplayerUnlocks.SandboxUnlockID BreathingBubble;
         public static MultiplayerUnlocks.SandboxUnlockID KongmingLantern;
         public static MultiplayerUnlocks.SandboxUnlockID TremblingFruit;
+        public static MultiplayerUnlocks.SandboxUnlockID AirBag;
 
         public static void RegisterValues()
         {
@@ -166,6 +185,7 @@ namespace Scientist.Enums
             BreathingBubble = new MultiplayerUnlocks.SandboxUnlockID("BreathingBubble", true);
             KongmingLantern = new MultiplayerUnlocks.SandboxUnlockID("KongmingLantern", true);
             TremblingFruit = new MultiplayerUnlocks.SandboxUnlockID("TremblingFruit", true);
+            AirBag = new MultiplayerUnlocks.SandboxUnlockID("AirBag", true);
         }
 
         // Token: 0x06004043 RID: 16451 RVA: 0x0047A3D0 File Offset: 0x004785D0
@@ -226,6 +246,10 @@ namespace Scientist.Enums
             MultiplayerUnlocks.SandboxUnlockID tremblingFruit = TremblingFruit;
             tremblingFruit?.Unregister();
             TremblingFruit = null;
+
+            MultiplayerUnlocks.SandboxUnlockID airBag = AirBag;
+            airBag?.Unregister();
+            AirBag = null;
         }
     }
 

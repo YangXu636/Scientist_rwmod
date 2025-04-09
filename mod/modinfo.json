@@ -2,8 +2,8 @@
 	"id": "XuYangJerry.Scientist",
 	"name": "Scientist",
 	"version": "2.3.1",
-	"authors": "XuYangJerry(需氧)、Centuryhua(世花)、莫得银心(哑铃)、晴影",
-	"description": "一个基于SlugBase制作的的mod。\n并且在开发过程中没有任何秃鹫受到伤害",
+	"authors": "XuYangJerry(需氧)、Centuryhua(世花)、莫得银心、晴影",
+	"description": "一个基于SlugBase制作的mod。\n并且在开发过程中没有任何秃鹫受到伤害",
 	"requirements": [
 		"slime-cubed.slugbase",
 		"emgtx",
@@ -13,6 +13,9 @@
 		"SlugBase",
 		"EmgTx",
 		"Fake Achievements"
+	],
+	"priorities": [
+		"improved-input-config"
 	],
 	"tags": [
 		"Custom Slugcat",

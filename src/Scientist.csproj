@@ -27,9 +27,6 @@
         <Reference Include="..\lib\MonoMod.Utils.dll">
           <Private>false</Private>
         </Reference>
-        <Reference Include="..\lib\SlugBase.dll">
-          <Private>false</Private>
-        </Reference>
         <Reference Include="..\lib\UnityEditor.dll">
           <Private>false</Private>
         </Reference>
@@ -46,7 +43,7 @@
           <HintPath>..\lib\FakeAchievements.dll</HintPath>
         </Reference>
         <Reference Include="HOOKS-Assembly-CSharp">
-          <HintPath>..\..\..\Tools\BepInEx\plugins\HOOKS-Assembly-CSharp.dll</HintPath>
+          <HintPath>..\lib\HOOKS-Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="ImprovedInput">
           <HintPath>..\..\..\..\Download\Steam\steamapps\workshop\content\312520\2944727862\plugins\ImprovedInput.dll</HintPath>
@@ -55,10 +52,13 @@
           <HintPath>..\..\op\OptimusPrime\plugins\OptimusPrime.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp">
-          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
+          <HintPath>..\lib\PUBLIC-Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Rewired_Core">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Rewired_Core.dll</HintPath>
+        </Reference>
+        <Reference Include="SlugBase">
+          <HintPath>..\lib\SlugBase.dll</HintPath>
         </Reference>
         <Reference Include="Unity.Mathematics">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Unity.Mathematics.dll</HintPath>
@@ -108,13 +108,13 @@
 		<ItemGroup>
 			<CopyPlugins Include="$(TargetPath)" />
 		</ItemGroup>
-		
-        <Delete Files="@(RemovePlugins)" />
-        <Copy SourceFiles="@(CopyPlugins)" DestinationFolder="../mod/plugins/" />
+
+		<!--Delete Files="@(RemovePlugins)" /-->
+		<!--Copy SourceFiles="@(CopyPlugins)" DestinationFolder="../mod/plugins/" /-->
     </Target>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.dll&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;" />
+      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.dll&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\newest\plugins&quot; /Y /L&#xD;&#xA;copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\newest\plugins&quot; /Y /L&#xD;&#xA;" />
     </Target>
     
 </Project>

@@ -48,7 +48,8 @@
 		"timeline_before": "Rivulet",
 		"timeline_after": "Yellow",
 		"world_state": "Yellow",
-		"select_menu_scene": "Slugcat_Prototype",
-		"select_menu_scene_ascended": "Ghost_Prototype"
+		"select_menu_scene": "Slugcat_Scientist",
+		"select_menu_scene_ascended": "Ghost_Scientist",
+		"sleep_scene": "Sleep_Scientist"
 	}
 }
