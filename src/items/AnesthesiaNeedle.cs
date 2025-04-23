@@ -79,7 +79,7 @@ sealed class AnesthesiaNeedle : Spear
                 c.Stun(200);
                 if (c is not Player)
                 {
-                    Scientist.Data.Player.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y && ((1600.00f / x) * Mathf.Sin(x / 40.00f)) > 0, 800);
+                    Scientist.Data.PlayerVariables.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y && ((1600.00f / x) * Mathf.Sin(x / 40.00f)) > 0, 800);
                 }
             }
         }

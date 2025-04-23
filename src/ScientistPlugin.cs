@@ -22,13 +22,13 @@ using System.Reflection;
 using Rewired.ControllerExtensions;
 using System.Security.Cryptography;
 using IL.Menu.Remix.MixedUI;
-using FakeAchievements;
 using System.IO;
 using ImprovedInput;
 using BepInEx.Logging;
 using MonoMod.Utils;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Unity.Mathematics;
 
 // TODO 属性比起黄猫还要略低
 // TODO 随身携带一只拾荒者精英保镖 已废除
@@ -62,12 +62,12 @@ public partial class ScientistPlugin : BaseUnityPlugin
     public static bool enteredShortCut = false;
     public static bool OspKeycodeChangedByConfig = false;
 
-    public Items.ShowCraftingResult scr;
+    public Effects.ShowCraftingResult scr;
 
     public static List<EntityID> dfsStringshortVisited = new();
     public static List<EntityID> dfsSsAndKaVisited = new();         //dfsStringshortAndKnotabstractVisited
 
-    public ScientistSaves.FakeAchievementsAcquisitionState faas = new ScientistSaves.FakeAchievementsAcquisitionState();
+    public ScientistSaves.AchievementsAcquisitionState faas = new ScientistSaves.AchievementsAcquisitionState();
 
     public ScientistPlugin scientistInstance;
     public ScientistOptions scientistOptions;
@@ -176,7 +176,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         On.Player.IsObjectThrowable += Player_IsObjectThrowable;
         On.Player.Update += Player_Update;
         On.Player.GrabUpdate += Player_GrabUpdate_On;    //在玩家触发拾取时执行PlayerGrabUpdate
-        //IL.Player.GrabUpdate += Player_GrabUpdate_IL;    //兼容原版
+        //IL.PlayerVariables.GrabUpdate += Player_GrabUpdate_IL;    //兼容原版
         On.Player.ThrowObject += Player_ThrowObject;
         On.Player.ThrownSpear += Player_ThrownSpear;
         On.Player.ShortCutColor += Player_ShortCutColor;
@@ -212,6 +212,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
         //On.Creature.Violence += Creature_Violence;
         On.Creature.TerrainImpact += Creature_TerrainImpact;
+        On.Creature.Violence += Creature_Violence;
         On.Creature.Die += Creature_Die;
 
         On.AbstractCreature.Move += AbstractCreature_Move;
@@ -219,6 +220,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
         On.Weapon.HitAnotherThrownWeapon += Weapon_HitAnotherThrownWeapon;
 
         On.MoreSlugcats.GlowWeed.HitByWeapon += MoreSlugcatsGlowWeed_HitByWeapon;
+        
+        On.Watcher.LizardBlizzardModule.RayTraceBeamHitPos += Watcher_LizardBlizzardModule_RayTraceBeamHitPos;
 
         On.KingTusks.Tusk.ShootUpdate += KingTusks_Tusk_ShootUpdate;
         On.BigNeedleWorm.Swish += BigNeedleWorm_Swish;
@@ -306,8 +309,17 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
             else if (plugin.GetType().Assembly.GetName().Name == "FakeAchievements" && !Scientist.ScientistPlugin.hookedOn.KeyIsValue("FakeAchievements", true))
             {
-                Scientist.ScientistLogger.Log("Hooked on FakeAchievements");
-                Scientist.ScientistPlugin.hookedOn["FakeAchievements"] = true;
+                try
+                {
+                    Scientist.ScientistHooks.FakeAchievementsHooks.HookOn(plugin);
+                    Scientist.ScientistLogger.Log("Hooked on FakeAchievements");
+                    Scientist.ScientistPlugin.hookedOn["FakeAchievements"] = true;
+                }
+                catch (Exception e)
+                {
+                    ScientistLogger.Warning($"Failed to hook FakeAchievements: {e.Message}");
+                    Scientist.ScientistPlugin.hookedOn["FakeAchievements"] = false;
+                }
             }
             else if (plugin.GetType().Assembly.GetName().Name == "ImprovedInput" && !hookedOn.KeyIsValue("ImprovedInput", true))
             {
@@ -324,6 +336,16 @@ public partial class ScientistPlugin : BaseUnityPlugin
                     e.LogDetailed();
                     Scientist.ScientistPlugin.hookedOn["ImprovedInput"] = false;
                 }
+            }
+        }
+
+        FieldInfo[] fields = typeof(Enums.SandboxUnlockID_Items).GetFields(BindingFlags.Public | BindingFlags.Static);
+        foreach (FieldInfo field in fields)
+        {
+            MultiplayerUnlocks.SandboxUnlockID sduid = field.GetValue(null) as MultiplayerUnlocks.SandboxUnlockID;
+            if (sduid != null)
+            {
+                MultiplayerUnlocks.ItemUnlockList.AddSafe(sduid);
             }
         }
     }
@@ -346,10 +368,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             if (self.cameras[0].room.abstractRoom.name != Scientist.Data.DebugVariables.ShowbodychunksRoomName)
             {
-                for (int i = 0; i < Scientist.Data.DebugVariables.ShowbodychunksList.Count; i++)
+                List<string> keys = Scientist.Data.DebugVariables.ShowbodychunksList.Keys.ToList();
+                for (int i = 0; i < keys.Count; i++)
                 {
-                    Scientist.Data.DebugVariables.ShowbodychunksList[i].RemoveSprites();
-                    Scientist.Data.DebugVariables.ShowbodychunksList[i] = null;
+                    Scientist.Data.DebugVariables.ShowbodychunksList[keys[i]].RemoveSprites();
+                    Scientist.Data.DebugVariables.ShowbodychunksList[keys[i]] = null;
                 }
                 Scientist.Data.DebugVariables.ShowbodychunksList.Clear();
                 Scientist.Data.DebugVariables.ShowbodychunksGrid = new bool[Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.x / 20.00f) - 4, Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.y / 20.00f) - 4].SetAll(false);
@@ -363,44 +386,66 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
             this.scientistDebugContainer.RemoveAllChildren();
             Scientist.Data.DebugVariables.ShowbodychunksGrid.SetAll(false);
+            List<string> ftss = new();
             for (int i = 0; i < self.cameras[0].room.physicalObjects.Length; i++)
             {
                 for (int j = 0; j < self.cameras[0].room.physicalObjects[i].Count; j++)
                 {
                     if (self.cameras[0].room.physicalObjects[i][j] == null) { continue; }
-                    for (int k = 0; k < self.cameras[0].room.physicalObjects[i][j].bodyChunks.Length; k++)
+                    /*for (int k1 = 0; k1 < self.cameras[0].room.physicalObjects[i][j].bodyChunks.Length; k1++)
                     {
-                        if (self.cameras[0].room.physicalObjects[i][j].bodyChunks[k] == null) { continue; }
+                        if (self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1] == null) { continue; }
                         FSprite sprite = new FSprite("Circle20", true) { alpha = 0.7f };
-                        //Scientist.Data.DebugVariables.showBodyChunkSprites.Add(self.room.physicalObjects[i][j].bodyChunks[k], sprite);
+                        //Scientist.Data.DebugVariables.showBodyChunkSprites.Add(self.room.physicalObjects[i][j].bodyChunks[k1], sprite);
                         this.scientistDebugContainer.AddChild(sprite);
-                        Vector2 vector = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].pos - self.cameras[0].room.world.game.cameras[0].pos;
+                        Vector2 vector = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1].pos - self.cameras[0].room.world.game.cameras[0].pos;
                         sprite.x = vector.x;
                         sprite.y = vector.y;
-                        sprite.scale = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].rad / 10f;
-                        FLabel fLabel1 = new(Custom.GetFont(), $"{self.cameras[0].room.physicalObjects[i][j].bodyChunks[k].pos}")
+                        sprite.scale = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1].rad / 10f;
+                        FLabel fLabel1 = new(Custom.GetFont(), $"{self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1].pos}")
                         {
                             x = vector.x,
                             y = vector.y + 10f,
                             color = ScientistTools.ColorFromHex("#CCE5FF")
                         };
                         this.scientistDebugContainer.AddChild(fLabel1);
-                        FLabel fLabel2 = new(Custom.GetFont(), $"{k}")
+                        FLabel fLabel2 = new(Custom.GetFont(), $"{k1}")
                         {
                             x = vector.x,
                             y = vector.y,
                             color = ScientistTools.ColorFromHex("#000004")
                         };
                         this.scientistDebugContainer.AddChild(fLabel2);
+                    }*/
+                    string fts = ScientistTools.FeaturesTypeString(self.cameras[0].room.physicalObjects[i][j]);
+                    if (!Scientist.Data.DebugVariables.ShowbodychunksList.ContainsKey(fts))
+                    {
+                        Scientist.Data.DebugVariables.ShowbodychunksList.Add(fts, new Scientist.Debug.ShowBodychunk(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos));
                     }
+                    Scientist.Data.DebugVariables.ShowbodychunksList[fts].AddSpritesToContainer(this.scientistDebugContainer);
+                    Scientist.Data.DebugVariables.ShowbodychunksList[fts].Update(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos);
+                    ftss.Add(fts);
                 }
             }
+            List<string> keys2 = Scientist.Data.DebugVariables.ShowbodychunksList.Keys.ToList();
+            for (int i = 0; i < keys2.Count; i++)
+            {
+                if (!ftss.Contains(keys2[i]))
+                {
+                    Scientist.Data.DebugVariables.ShowbodychunksList.Remove(keys2[i]);
+                }
+            }
+
+            /*if (Scientist.Data.DebugVariables.addPhysicsobjectInRoom)
+            {
+
+            }*/
         }
         else if (Scientist.Data.DebugVariables.changed)
         {
             Scientist.Data.DebugVariables.changed = false;
-            this.scientistDebugContainer.RemoveAllChildren();
-            this.scientistDebugContainer.RemoveFromContainer();
+            this.scientistDebugContainer?.RemoveAllChildren();
+            this.scientistDebugContainer?.RemoveFromContainer();
             this.scientistDebugContainer = null;
         }
     }
@@ -463,9 +508,9 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void AbstractCreature_Move(On.AbstractCreature.orig_Move orig, AbstractCreature self, WorldCoordinate newCoord)
     {
         string acin = Scientist.ScientistTools.FeaturesTypeString(self);
-        if (Scientist.Data.Player.anesthesiaCreatures.ContainsKey(acin) && Scientist.Data.Player.anesthesiaCreatures[acin].IsEnabled())
+        if (Scientist.Data.PlayerVariables.anesthesiaCreatures.ContainsKey(acin) && Scientist.Data.PlayerVariables.anesthesiaCreatures[acin].IsEnabled())
         {
-            Scientist.Data.Player.anesthesiaCreatures[acin].AddCounter(Mathf.FloorToInt(self.realizedObject.TotalMass));
+            Scientist.Data.PlayerVariables.anesthesiaCreatures[acin].AddCounter(Mathf.FloorToInt(self.realizedObject.TotalMass));
             return;
         }
         orig(self, newCoord);
@@ -474,6 +519,37 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void Creature_TerrainImpact(On.Creature.orig_TerrainImpact orig, Creature self, int chunk, IntVector2 direction, float speed, bool firstContact)
     {
         orig(self, chunk, direction, speed, firstContact);
+    }
+
+    private void Creature_Violence(On.Creature.orig_Violence orig, Creature self, BodyChunk source, Vector2? directionAndMomentum, BodyChunk hitChunk, PhysicalObject.Appendage.Pos hitAppendage, Creature.DamageType type, float damage, float stunBonus)
+    {
+        if (self is Player player)
+        {
+            player.IsGrabbingItemType(Scientist.Enums.Items.InflatableGlowingShield, Scientist.Enums.Items.InflatableGlowingShield, out bool leftHand, out bool rightHand);
+            if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x < 0 && leftHand)
+            {
+                if (Custom.DistLess(source.pos, (hitChunk ?? self.mainBodyChunk).pos, 5f) && player.grasps.Length > 0 && type == Creature.DamageType.Explosion)
+                {
+                    (player.grasps[0].grabbed as InflatableGlowingShield).Burst();
+                }
+                if (source?.owner is Lizard)
+                {
+                    return;
+                }
+            }
+            else if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x > 0 && rightHand)
+            {
+                if (Custom.DistLess(source.pos, (hitChunk ?? self.mainBodyChunk).pos, 5f) && player.grasps.Length > 1 && type == Creature.DamageType.Explosion)
+                {
+                    (player.grasps[1].grabbed as InflatableGlowingShield).Burst();
+                }
+                if (source?.owner is Lizard)
+                {
+                    return;
+                }
+            }
+        }
+        orig(self, source, directionAndMomentum, hitChunk, hitAppendage, type, damage, stunBonus);
     }
 
     private void Creature_Die(On.Creature.orig_Die orig, Creature self)
@@ -527,16 +603,16 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self);
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
-        if (Scientist.Data.Player.colorfulCreatures.ContainsKey(fts))
+        if (Scientist.Data.PlayerVariables.colorfulCreatures.ContainsKey(fts))
         {
-            if (Scientist.Data.Player.colorfulCreatures[fts].enabled)
+            if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].enabled)
             {
-                Scientist.Data.Player.colorfulCreatures[fts].AddCounter(UnityEngine.Random.Range(1, 41));
-                Scientist.Data.Player.colorfulCreatures[fts].SetLightSource();
+                Scientist.Data.PlayerVariables.colorfulCreatures[fts].AddCounter(UnityEngine.Random.Range(1, 41));
+                Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetLightSource();
             }
             else
             {
-                Scientist.Data.Player.colorfulCreatures.Remove(fts);
+                Scientist.Data.PlayerVariables.colorfulCreatures.Remove(fts);
             }
         }
     }
@@ -552,20 +628,20 @@ public partial class ScientistPlugin : BaseUnityPlugin
             sLeaser.RemoveAllSpritesFromContainer();
         }
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
-        if (Scientist.Data.Player.colorfulCreatures.ContainsKey(fts))
+        if (Scientist.Data.PlayerVariables.colorfulCreatures.ContainsKey(fts))
         {
-            Scientist.Data.Player.colorfulCreatures[fts].SetOriginalColors(sLeaser);
-            if (Scientist.Data.Player.colorfulCreatures[fts].enabled)
+            Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetOriginalColors(sLeaser);
+            if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].enabled)
             {
-                if (Scientist.Data.Player.colorfulCreatures[fts].lightSource == null)
+                if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].lightSource == null)
                 {
-                    Scientist.Data.Player.colorfulCreatures[fts].SetLightSource();
+                    Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetLightSource();
                 }
                 for (int i = 0; i < sLeaser.sprites.Length; i++)
                 {
                     if (sLeaser.sprites[i] != null)
                     {
-                        sLeaser.sprites[i].color = Scientist.Data.Player.colorfulCreatures[fts].lightSource.color;
+                        sLeaser.sprites[i].color = Scientist.Data.PlayerVariables.colorfulCreatures[fts].lightSource.color;
                     }
                 }
             }
@@ -594,19 +670,85 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
     }
 
+    private Vector2 Watcher_LizardBlizzardModule_RayTraceBeamHitPos(On.Watcher.LizardBlizzardModule.orig_RayTraceBeamHitPos orig, Watcher.LizardBlizzardModule self)
+    {
+        Vector2 result = orig(self);
+        Vector2 a = self.lizard.bodyChunks[0].pos - self.lizard.bodyChunks[1].pos;
+        List<PhysicalObject> list = self.lizard.room.physicalObjects.SelectMany(x => x).Where(x => x is Scientist.Interface.ICanBeamHit).ToList();
+        if (list.Count == 0) { return result; }
+        float kN = a.y / a.x, kV = -a.x / a.y;
+        float beamFunc(float x, float k) => k * x + self.lizard.bodyChunks[0].pos.y - k * self.lizard.bodyChunks[0].pos.x; // k = kN 为射线，k = kV 为以过嘴的射线垂线
+        PhysicalObject po = null;
+        int hitBodyChunkIndex = -1;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] is Interface.ICanBeamHit icbh && !icbh.CanBlockBeam()) { continue; }
+            for (int j = 0; j < list[i].bodyChunks.Length; j++)
+            {
+                Vector2 bcPos = list[i].bodyChunks[j].pos;
+                if (Mathf.Abs(a.x) < 1E-05f)
+                {
+                    if (bcPos.y * Mathf.Sign(a.y) > self.lizard.bodyChunks[0].pos.y * Mathf.Sign(a.y) && Mathf.Abs(bcPos.x - self.lizard.bodyChunks[0].pos.x) < list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    {
+                        result = bcPos;
+                        po = list[i];
+                        hitBodyChunkIndex = j;
+                    }
+                }
+                else if (Mathf.Abs(a.y) < 1E-05f)
+                {
+                    if (bcPos.x * Mathf.Sign(a.x) > self.lizard.bodyChunks[0].pos.x * Mathf.Sign(a.x) && Mathf.Abs(bcPos.y - self.lizard.bodyChunks[0].pos.y) < list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    {
+                        result = bcPos;
+                        po = list[i];
+                        hitBodyChunkIndex = j;
+                    }
+                }
+                else
+                {
+                    if (bcPos.y * Mathf.Sign(a.y) > beamFunc(bcPos.x, kV) * Mathf.Sign(a.y) && Mathf.Abs(beamFunc(bcPos.x, kN) - bcPos.y) / Mathf.Sqrt(1 + kN * kN) <= list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    {
+                        result = bcPos;
+                        po = list[i];
+                        hitBodyChunkIndex = j;
+                    }
+                }
+            }
+        }
+        Vector2 incidentPointAngle = Vector2.zero;
+        if (po != null && hitBodyChunkIndex != -1)
+        {
+            if (Mathf.Abs(a.x) < 1E-05f)
+            {
+                incidentPointAngle = new Vector2(0, -po.bodyChunks[hitBodyChunkIndex].rad) * Mathf.Sign(a.y);
+            }
+            else if (Mathf.Abs(a.y) < 1E-05f)
+            {
+                incidentPointAngle = new Vector2(-po.bodyChunks[hitBodyChunkIndex].rad, 0) * Mathf.Sign(a.x);
+            }
+            else
+            {
+                incidentPointAngle = new Vector2(a.y, -a.x).normalized * (result.y - beamFunc(result.x, kN)) / Mathf.Sqrt(1 + kN * kN)
+                    - a.normalized * Mathf.Sqrt(Mathf.Pow(po.bodyChunks[hitBodyChunkIndex].rad, 2.00f) - Mathf.Pow(beamFunc(result.x, kN) - result.y, 2.00f) / (1 + kN * kN));
+            }
+        }
+        if (float.IsNaN(incidentPointAngle.x) || float.IsNaN(incidentPointAngle.y) || float.IsInfinity(incidentPointAngle.x) || float.IsInfinity(incidentPointAngle.y)) { incidentPointAngle = Vector2.zero; ScientistLogger.Warning($"incidentPointAngle is NaN or Inf!"); }
+        return result + incidentPointAngle;
+    }
+
     private void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig(self, abstractCreature, world);
         string pin = ScientistTools.FeaturesTypeString(self);
-        Scientist.Data.Player.pfEatTimesInACycle[pin] = 0;
-        Scientist.Data.Player.pfTime[pin] = 0;
-        Scientist.Data.Player.pfDieInActive[pin] = 0;
+        Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] = 0;
+        Scientist.Data.PlayerVariables.pfTime[pin] = 0;
+        Scientist.Data.PlayerVariables.pfDieInActive[pin] = 0;
     }
 
     private void Player_Stun(On.Player.orig_Stun orig, Player self, int st)
     {
         string pin = ScientistTools.FeaturesTypeString(self);
-        if (this.scientistOptions.EnableOldPf.Value && Scientist.Data.Player.pfTime.TryGetValue(pin, out int time) && time > 0)
+        if (this.scientistOptions.EnableOldPf.Value && Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time) && time > 0)
         {
             return;
         }
@@ -616,18 +758,26 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void Player_Die(On.Player.orig_Die orig, Player self)
     {
         string pin = ScientistTools.FeaturesTypeString(self);
-        if (Scientist.Data.Player.pfTime.TryGetValue(pin, out int time) && time > 0 && Scientist.Data.Player.pfEatTimesInACycle[pin] < 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/ && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && Scientist.Data.Player.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
+        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time) && time > 0 && Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] < 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/ && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && Scientist.Data.PlayerVariables.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
         {
-            Scientist.Data.Player.pfDieInActive[pin]++;
+            Scientist.Data.PlayerVariables.pfDieInActive[pin]++;
             self.Stun(4);
             return;
         }
-        orig(self);
-        if (Scientist.Data.Player.pfTime.ContainsKey(pin))
+        if (Scientist.Data.DebugVariables.playerNoDie)
         {
-            Scientist.Data.Player.pfEatTimesInACycle[pin] = 0;
-            Scientist.Data.Player.pfTime[pin] = 0;
-            Scientist.Data.Player.pfDieInActive[pin] = 0;
+            if (Scientist.Data.DebugVariables.logWhenPlayerDie)
+            {
+                ScientistLogger.Log("PlayerVariables Die, but not really~\n", true);
+            }
+            return;
+        }
+        orig(self);
+        if (Scientist.Data.PlayerVariables.pfTime.ContainsKey(pin))
+        {
+            Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] = 0;
+            Scientist.Data.PlayerVariables.pfTime[pin] = 0;
+            Scientist.Data.PlayerVariables.pfDieInActive[pin] = 0;
         }
     }
 
@@ -746,7 +896,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void Player_Update(On.Player.orig_Update orig, Player self, bool eu) 
     {
-        Scientist.Data.Player.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : Scientist.Data.Player.offlineTime + 1;
+        Scientist.Data.PlayerVariables.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : Scientist.Data.PlayerVariables.offlineTime + 1;
         int playerIndex = ScientistTools.PlayerIndex(self);
         string pin = ScientistTools.FeaturesTypeString(self);
         if (!self.inShortcut && enteredShortCut)
@@ -794,33 +944,33 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         dfsStringshortVisited.Clear();
         dfsSsAndKaVisited.Clear();
-        if (self.SlugCatClass.value == MOD_ID && (Scientist.Data.Player.offlineTime <= 10 || Scientist.Data.Player.offlineTime > 640) && scr != null)
+        if (self.SlugCatClass.value == MOD_ID && (Scientist.Data.PlayerVariables.offlineTime <= 10 || Scientist.Data.PlayerVariables.offlineTime > 640) && scr != null)
         {
             scr.Destroy();
             scr = null;
         }
-        if (Scientist.Data.Player.offlineTime > 320 && Scientist.Data.Player.offlineTime <= 640)
+        if (Scientist.Data.PlayerVariables.offlineTime > 320 && Scientist.Data.PlayerVariables.offlineTime <= 640)
         {
             if (self.SlugCatClass.value == MOD_ID  && (CraftingResults(self) != null || Scientist.ScientistSlugcat.GetSpecialCraftingResult(self) != null) && scr == null)
             {
                 AbstractPhysicalObject apo = ( CraftingResults(self) != null ) ? ScientistSlugcat.CraftingResults(self, self.grasps[0], self.grasps[1]) : Scientist.ScientistSlugcat.GetSpecialCraftingResult(self)[0];
                 IconSymbol.IconSymbolData isd = apo.type != AbstractPhysicalObject.AbstractObjectType.Creature ? (IconSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo) : (IconSymbol.IconSymbolData)CreatureSymbol.SymbolDataFromCreature((apo.realizedObject as Creature).abstractCreature);
                 IconSymbol iconSymbol = IconSymbol.CreateIconSymbol(isd, new FContainer());
-                scr = new Items.ShowCraftingResult(self, iconSymbol.spriteName, iconSymbol.myColor, ScientistTools.RandomAngleVector2(new float[2][] { new float[2] { 0f, 60f }, new float[2] { 120f, 180f } }), 40f);
+                scr = new Effects.ShowCraftingResult(self, iconSymbol.spriteName, iconSymbol.myColor, ScientistTools.RandomAngleVector2(new float[2][] { new float[2] { 0f, 60f }, new float[2] { 120f, 180f } }), 40f);
                 self.room.AddObject(scr);
 
                 ScientistLogger.Log($"apo = {apo}, apo.type = {apo.type}");
                 ScientistLogger.Log($"isd = {isd}");
             }
         }
-        if (Scientist.Data.Player.pfTime.TryGetValue(pin, out int time1) && time1 > 0)   //无痛果效果
+        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time1) && time1 > 0)   //无痛果效果
         {
             if (!self.inShortcut)
             {
-                Scientist.Data.Player.pfTime[pin]--;
-                if (Scientist.Data.Player.pfTime[pin] == 0)
+                Scientist.Data.PlayerVariables.pfTime[pin]--;
+                if (Scientist.Data.PlayerVariables.pfTime[pin] == 0)
                 {
-                    Scientist.Data.Player.pfTime[pin]--;
+                    Scientist.Data.PlayerVariables.pfTime[pin]--;
                 }
             }
             //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
@@ -835,7 +985,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                     AbstractCreature abstractCreature2 = enumerator.Current;
                     if (abstractCreature2.realizedCreature != null)
                     {
-                        //(abstractCreature2.realizedCreature as Player).mushroomEffect = Mathf.Max(self.mushroomEffect, (abstractCreature2.realizedCreature as Player).mushroomEffect);
+                        //(abstractCreature2.realizedCreature as PlayerVariables).mushroomEffect = Mathf.Max(self.mushroomEffect, (abstractCreature2.realizedCreature as PlayerVariables).mushroomEffect);
                     }
                 }
                 goto IL_1S;
@@ -843,11 +993,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
         IL_1S:
-        if (Scientist.Data.Player.pfTime.TryGetValue(pin, out int time2) && time2 < 0 && Scientist.Data.Player.pfDieInActive[pin] > 0)
+        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time2) && time2 < 0 && Scientist.Data.PlayerVariables.pfDieInActive[pin] > 0)
         {
             self.Die();
         }
-        if (Scientist.Data.Player.pfTime.ContainsKey(pin) && Scientist.Data.Player.pfEatTimesInACycle[pin] >= 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/)
+        if (Scientist.Data.PlayerVariables.pfTime.ContainsKey(pin) && Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] >= 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/)
         {
             self.Die();
         }
@@ -911,6 +1061,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_KongmingLantern");
         Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_TremblingFruit");
         //Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_StoneKnife");
+        Futile.atlasManager.LoadAtlas("atlases/icons/Symbol_BlastingStoneBomb");
 
         Futile.atlasManager.LoadAtlas("atlases/textures/SharpSpear");
         Futile.atlasManager.LoadAtlas("atlases/textures/ConcentratedDangleFruit");
@@ -923,6 +1074,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
         //Futile.atlasManager.LoadAtlas("atlases/textures/ExplosivePowder");
         Futile.atlasManager.LoadAtlas("atlases/textures/ExpansionBomb");
         Futile.atlasManager.LoadAtlas("atlases/textures/TremblingFruit");
+        Futile.atlasManager.LoadAtlas("atlases/textures/BlastingStoneBomb");
+        Futile.atlasManager.LoadAtlas("atlases/textures/BlastingStoneBombFragment");
     }
 
     private void RainWorld_OnModsEnabled(On.RainWorld.orig_OnModsEnabled orig, RainWorld self, ModManager.Mod[] newlyEnabledMods)
@@ -938,7 +1091,18 @@ public partial class ScientistPlugin : BaseUnityPlugin
         orig(self, newlyDisabledMods);
         foreach (ModManager.Mod mod in newlyDisabledMods)
             if (mod.id == MOD_ID) //MOD_ID - 以字符串变量形式表示的mod ID
+            {
+                FieldInfo[] fields = typeof(Enums.SandboxUnlockID_Items).GetFields(BindingFlags.Public | BindingFlags.Static);
+                foreach (FieldInfo field in fields)
+                {
+                    MultiplayerUnlocks.SandboxUnlockID sduid = field.GetValue(null) as MultiplayerUnlocks.SandboxUnlockID;
+                    if (sduid != null && MultiplayerUnlocks.ItemUnlockList.Contains(sduid))
+                    {
+                        MultiplayerUnlocks.ItemUnlockList.Remove(sduid);
+                    }
+                }
                 Enums.ScientistEnum.UnregisterValues();
+            }
     }
 
     private void AbstractPhysicalObject_Realize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
@@ -1012,6 +1176,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (self.type == Enums.Items.BlastingStoneBomb)
         {
             self.realizedObject = new Items.BlastingStoneBomb(self, self.world);
+        }
+        if (self.type == Enums.Items.BlastingStoneBombFragment)
+        {
+            self.realizedObject = new Items.BlastingStoneBombFragment(self, self.world);
         }
     }
 
@@ -1104,12 +1272,16 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         if (obj is Items.AirBag airBag)
         {
-            //if (airBag.isTriggered) return Player.ObjectGrabability.CantGrab;
+            //if (airBag.isTriggered) return PlayerVariables.ObjectGrabability.CantGrab;
             return Player.ObjectGrabability.OneHand;
         }
         if (obj is Items.BlastingStoneBomb)
         {
             return Player.ObjectGrabability.OneHand;
+        }
+        if (obj is Items.BlastingStoneBombFragment)
+        {
+            return Player.ObjectGrabability.CantGrab;
         }
         return orig(self, obj);
     }
@@ -1180,6 +1352,14 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             return "Symbol_TremblingFruit";
         }
+        if (itemType == Scientist.Enums.Items.BlastingStoneBomb)
+        {
+            return "Symbol_BlastingStoneBomb";
+        }
+        if (itemType == Scientist.Enums.Items.BlastingStoneBombFragment)
+        {
+            
+        }
         return orig(itemType, intData);
             
     }
@@ -1245,6 +1425,18 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (itemType == Scientist.Enums.Items.KongmingLantern)
         {
             return Color.Lerp(Color.red, Color.yellow, 0.5f);
+        }
+        if (itemType == Scientist.Enums.Items.TremblingFruit)
+        {
+            return Color.white;
+        }
+        if (itemType == Scientist.Enums.Items.BlastingStoneBomb)
+        {
+            return Color.white;
+        }
+        if (itemType == Scientist.Enums.Items.BlastingStoneBombFragment)
+        {
+            return Color.white;
         }
         return orig(itemType, intData);
     }
@@ -1813,11 +2005,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 player.spearOnBack.increment = true;
             }
         }
-        if (Scientist.Data.Player.craftingTime.TryGetValue(pin, out int numCt) && numCt == 280 && player.input[0].x != 0)
+        if (Scientist.Data.PlayerVariables.craftingTime.TryGetValue(pin, out int numCt) && numCt == 280 && player.input[0].x != 0)
         {
             player.swallowAndRegurgitateCounter = 0;
-            if (Scientist.Data.Player.craftingTime.ContainsKey(pin))
-                Scientist.Data.Player.craftingTime.Remove(pin);
+            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
+                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
             player.craftingObject = false;
             AbstractPhysicalObject apo1 = player.grasps[0].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject apo2 = player.grasps[1].grabbed.abstractPhysicalObject;
@@ -1996,29 +2188,32 @@ public partial class ScientistPlugin : BaseUnityPlugin
             if (player.craftingObject)                          //合成
             {
                 player.swallowAndRegurgitateCounter++;
-                if (!Scientist.Data.Player.craftingTime.ContainsKey(pin))
-                    Scientist.Data.Player.craftingTime[pin] = CraftingTime(player);
-                if (player.swallowAndRegurgitateCounter > Scientist.Data.Player.craftingTime[pin])
+                if (!Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
+                    Scientist.Data.PlayerVariables.craftingTime[pin] = CraftingTime(player);
+                if (player.swallowAndRegurgitateCounter > Scientist.Data.PlayerVariables.craftingTime[pin])
                 {
                     SpitUpCraftedObject(player);                //使用修改后的SpitUpCraftedObject
                     player.swallowAndRegurgitateCounter = 0;
-                    Scientist.Data.Player.craftingTime.Remove(pin);
+                    Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
                     faas.craftingCount++;
                     if (hookedOn.KeyIsValue("FakeAchievements", true))
                     {
                         if (faas.craftingCount >= 1 && !faas.fasState[faas.fasName.IndexOf("NewWorld")])
                         {
-                            AchievementsManager.ShowAchievement($"{MOD_ID}/NewWorld");
+                            ScientistHooks.FakeAchievementsHooks.ShowAchievement("NewWorld");
+                            //AchievementsManager.ShowAchievement($"{MOD_ID}/NewWorld");
                             faas.fasState[faas.fasName.IndexOf("NewWorld")] = true;
                         }
-                        else if (faas.craftingCount >= 50 && !faas.fasState[faas.fasName.IndexOf("RealCraftsman")])
+                        else if (faas.craftingCount >= 50 && !faas.fasState[faas.fasName.IndexOf("Creativity")])
                         {
-                            AchievementsManager.ShowAchievement($"{MOD_ID}/RealCraftsman");
-                            faas.fasState[faas.fasName.IndexOf("RealCraftsman")] = true;
+                            ScientistHooks.FakeAchievementsHooks.ShowAchievement("Creativity");
+                            //AchievementsManager.ShowAchievement($"{MOD_ID}/Creativity");
+                            faas.fasState[faas.fasName.IndexOf("Creativity")] = true;
                         }
                         else if (faas.craftingCount >= 100 && !faas.fasState[faas.fasName.IndexOf("Inventor")])
                         {
-                            AchievementsManager.ShowAchievement($"{MOD_ID}/Inventor");
+                            ScientistHooks.FakeAchievementsHooks.ShowAchievement("Inventor");
+                            //AchievementsManager.ShowAchievement($"{MOD_ID}/Inventor");
                             faas.fasState[faas.fasName.IndexOf("Inventor")] = true;
                         }
                     }
@@ -2056,8 +2251,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                         player.slugOnBack.interactionLocked = true;
                     }
                     player.swallowAndRegurgitateCounter = 0;
-                    if (Scientist.Data.Player.craftingTime.ContainsKey(pin))
-                        Scientist.Data.Player.craftingTime.Remove(pin);
+                    if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
+                        Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
                 }
                 else if (false && player.objectInStomach == null && player.swallowAndRegurgitateCounter > 90)   //禁止使用胃袋存储
                 {
@@ -2076,8 +2271,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                                 player.slugOnBack.interactionLocked = true;
                             }
                             player.swallowAndRegurgitateCounter = 0;
-                            if (Scientist.Data.Player.craftingTime.ContainsKey(pin))
-                                Scientist.Data.Player.craftingTime.Remove(pin);
+                            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
+                                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
                             (player.graphicsModule as PlayerGraphics).swallowing = 20;
                             break;
                         }
@@ -2099,8 +2294,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
         else
         {
             player.swallowAndRegurgitateCounter = 0;
-            if (Scientist.Data.Player.craftingTime.ContainsKey(pin))
-                Scientist.Data.Player.craftingTime.Remove(pin);
+            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
+                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
         }
         for (int num14 = 0; num14 < player.grasps.Length; num14++)
         {
@@ -2594,19 +2789,19 @@ public partial class ScientistPlugin : BaseUnityPlugin
         this.scientistPanel?.ShutDownProcess();
         this.scientistPanel = null;
 
-        Scientist.Data.Player.pfEatTimesInACycle.SetAll(0);
-        Scientist.Data.Player.pfDieInActive.SetAll(0);
-        Scientist.Data.Player.pfTime.SetAll(0);
+        Scientist.Data.PlayerVariables.pfEatTimesInACycle.SetAll(0);
+        Scientist.Data.PlayerVariables.pfDieInActive.SetAll(0);
+        Scientist.Data.PlayerVariables.pfTime.SetAll(0);
 
-        Scientist.Data.Player.craftingTime.Clear();
+        Scientist.Data.PlayerVariables.craftingTime.Clear();
 
-        foreach (var item in Scientist.Data.Player.colorfulCreatures)
+        foreach (var item in Scientist.Data.PlayerVariables.colorfulCreatures)
         {
             item.Value.SetEnabled(false);
         }
-        Scientist.Data.Player.colorfulCreatures.Clear();
+        Scientist.Data.PlayerVariables.colorfulCreatures.Clear();
 
-        Scientist.Data.Player.anesthesiaCreatures.Clear();
+        Scientist.Data.PlayerVariables.anesthesiaCreatures.Clear();
 
         this.scientistDebugContainer?.RemoveAllChildren();
         this.scientistDebugContainer?.RemoveFromContainer();
@@ -2712,7 +2907,7 @@ public static class ScientistLogger
 
 
         // Implement SuperJump-实现超高跳跃的效果
-        private void Player_Jump(On.Player.orig_Jump orig, Player self)
+        private void Player_Jump(On.PlayerVariables.orig_Jump orig, PlayerVariables self)
         {
             orig(self);//总不能挂完钩子把原本该执行的东西给弄丢吧 这一句就是为了再把它塞进来让它正常运行
 
@@ -2723,7 +2918,7 @@ public static class ScientistLogger
         }
 
         // Implement ExlodeOnDeath-实现死亡自爆效果
-        private void Player_Die(On.Player.orig_Die orig, Player self)
+        private void Player_Die(On.PlayerVariables.orig_Die orig, PlayerVariables self)
         {
             bool wasDead = self.dead;
             //布尔值wasDead判断玩家是否死亡

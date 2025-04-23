@@ -1,12 +1,13 @@
 ﻿using IL.MoreSlugcats;
 using RWCustom;
 using Scientist;
+using Scientist.Interface;
 using System;
 using UnityEngine;
 
 
 namespace Scientist.Items;
-public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
+public class InflatableGlowingShield : PlayerCarryableItem, IDrawable, IReflectionBeam
 {
     public Vector2 rotation;
     public Vector2 lastRotation;
@@ -99,6 +100,11 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
                 (abstractCreature.realizedCreature as JetFish).AI.goToFood = this;
             }
         }
+    }
+
+    public void Burst()
+    {
+        ScientistLogger.Log($"InflatableGlowingShield {{ID={this.abstractPhysicalObject.ID}}} Burst");
     }
 
     public override void PlaceInRoom(Room placeRoom)
@@ -206,5 +212,22 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable
         sLeaser.sprites[4] = new FSprite("InflatableGlowingShieldE", true);
         sLeaser.sprites[5] = new FSprite("InflatableGlowingShieldF", true);
         this.AddToContainer(sLeaser, rCam, null);
+    }
+
+    public bool CanBlockBeam() => true;
+
+    public void HitByBeam(Vector2 hitPointAngle, Vector2 hitAngle, float intensity)
+    {
+        return;
+    }
+
+    public bool CanReflect() => true;
+
+    public Vector2[] ReflectionAngles(Vector2 incidentPointAngle, Vector2 incidentDirection, out float[] intensities)
+    {
+        Vector2 vertical = new Vector2(-incidentPointAngle.y, incidentPointAngle.x);
+        Vector2 normalV = vertical.normalized * Mathf.Sign(Vector2.Dot(incidentDirection, vertical)) * Mathf.Sqrt(incidentDirection.sqrMagnitude - Mathf.Pow(Vector2.Dot(incidentPointAngle, incidentDirection), 2.00f) / incidentPointAngle.sqrMagnitude);
+        intensities = new float[1] { 1f };
+        return new Vector2[1] { -incidentDirection + 2 * normalV };
     }
 }

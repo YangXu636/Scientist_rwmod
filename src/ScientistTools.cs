@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -119,6 +120,18 @@ public class ScientistTools
     public static string FeaturesTypeString(AbstractCreature ac) =>$"{ac.ID}_{ac.creatureTemplate.name}";
 }
 
+public static class _PlayerExtensions
+{
+    public static void IsGrabbingItemType(this Player player, AbstractPhysicalObject.AbstractObjectType typeA, AbstractPhysicalObject.AbstractObjectType typeB, out bool left, out bool right)
+    {
+        left = false; right = false;
+        if (player.grasps.Length == 0) { return; }
+        left = player.grasps[0]?.grabbed?.abstractPhysicalObject?.type == typeA;
+        right = player.grasps[1]?.grabbed?.abstractPhysicalObject?.type == typeB;
+        return;
+    }
+}
+
 public static class _ArrayExtensions
 {
 
@@ -182,6 +195,18 @@ public static class _ArrayExtensions
             }
         }
         return array;
+    }
+
+    public static bool EqualsAll<T>(this T[,] array, T value, int layerIStart = -1, int layerIEnd = -1, int layerJStart = -1, int layerJEnd = -1)
+    {
+        for (int i = (0 <= layerIStart && layerIStart < array.GetLength(0) ? layerIStart : 0); i <= (0 <= layerIEnd && layerIEnd < array.GetLength(0) - 1 ? layerIEnd : array.GetLength(0) - 1); i++)
+        {
+            for (int j = (0 <= layerJStart && layerJStart < array.GetLength(1) ? layerJStart : 0); j <= (0 <= layerJEnd && layerJEnd < array.GetLength(1) - 1 ? layerJEnd : array.GetLength(1) - 1); j++)
+            {
+                if (!array[i, j].Equals(value)) { return false; }
+            }
+        }
+        return true;
     }
 }
 

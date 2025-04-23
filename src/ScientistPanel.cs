@@ -12,7 +12,6 @@ using MonoMod.Utils;
 using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
-using static BeastMaster.BeastMaster;
 
 namespace Scientist;
 
@@ -131,6 +130,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.craftingtablePageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 155f), new Vector2(110f, 30f));
         this.advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 195f), new Vector2(110f, 30f));
         this.debugPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 35f), new Vector2(110f, 30f));
+        this.debugPageButton.buttonBehav.greyedOut = !Scientist.Data.DebugVariables.enable;
 
         this.itemsPageButton.nextSelectable[1] = this.itemsPageButton.nextSelectable[2] = this.debugPageButton;                  //1:up 2:left 3:down 4:right
         this.itemsPageButton.nextSelectable[3] = this.craftingtablePageButton;
@@ -233,8 +233,14 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     public void SetupDebugPage()
     {
         this.debugCheckboxes = new();
-        this.debugCheckboxes["showBodyChunks"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 70f), -25f, this.Translate("DEBUG_showBodyChunks"), "DEBUG_showBodyChunks", false);
+        this.debugCheckboxes["showBodyChunks"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 70f), -30f, this.Translate("DEBUG_showBodyChunks"), "DEBUG_showBodyChunks", false);
         this.pages[0].subObjects.AddSafe(this.debugCheckboxes["showBodyChunks"]);
+        //this.debugCheckboxes["addPhysicsobjectInRoom"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 100f), -30f, this.Translate("DEBUG_addPhysicsobjectInRoom"), "DEBUG_addPhysicsobjectInRoom", false);
+        //this.pages[0].subObjects.AddSafe(this.debugCheckboxes["addPhysicsobjectInRoom"]);
+        this.debugCheckboxes["playerNoDie"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 100f), -30f, this.Translate("DEBUG_playerNoDie"), "DEBUG_playerNoDie", false);
+        this.pages[0].subObjects.AddSafe(this.debugCheckboxes["playerNoDie"]);
+        this.debugCheckboxes["logWhenPlayerDie"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 130f), -30f, this.Translate("DEBUG_logWhenPlayerDie"), "DEBUG_logWhenPlayerDie", false);
+        this.pages[0].subObjects.AddSafe(this.debugCheckboxes["logWhenPlayerDie"]);
     }
 
     public void RemoveDebugPage()

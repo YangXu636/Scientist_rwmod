@@ -91,14 +91,14 @@ public class ScientistSaves
         }
     }
 
-    public class FakeAchievementsAcquisitionState : CustomSaveTx.DeathPersistentSaveDataTx
+    public class AchievementsAcquisitionState : CustomSaveTx.DeathPersistentSaveDataTx
     {
-        public readonly string[] fasName = new string[] { "NewWorld", "RealCraftsman", "Inventor" };
+        public readonly string[] fasName = new string[] { "NewWorld", "Creativity", "Inventor" };
         public bool[] fasState = new bool[] { false, false, false };
         public bool[] fasState_old = new bool[] { false, false, false };
         public int craftingCount = 0;
 
-        public FakeAchievementsAcquisitionState() : base(new SlugcatStats.Name(Scientist.ScientistPlugin.MOD_ID))
+        public AchievementsAcquisitionState() : base(new SlugcatStats.Name(Scientist.ScientistPlugin.MOD_ID))
         {
 
         }
@@ -156,7 +156,7 @@ public class ScientistSaves
 
         public override string ToString()
         {
-            return base.ToString() + " load:ScientistSaves.FakeAchievementsAcquisitionState";
+            return base.ToString() + " load:ScientistSaves.AchievementsAcquisitionState";
         }
     }
 }

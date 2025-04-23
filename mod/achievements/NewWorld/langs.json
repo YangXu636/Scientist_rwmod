@@ -1,10 +1,10 @@
 {
     "english": {
         "title": "New World",
-        "description": "Craft the first item"
+        "description": "Embark on a journey at this moment"
     },
     "chinese": {
-        "title": "新世界 (我觉得合理)",
-        "description": "合成第一个物品"
+        "title": "新世界",
+        "description": "此刻踏上旅途"
     }
 }

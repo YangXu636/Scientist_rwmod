@@ -34,13 +34,10 @@
           <Private>false</Private>
         </Reference>
         <Reference Include="BeastMaster">
-          <HintPath>..\lib\BeastMaster.dll</HintPath>
+          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\StreamingAssets\mods\BeastMaster_2920903670\plugins\BeastMaster.dll</HintPath>
         </Reference>
         <Reference Include="EmgTx">
           <HintPath>..\lib\EmgTx.dll</HintPath>
-        </Reference>
-        <Reference Include="FakeAchievements">
-          <HintPath>..\lib\FakeAchievements.dll</HintPath>
         </Reference>
         <Reference Include="HOOKS-Assembly-CSharp">
           <HintPath>..\lib\HOOKS-Assembly-CSharp.dll</HintPath>
@@ -52,7 +49,7 @@
           <HintPath>..\..\op\OptimusPrime\plugins\OptimusPrime.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp">
-          <HintPath>..\lib\PUBLIC-Assembly-CSharp.dll</HintPath>
+          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Rewired_Core">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Rewired_Core.dll</HintPath>

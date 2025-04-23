@@ -1,0 +1,28 @@
+{"frames": {
+
+"BlastingStoneBombFragmentA.png":
+{
+	"frame": {"x":2,"y":2,"w":20,"h":20},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
+	"sourceSize": {"w":20,"h":20}
+},
+"BlastingStoneBombFragmentB.png":
+{
+	"frame": {"x":24,"y":2,"w":20,"h":20},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
+	"sourceSize": {"w":20,"h":20}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "BlastingStoneBombFragment.png",
+	"format": "RGBA8888",
+	"size": {"w":46,"h":24},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:8048dfaf3371b1dfdccbdda872bd2fd1:385b377afd4921f294b85b09942e6685:2ff3c6fc55e627f74ffdb095662309f7$"
+}
+}

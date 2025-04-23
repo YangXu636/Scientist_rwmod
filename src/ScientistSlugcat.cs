@@ -117,7 +117,7 @@ public class ScientistSlugcat
         num++;
         ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.Knot] = num;
         num++;
-        ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.WaterNut] = num;
+        ScientistSlugcat.objectsLibrary[Scientist.Enums.Items._WaterNut] = num;
         num++;
 
         int num2 = 0;
@@ -197,11 +197,11 @@ public class ScientistSlugcat
         AbstractPhysicalObject.AbstractObjectType abstractObjectType2 = graspB.grabbed.abstractPhysicalObject.type;
         if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspA.grabbed is WaterNut) //未泡开泡水果 -> 石头  替换为 未泡开的泡水果 -> null（无法合成） 替换为 未泡开的泡水果 -> 科学家泡水果（区分）
         {
-            abstractObjectType = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ /*abstractObjectType2*/ /*null*/ Enums.Items.WaterNut;
+            abstractObjectType = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ /*abstractObjectType2*/ /*null*/ Enums.Items._WaterNut;
         }
         if (abstractObjectType2 == AbstractPhysicalObject.AbstractObjectType.WaterNut && graspB.grabbed is WaterNut)
         {
-            abstractObjectType2 = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ /*abstractObjectType*/ /*null*/ Enums.Items.WaterNut;
+            abstractObjectType2 = /*AbstractPhysicalObject.AbstractObjectType.Rock*/ /*abstractObjectType*/ /*null*/ Enums.Items._WaterNut;
         }
         if (abstractObjectType == AbstractPhysicalObject.AbstractObjectType.PebblesPearl) // 五块卵石的珍珠 -> 珍珠
         {
@@ -737,7 +737,7 @@ public class ScientistSlugcat
         //ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, AbstractPhysicalObject.AbstractObjectType.DangleFruit, null);
         //ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[AbstractPhysicalObject.AbstractObjectType.Spear], tableSelect, Scientist.Enums.Items.InflatableGlowingShield, null);
         ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.SharpSpear], tableSelect, Scientist.Enums.Items.InflatableGlowingShield, null);
-        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.Enums.Items.WaterNut], tableSelect, Scientist.Enums.Items.AirBag, null);
+        ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[Scientist.Enums.Items._WaterNut], tableSelect, Scientist.Enums.Items.AirBag, null);
         key = DLCSharedEnums.AbstractObjectType.DandelionPeach;
         //ScientistSlugcat.SetLibraryData(ScientistSlugcat.objectsLibrary[key], ScientistSlugcat.objectsLibrary[MoreSlugcatsEnums.AbstractObjectType.DandelionPeach], tableSelect, null, null);
 

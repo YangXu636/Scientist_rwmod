@@ -19,6 +19,8 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
     public bool explosionIsForShow = false;
     public float ignition = 0f;
 
+    public int appearance = 0;
+
     public override bool HeavyWeapon
     {
         get
@@ -42,6 +44,10 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
         base.firstChunk.loudness = 4f;
         this.tailPos = base.firstChunk.pos;
         this.soundLoop = new ChunkDynamicSoundLoop(base.firstChunk);
+        UnityEngine.Random.State state = UnityEngine.Random.state;
+        UnityEngine.Random.InitState(this.abstractPhysicalObject.ID.RandomSeed);
+        this.appearance = UnityEngine.Random.Range(1, 4);
+        UnityEngine.Random.state = state;
     }
 
     public override void Update(bool eu)
@@ -162,7 +168,7 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
             this.thrownBy = weapon.thrownBy;
         }
         base.HitByWeapon(weapon);
-        this.SetIgnition(0.01f);
+        //this.SetIgnition(0.01f);
     }
 
     public override void WeaponDeflect(Vector2 inbetweenPos, Vector2 deflectDir, float bounceSpeed)
@@ -179,7 +185,7 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
     public override void HitByExplosion(float hitFac, Explosion explosion, int hitChunk)
     {
         base.HitByExplosion(hitFac, explosion, hitChunk);
-        this.bodyChunks[0].vel += hitFac * 5.0f * (this.bodyChunks[0].pos - explosion.pos);
+        this.bodyChunks[0].vel += hitFac * 20.0f * (this.bodyChunks[0].pos - explosion.pos).normalized;
     }
 
     public void Explode(BodyChunk hitChunk)
@@ -282,6 +288,16 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
             this.smoke?.Destroy();
         }
         this.ignition = float.MinValue;
+        int count = UnityEngine.Random.Range(3, 6);
+        for (int i = 0; i < count; i++)
+        {
+            AbstractPhysicalObject apo = new AbstractPhysicalObject(this.room.world, Enums.Items.BlastingStoneBombFragment, null, this.abstractPhysicalObject.pos, this.room.game.GetNewID());
+            this.room.abstractRoom.AddEntity(apo);
+            apo.RealizeInRoom();
+            apo.realizedObject.bodyChunks[0].pos = this.bodyChunks[0].pos;
+            (apo.realizedObject as Weapon).thrownBy = this.thrownBy;
+            apo.realizedObject.bodyChunks[0].vel = Custom.RNV() * 2f;
+        }
     }
 
     float IProvideWarmth.warmth
@@ -315,11 +331,10 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[4];
-        sLeaser.sprites[0] = new FSprite("ExpansionBombA", true);
-        sLeaser.sprites[1] = new FSprite("ExpansionBombB", true);
-        sLeaser.sprites[2] = new FSprite("ExpansionBombC", true);
-        sLeaser.sprites[3] = new FSprite("ExpansionBombD", true);
+        sLeaser.sprites = new FSprite[3];
+        sLeaser.sprites[0] = new FSprite($"BlastingStoneBomb{this.appearance}A", true);
+        sLeaser.sprites[1] = new FSprite($"BlastingStoneBomb{this.appearance}B", true);
+        sLeaser.sprites[2] = new FSprite($"BlastingStoneBomb{this.appearance}C", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
 
@@ -335,10 +350,9 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        sLeaser.sprites[0].color = palette.blackColor;
-        sLeaser.sprites[1].color = ScientistTools.ColorFromHex("#4123a5");
-        sLeaser.sprites[2].color = ScientistTools.ColorFromHex("#fa5260");
-        sLeaser.sprites[3].color = ScientistTools.ColorFromHex("#fc475c");
+        sLeaser.sprites[0].color = ScientistTools.ColorFromHex("#15091a");
+        sLeaser.sprites[1].color = this.appearance == 1 ? ScientistTools.ColorFromHex("#3d060a") : ScientistTools.ColorFromHex("#e60e0e");
+        sLeaser.sprites[2].color = this.appearance == 1 ? ScientistTools.ColorFromHex("#e60e0e") : ScientistTools.ColorFromHex("#3d060a");
     }
 
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -358,7 +372,6 @@ class BlastingStoneBomb : Weapon, IProvideWarmth
                 sLeaser.sprites[0].color = base.blinkColor;
                 sLeaser.sprites[1].color = base.blinkColor;
                 sLeaser.sprites[2].color = base.blinkColor;
-                sLeaser.sprites[3].color = base.blinkColor;
             }
             else
             {

@@ -13,7 +13,7 @@ using Scientist.Debug;
 
 namespace Scientist.Data;
 
-public static class Player
+public static class PlayerVariables
 {
     public static int offlineTime = 0;
 
@@ -30,6 +30,7 @@ public static class Player
 
 #nullable enable
     public static Dictionary<string, ColorfulSprite?> colorfulCreatures = new Dictionary<string, ColorfulSprite?>();
+#nullable disable
 
     public static Dictionary<string, AnesthesiaCreature> anesthesiaCreatures = new Dictionary<string, AnesthesiaCreature>();
 }
@@ -44,19 +45,29 @@ public static class GolbalVariables
     public static bool isPanelOpen = false;
     public static bool isPanelChanged = false;
 
-
-    public static List<AbstractPhysicalObject.AbstractObjectType> apoTypeList = new();
+    public static List<AbstractPhysicalObject.AbstractObjectType> apoModTypeList = new();
+    public static List<AbstractPhysicalObject.AbstractObjectType> apoAllTypeList = new();
+    public static List<AbstractPhysicalObject.AbstractObjectType> apoEnableTypeList = new();
 }
 
 public static class DebugVariables
 {
+    public static bool enable = true;
+
     public static bool changed = false;
 
     public static bool showBodyChunks = false;
     //public static ConditionalWeakTable<BodyChunk, FSprite> showBodyChunkSprites = new ConditionalWeakTable<BodyChunk, FSprite>();
-    public static List<ShowBodychunk> ShowbodychunksList = new List<ShowBodychunk>();
+    public static Dictionary<string, ShowBodychunk> ShowbodychunksList = new();
     public static bool[,] ShowbodychunksGrid = new bool[100, 100].SetAll(false);
     public static string ShowbodychunksRoomName = "";
+
+    //public static bool addPhysicsobjectInRoom = false;
+    //public static string addPhysicsobjectInRoomType = "";
+    //public static FSprite addPhysicsobjectInRoomSprite = new FSprite("Futile_White", true);
+
+    public static bool playerNoDie = false;
+    public static bool logWhenPlayerDie = false;
 }
 
 public class ColorfulSprite
@@ -66,6 +77,7 @@ public class ColorfulSprite
     public int counterTotal = 560;
     public int counter;
     public bool enabled = false;
+#nullable enable
     public LightSource? lightSource;
     public Creature? c;
     public PhysicalObject? po;
@@ -100,6 +112,7 @@ public class ColorfulSprite
         this.getOriginalColors = false;
         this.originalColors = new Color[0];
     }
+#nullable disable
 
     public void AddCounter(int amount = 1, float second = 1/40.000f)
     {
@@ -127,10 +140,8 @@ public class ColorfulSprite
             {
                 if (this.lightSource == null)
                 {
-#pragma warning disable CS8602 // 解引用可能出现空引用。
                     this.lightSource = new((c != null ? c.mainBodyChunk.pos : po.firstChunk.pos), false, Color.red, uad)
                     {
-#pragma warning restore CS8602 // 解引用可能出现空引用。
                         requireUpKeep = true,
                         setRad = new float?(300f),
                         setAlpha = new float?(1f)
@@ -139,9 +150,7 @@ public class ColorfulSprite
                     po?.room.AddObject(this.lightSource);
                 }
                 this.lightSource.stayAlive = true;
-#pragma warning disable CS8602 // 解引用可能出现空引用。
                 this.lightSource.setPos = new Vector2?(c != null ? c.mainBodyChunk.pos : po.firstChunk.pos);
-#pragma warning restore CS8602 // 解引用可能出现空引用。
                 this.lightSource.color = Color.HSVToRGB(this.counter / 560f, 0.7f, 0.5f);
                 if (this.lightSource.slatedForDeletetion)
                 {

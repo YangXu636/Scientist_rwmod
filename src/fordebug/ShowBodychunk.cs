@@ -19,12 +19,13 @@ public class ShowBodychunk
 
     public ShowBodychunk(BodyChunk[] bodychunks, Vector2 rCamPos)
     {
-        this.bodychunkSprites = new FSprite[bodychunks.Length].SetAll(new FSprite("Circle20", true) { alpha = 0.7f });
+        this.bodychunkSprites = new FSprite[bodychunks.Length];
         this.indexLabel = new FLabel[bodychunks.Length];
         for (int i = 0; i < bodychunks.Length; i++)
         {
-            this.indexLabel[i] = new(Custom.GetFont(), $"{i}") { color = ScientistTools.ColorFromHex("#000004") };
+            this.bodychunkSprites[i] = new FSprite("Circle20", true) { alpha = 0.7f };
             this.bodychunkSprites[i].scale = bodychunks[i].rad / 10.00f;
+            this.indexLabel[i] = new(Custom.GetFont(), $"{i}") { color = ScientistTools.ColorFromHex("#000004") };
         }
         this.posLabel = new FLabel(Custom.GetFont(), "") { color = ScientistTools.ColorFromHex("#CCE5FF") };
         this.sizeInt = new IntVector2(Mathf.CeilToInt(this.posLabel.textRect.size.x / 20.00f), Mathf.CeilToInt(this.posLabel.textRect.size.y / 20.00f));
@@ -38,7 +39,7 @@ public class ShowBodychunk
             container.AddChild(this.indexLabel[i]);
         }
         container.AddChild(this.posLabel);
-        line.AddSpritesToContainer(container);
+        //line.AddSpritesToContainer(container);
     }
 
     public void Update(BodyChunk[] bodychunks, Vector2 rCamPos)
@@ -49,22 +50,22 @@ public class ShowBodychunk
         {
             this.bodychunkSprites[i].x = bodychunks[i].pos.x - rCamPos.x;
             this.bodychunkSprites[i].y = bodychunks[i].pos.y - rCamPos.y;
-            int xxMin = Mathf.FloorToInt(this.bodychunkSprites[i].x - bodychunks[i].rad);
-            int xxMax = Mathf.CeilToInt(this.bodychunkSprites[i].x + bodychunks[i].rad);
-            int yyMin = Mathf.FloorToInt(this.bodychunkSprites[i].y - bodychunks[i].rad);
-            int yyMax = Mathf.CeilToInt(this.bodychunkSprites[i].y + bodychunks[i].rad);
+            int xxMin = Mathf.RoundToInt((this.bodychunkSprites[i].x - bodychunks[i].rad) / 20.00f);
+            int xxMax = Mathf.RoundToInt((this.bodychunkSprites[i].x + bodychunks[i].rad) / 20.00f);
+            int yyMin = Mathf.RoundToInt((this.bodychunkSprites[i].y - bodychunks[i].rad) / 20.00f);
+            int yyMax = Mathf.RoundToInt((this.bodychunkSprites[i].y + bodychunks[i].rad) / 20.00f);
             Scientist.Data.DebugVariables.ShowbodychunksGrid.SetAll(true, xxMin, xxMax, yyMin, yyMax);
             xMin = Math.Min(xMin, xxMin); xMax = Math.Max(xMax, xxMax); yMin = Math.Min(yMin, yyMin); yMax = Math.Max(yMax, yyMax);
             this.bodychunkSprites[i].scale = bodychunks[i].rad / 10.00f;
             this.indexLabel[i].x = bodychunks[i].pos.x - rCamPos.x;
-            this.indexLabel[i].y = bodychunks[i].pos.y - rCamPos.y - 20.00f;
+            this.indexLabel[i].y = bodychunks[i].pos.y - rCamPos.y;
             this.posLabel.text += $"{(i == 0 ? "" : "\n")}{bodychunks[i].pos}";
         }
-        this.sizeInt = new IntVector2(Mathf.CeilToInt(this.posLabel.textRect.size.x / 20.00f), Mathf.CeilToInt(this.posLabel.textRect.size.y / 20.00f));
-        ScientistLogger.Log($"sizeInt = {sizeInt}");
+        this.sizeInt = new IntVector2(Mathf.RoundToInt(this.posLabel.textRect.size.x / 20.00f), Mathf.RoundToInt(this.posLabel.textRect.size.y / 20.00f));
+        //ScientistLogger.Log($"sizeInt = {sizeInt}");
         //×ó
-        this.posLabel.x = xMin - this.sizeInt.x;
-        this.posLabel.y = yMin;
+        this.posLabel.x = Mathf.Clamp(xMin - this.sizeInt.x + 2, 0, Scientist.Data.DebugVariables.ShowbodychunksGrid.GetLength(0) - this.sizeInt.x) * 20f;
+        this.posLabel.y = Mathf.Clamp(yMin + 1, 0, Scientist.Data.DebugVariables.ShowbodychunksGrid.GetLength(1) - this.sizeInt.y) * 20f;
     }
 
     public void RemoveSprites()
@@ -81,8 +82,8 @@ public class ShowBodychunk
         }
         this.posLabel.RemoveFromContainer();
         this.posLabel = null;
-        this.line.RemoveSprites();
-        this.line = null;
+        //this.line.RemoveSprites();
+        //this.line = null;
     }
 
     public class LinkLine

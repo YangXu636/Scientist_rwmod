@@ -7,6 +7,8 @@ using System.Reflection;
 using UnityEngine.PlayerLoop;
 using UnityEngine;
 using ImprovedInput;
+using System.Runtime.CompilerServices;
+using BeastMasters;
 
 namespace Scientist.ScientistHooks;
 
@@ -14,7 +16,7 @@ public static class BeastMasterHooks
 {
     public static Hook hook;
 
-    public static FieldInfo bmsInfo = typeof(BeastMaster.BeastMaster).GetField("BMSInstance", BindingFlags.Public | BindingFlags.Instance);
+    public static FieldInfo bmsInfo = typeof(BeastMaster).GetField("BMSInstance", BindingFlags.Public | BindingFlags.Instance);
 
     public static void HookOn(object bmsInstance)
     {
@@ -64,9 +66,9 @@ public static class BeastMasterHooks
     public static void BeastMaster_BeastMasterInit(Action<object> orig, object self)
     {
         orig(self);
-        var bms = (BeastMaster.BeastMaster)bmsInfo.GetValue(self);
+        var bms = (BeastMaster)bmsInfo.GetValue(self);
 
-        BeastMaster.BeastMaster.RadialItemMenu radialItemMenu = new BeastMaster.BeastMaster.RadialItemMenu
+        BeastMaster.RadialItemMenu radialItemMenu = new BeastMaster.RadialItemMenu
         {
             parent = bms.itemMenu,
             bms = bms
@@ -143,5 +145,59 @@ public static class ImprovedInputHooks
     public static void ChangedOspKeycode()
     {
 
+    }
+}
+
+public static class FakeAchievementsHooks
+{
+    public static Hook hook;
+
+    public static Assembly faAssembly;
+    public static Type faAchievementsManager;
+
+    public static void HookOn(object iiInstance)
+    {
+        faAssembly = iiInstance.GetType().Assembly;
+        faAchievementsManager = faAssembly.GetType("FakeAchievements.AchievementsManager");
+    }
+
+    public static void HookOff()
+    {
+        if (hook == null)
+        {
+            Scientist.ScientistLogger.Warning("FakeAchievementsInit hook is not active.");
+            return;
+        }
+        hook.Dispose();
+    }
+
+    public static void HookReapply()
+    {
+        if (hook == null)
+        {
+            Scientist.ScientistLogger.Warning("FakeAchievementsInit hook is not active.");
+            return;
+        }
+        try
+        {
+            hook.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Scientist.ScientistLogger.Warning("Failed to dispose FakeAchievementsInit hook: " + ex.Message);
+        }
+        try
+        {
+            hook.Apply();
+        }
+        catch (Exception ex)
+        {
+            Scientist.ScientistLogger.Error("Failed to apply FakeAchievementsInit hook: " + ex.Message);
+        }
+    }
+
+    public static void ShowAchievement(string name)
+    {
+        faAchievementsManager.GetMethod("ShowAchievement", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string) }, null).Invoke(null, new object[] { $"{Scientist.ScientistPlugin.MOD_ID}/{name}" });
     }
 }

@@ -69,7 +69,7 @@ sealed class AnesthesiaSpear : Spear
                 c.Stun(600);
                 if (c is not Player)
                 {
-                    Scientist.Data.Player.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y);
+                    Scientist.Data.PlayerVariables.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y);
                 }
             }
         }

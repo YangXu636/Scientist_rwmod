@@ -80,8 +80,8 @@ sealed class ElectricProd : Spear
 
     public override void PickedUp(Creature upPicker)
     {
-        //Console.WriteLine($"{(upPicker as Player).SlugCatClass}, {(upPicker as Player).SlugCatClass.value},  {(upPicker as Player).bodyMode}");
-        //Player player = upPicker as Player;
+        //Console.WriteLine($"{(upPicker as PlayerVariables).SlugCatClass}, {(upPicker as PlayerVariables).SlugCatClass.value},  {(upPicker as PlayerVariables).bodyMode}");
+        //PlayerVariables player = upPicker as PlayerVariables;
         //if ( (player.isGourmand && player.gourmandExhausted) || (player.SlugCatClass.value == "xuyangjerry.Scientist") )
         base.PickedUp(upPicker);
     }

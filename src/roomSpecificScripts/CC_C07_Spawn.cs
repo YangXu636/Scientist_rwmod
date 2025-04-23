@@ -93,8 +93,8 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                 }
                 if (this.time[pIndex] >= 120 + (pIndex * 20) && this.time[pIndex] <= 800 + (pIndex * 20))
                 {
-                    p.bodyMode = Player.BodyModeIndex.ClimbingOnBeam;
-                    p.animation = Player.AnimationIndex.ClimbOnBeam;
+                    p.bodyMode = PlayerVariables.BodyModeIndex.ClimbingOnBeam;
+                    p.animation = PlayerVariables.AnimationIndex.ClimbOnBeam;
                     p.input[0].y = 1;
                 }*/
             }

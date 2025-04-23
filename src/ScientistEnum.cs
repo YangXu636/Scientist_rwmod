@@ -8,7 +8,7 @@ namespace Scientist.Enums
         public static void RegisterValues()
         {
             Items.RegisterValues();
-            SandboxUnlockID.RegisterValues();
+            SandboxUnlockID_Items.RegisterValues();
             SubBehavID_Fp.RegisterValues();
             Action_Fp.RegisterValues();
             ConversationID_Fp.RegisterValues();
@@ -17,7 +17,7 @@ namespace Scientist.Enums
         public static void UnregisterValues()
         {
             Items.UnregisterValues();
-            SandboxUnlockID.UnregisterValues();
+            SandboxUnlockID_Items.UnregisterValues();
             SubBehavID_Fp.UnregisterValues();
             Action_Fp.UnregisterValues();
             ConversationID_Fp.UnregisterValues();
@@ -27,7 +27,7 @@ namespace Scientist.Enums
     public static class Items
     {
         //public static AbstractPhysicalObject.AbstractObjectType ScientistIcon;
-        public static AbstractPhysicalObject.AbstractObjectType WaterNut;
+        public static AbstractPhysicalObject.AbstractObjectType _WaterNut;
         public static AbstractPhysicalObject.AbstractObjectType SharpSpear;
         public static AbstractPhysicalObject.AbstractObjectType ConcentratedDangleFruit;
         public static AbstractPhysicalObject.AbstractObjectType PainlessFruit;
@@ -45,11 +45,12 @@ namespace Scientist.Enums
         public static AbstractPhysicalObject.AbstractObjectType TremblingFruit;
         public static AbstractPhysicalObject.AbstractObjectType AirBag;
         public static AbstractPhysicalObject.AbstractObjectType BlastingStoneBomb;
+        public static AbstractPhysicalObject.AbstractObjectType BlastingStoneBombFragment;
 
         public static void RegisterValues()
         {
             //ScientistIcon = new AbstractPhysicalObject.AbstractObjectType("ScientistIcon", true);
-            WaterNut = new AbstractPhysicalObject.AbstractObjectType("WaterNut", true);
+            _WaterNut = new AbstractPhysicalObject.AbstractObjectType("_WaterNut", true);
             SharpSpear = new AbstractPhysicalObject.AbstractObjectType("SharpSpear", true);
             ConcentratedDangleFruit = new AbstractPhysicalObject.AbstractObjectType("ConcentratedDangleFruit", true);
             PainlessFruit = new AbstractPhysicalObject.AbstractObjectType("PainlessFruit", true);
@@ -67,6 +68,7 @@ namespace Scientist.Enums
             TremblingFruit = new AbstractPhysicalObject.AbstractObjectType("TremblingFruit", true);
             AirBag = new AbstractPhysicalObject.AbstractObjectType("AirBag", true);
             BlastingStoneBomb = new AbstractPhysicalObject.AbstractObjectType("BlastingStoneBomb", true);
+            BlastingStoneBombFragment = new AbstractPhysicalObject.AbstractObjectType("BlastingStoneBombFragment", true);
         }
 
         public static void UnregisterValues()
@@ -75,9 +77,9 @@ namespace Scientist.Enums
             scientistIcon?.Unregister();
             ScientistIcon = null;*/
 
-            AbstractPhysicalObject.AbstractObjectType waterNut = WaterNut;
-            waterNut?.Unregister();
-            WaterNut = null;
+            AbstractPhysicalObject.AbstractObjectType _waterNut = _WaterNut;
+            _waterNut?.Unregister();
+            _WaterNut = null;
 
             AbstractPhysicalObject.AbstractObjectType sharpSpear = SharpSpear;
             sharpSpear?.Unregister();
@@ -146,10 +148,14 @@ namespace Scientist.Enums
             AbstractPhysicalObject.AbstractObjectType blastingStoneBomb = BlastingStoneBomb;
             blastingStoneBomb?.Unregister();
             BlastingStoneBomb = null;
+
+            AbstractPhysicalObject.AbstractObjectType blastingStoneBombFragment = BlastingStoneBombFragment;
+            blastingStoneBombFragment?.Unregister();
+            BlastingStoneBombFragment = null;
         }
     }
 
-    public class SandboxUnlockID
+    public class SandboxUnlockID_Items
     {
         public static MultiplayerUnlocks.SandboxUnlockID SharpSpear;
         public static MultiplayerUnlocks.SandboxUnlockID ConcentratedDangleFruit;
@@ -188,7 +194,6 @@ namespace Scientist.Enums
             AirBag = new MultiplayerUnlocks.SandboxUnlockID("AirBag", true);
         }
 
-        // Token: 0x06004043 RID: 16451 RVA: 0x0047A3D0 File Offset: 0x004785D0
         public static void UnregisterValues()
         {
             MultiplayerUnlocks.SandboxUnlockID sharpSpear = SharpSpear;

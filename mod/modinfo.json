@@ -6,16 +6,15 @@
 	"description": "一个基于SlugBase制作的mod。\n并且在开发过程中没有任何秃鹫受到伤害",
 	"requirements": [
 		"slime-cubed.slugbase",
-		"emgtx",
-		"ddemile.fake_achievements"
+		"emgtx"
 	],
 	"requirements_names": [
 		"SlugBase",
-		"EmgTx",
-		"Fake Achievements"
+		"EmgTx"
 	],
 	"priorities": [
-		"improved-input-config"
+		"improved-input-config",
+		"ddemile.fake_achievements"
 	],
 	"tags": [
 		"Custom Slugcat",

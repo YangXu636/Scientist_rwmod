@@ -53,6 +53,12 @@ sealed class SharpSpear : Spear
         this.jollyCustomColor = null;
     }
 
+    public override void Update(bool eu)
+    {
+        base.Update(eu);
+        this.bodyChunks[0].vel *= 1.5f;
+    }
+
     public override void ChangeMode(Mode newMode)
     {
         if (newMode == Weapon.Mode.StuckInWall && this.abstractSpear.stuckInWallCycles == 0)

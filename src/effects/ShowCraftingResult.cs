@@ -1,13 +1,6 @@
-﻿using Scientist.Items.AbstractPhysicalObjects;
-using MoreSlugcats;
-using RWCustom;
-using Scientist;
-using System;
-using System.Data;
-using System.Diagnostics;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Scientist.Items;
+namespace Scientist.Effects;
 
 public class ShowCraftingResult : UpdatableAndDeletable, IDrawable
 {
