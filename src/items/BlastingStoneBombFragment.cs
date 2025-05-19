@@ -68,6 +68,8 @@ class BlastingStoneBombFragment : Weapon
             this.soundLoop.Volume = Mathf.InverseLerp(5f, 15f, base.firstChunk.vel.magnitude);
         }
         this.soundLoop.Update();
+        this.lastRotation = this.rotation;
+        this.rotation = this.bodyChunks[0].vel.normalized;
         bool flag = false;
         List<AbstractCreature> acs = this?.room?.abstractRoom.creatures;
         for (int i = 0; i < acs.Count; i++)
@@ -136,11 +138,9 @@ class BlastingStoneBombFragment : Weapon
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[4];
-        sLeaser.sprites[0] = new FSprite("ExpansionBombA", true);
-        sLeaser.sprites[1] = new FSprite("ExpansionBombB", true);
-        sLeaser.sprites[2] = new FSprite("ExpansionBombC", true);
-        sLeaser.sprites[3] = new FSprite("ExpansionBombD", true);
+        sLeaser.sprites = new FSprite[2];
+        sLeaser.sprites[0] = new FSprite("BlastingStoneBombFragmentA", true);
+        sLeaser.sprites[1] = new FSprite("BlastingStoneBombFragmentB", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
 
@@ -156,10 +156,8 @@ class BlastingStoneBombFragment : Weapon
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        sLeaser.sprites[0].color = palette.blackColor;
-        sLeaser.sprites[1].color = ScientistTools.ColorFromHex("#4123a5");
-        sLeaser.sprites[2].color = ScientistTools.ColorFromHex("#fa5260");
-        sLeaser.sprites[3].color = ScientistTools.ColorFromHex("#fc475c");
+        sLeaser.sprites[0].color = ScientistTools.ColorFromHex("#15091a");
+        sLeaser.sprites[1].color = ScientistTools.ColorFromHex("#ed0707");
     }
 
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -178,8 +176,6 @@ class BlastingStoneBombFragment : Weapon
             {
                 sLeaser.sprites[0].color = base.blinkColor;
                 sLeaser.sprites[1].color = base.blinkColor;
-                sLeaser.sprites[2].color = base.blinkColor;
-                sLeaser.sprites[3].color = base.blinkColor;
             }
             else
             {

@@ -4,7 +4,7 @@ namespace Scientist.Interface;
 
 interface IReflectionBeam : ICanBeamHit
 {
-    bool CanReflect();
+    bool CanReflect { get; }
 
     /// <summary>
     /// 获取反射方向

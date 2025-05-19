@@ -1,10 +1,10 @@
-Scientist|科学家
-SCIENTIST|科学家
-THE SCIENTIST|科学家
-The Scientist|科学家
-Hat|帽子
-Glasses|眼镜
-Scientist_Description|拥有着强大的学识和求知欲，但...
+Scientist|Scientist
+SCIENTIST|SCIENTIST
+THE SCIENTIST|THE SCIENTIST
+The Scientist|The Scientist
+Hat|Hat
+Glasses|Glasses
+Scientist_Description|Having strong knowledge and thirst for knowledge, but...
 
 Pebbles_Scientist_Meet_First_Line1|我观察你很久了，聪明的怪胎。
 Pebbles_Scientist_Meet_First_Line2|你与你的同类不同，你格外的……聪明。
@@ -20,30 +20,31 @@ Pebbles_Scientist_Meet_First_Line11|我会继续观察你的，但现在不管�
 
 Pebbles_Scientist_ThrowOut_Line1|知道你对这里很感兴趣，但你该走了。
 
-Open Scientist Panel|打开科学家面板
+Open Scientist Panel|Scientist Panel
 
-Sundries|杂项
-UIArrPlayerOptions_Sundries_EnableOldPf|启用旧版无痛果
-UIArrPlayerOptions_Sundries_EnableTfKeepShaking|启用震颤果一直震颤
-UIArrPlayerOptions_Sundries_EnableOpenPanelPauseGame|开启面板后暂停游戏
-UIArrPlayerOptions_Sundries_OpenScientistPanelKey|科学家面板显示按钮
-UIArrPlayerOptions_Sundries_UnlockAllContent|解锁科学家所有内容（含剧透）
-UIArrPlayerOptions_Sundries_EnableDebug|允许使用Debug界面
+Sundries|Sundries
+UIArrPlayerOptions_Sundries_EnableOldPf|Enable old version PainlessFruit
+UIArrPlayerOptions_Sundries_EnableTfKeepShaking|Enable TremblingFruit keeps shaking
+UIArrPlayerOptions_Sundries_EnableOpenPanelPauseGame|Pause the game when opening the panel
+UIArrPlayerOptions_Sundries_OpenScientistPanelKey|Key used for opening the menu
+UIArrPlayerOptions_Sundries_UnlockAllContent|Unlock all content of scientists (including spoilers)
+UIArrPlayerOptions_Sundries_EnableDebug|Allow the use of Debug interface
 
 SCIENCEPANEL_TITLE|科学家面板
 
-SCIENCEPANEL_ITEMS_CHANGEtoPAGE|物品
-SCIENCEPANEL_CREATURES_CHANGEtoPAGE|生物
-SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE|配方
-SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE|成就
+SCIENCEPANEL_ITEMS_CHANGEtoPAGE|Items
+SCIENCEPANEL_CREATURES_CHANGEtoPAGE|Creatures
+SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE|Recipes
+SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE|Achievements
 SCIENCEPANEL_DEBUG_CHANGEtoPAGE|Debug
 
 ITEMS_CHANGEtoPAGE_USELESSMESSAGE|关于科学家的物品的介绍
 ITEMS_itemsObjectGroupIndex_LEFT_USELESSMESSAGE|上一页物品
 ITEMS_itemsObjectGroupIndex_RIGHT_USELESSMESSAGE|下一页物品
-ITEMS_itemsObjectButtons__CHOSEN_USELESSMESSAGE|关于
-ITEMS_objectMainImage__CLICK_USELESSMESSAGE|<replace>0</replace> 的图片
-ITEMS_objectDescription__CLICK_USELESSMESSAGE|<replace>0</replace> 的简介
+ITEMS_itemsObjectButtons__CHOSEN_USELESSMESSAGE|About
+ITEMS_objectMainImage__CLICK_USELESSMESSAGE|Picture of <replace>0</replace>
+ITEMS_objectDescription__CLICK_USELESSMESSAGE|Introduction to <replace>0</replace>
+
 
 CREATURES_CHANGEtoPAGE_USELESSMESSAGE|关于科学家的生物的介绍
 
@@ -52,3 +53,5 @@ CRAFTINGTABLE_CHANGEtoPAGE_USELESSMESSAGE|关于科学家物品的合成配方
 ADVANCEMENTS_CHANGEtoPAGE_USELESSMESSAGE|关于科学家的成就的介绍
 
 DEBUG_CHANGEtoPAGE_USELESSMESSAGE|一些用于Debug的杂七杂八
+
+ITEMS_objectDescription_None|介绍这里空空如也。

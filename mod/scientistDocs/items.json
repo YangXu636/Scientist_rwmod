@@ -1,0 +1,86 @@
+{
+    "None": {
+        "Chinese": "无",
+        "English": "None"
+    },
+    "_WaterNut": {
+        "Chinese": "_合成材料-泡水果",
+        "English": "_WaterNut for crafting"
+    },
+    "SharpSpear": {
+        "Chinese": "尖矛",
+        "English": "Sharpened Spear"
+    },
+    "ConcentratedDangleFruit": {
+        "Chinese": "压缩蓝果",
+        "English": "Concentrated Blue Fruit"
+    },
+    "PainlessFruit": {
+        "Chinese": "无痛果",
+        "English": "Painless Fruit"
+    },
+    "ColorfulFruit": {
+        "Chinese": "彩光果",
+        "English": "Colorful Fruit"
+    },
+    "InflatableGlowingShield": {
+        "Chinese": "胀光盾牌",
+        "English": "Inflatable Glowing Shield"
+    },
+    "AnesthesiaSpear": {
+        "Chinese": "麻醉矛",
+        "English": "Anesthesia Spear"
+    },
+    "AnesthesiaNeedle": {
+        "Chinese": "麻醉针",
+        "English": "Anesthesia Needle"
+    },
+    "SmallRock": {
+        "Chinese": "小石子",
+        "English": "Small Rock"
+    },
+    "Knot": {
+        "Chinese": "绳结",
+        "English": "Knot"
+    },
+    "StoneKnife": {
+        "Chinese": "石头小刀",
+        "English": "Stone Knife"
+    },
+    "ExplosivePowder": {
+        "Chinese": "爆炸粉",
+        "English": "Explosive Powder"
+    },
+    "ExpansionBomb": {
+        "Chinese": "膨胀炸弹",
+        "English": "Expansion Bomb"
+    },
+    "BreathingBubble": {
+        "Chinese": "呼吸泡",
+        "English": "Breathing Bubble"
+    },
+    "KongmingLantern": {
+        "Chinese": "孔明灯",
+        "English": "Kongming Lantern"
+    },
+    "TremblingFruit": {
+        "Chinese": "震颤果",
+        "English": "Trembling Fruit"
+    },
+    "AirBag": {
+        "Chinese": "气囊",
+        "English": "Air Bag"
+    },
+    "BlastingStoneBomb": {
+        "Chinese": "爆破石",
+        "English": "Blasting Stone Bomb"
+    },
+    "BlastingStoneBombFragment": {
+        "Chinese": "爆破石碎片",
+        "English": "Blasting Stone Bomb Fragment"
+    },
+    "StormboltSpear": {
+        "Chinese": "电光雷鸣",
+        "English": "Thunderstrike Spear (or Voltcrash Spear)"
+    }
+}

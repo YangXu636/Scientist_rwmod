@@ -77,7 +77,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public static Dictionary<string, bool> hookedOn = new();
 
-    public static KeyCode /*OpenScientistPanelKeycode*/ OpenSpKeycode = KeyCode.E;
+    public static KeyCode /*OpenScientistPanelKeycode*/ OpenSpKeycode = KeyCode.V;
 
     //public static PlayerKeybind /*OpenScientistPanelImprovedinputKeybind*/ OpenSpIiKeybind;
 
@@ -87,6 +87,27 @@ public partial class ScientistPlugin : BaseUnityPlugin
         this.scientistOptions = new ScientistOptions(this, Logger);
         this.scientistOptions.SynchronousVariable();
         this.scientistPanel = null;
+    }
+
+    public void InitApoType()
+    {
+        Scientist.Data.GolbalVariables.apoAllTypeList = new();
+        foreach (string value2 in ExtEnum<AbstractPhysicalObject.AbstractObjectType>.values.entries)
+        {
+            Scientist.Data.GolbalVariables.apoAllTypeList.Add((AbstractPhysicalObject.AbstractObjectType)ExtEnumBase.Parse(typeof(AbstractPhysicalObject.AbstractObjectType), value2, false));
+        }
+        Scientist.Data.GolbalVariables.apoModTypeList = new();
+        Scientist.Data.GolbalVariables.apoEnableTypeList = new();
+        FieldInfo[] fields = typeof(Enums.Items).GetFields(BindingFlags.Public | BindingFlags.Static);
+        foreach (FieldInfo field in fields)
+        {
+            AbstractPhysicalObject.AbstractObjectType apo = field.GetValue(null) as AbstractPhysicalObject.AbstractObjectType;
+            if (apo != null) { Scientist.Data.GolbalVariables.apoModTypeList.Add(apo); Scientist.Data.GolbalVariables.apoEnableTypeList.Add(apo); }
+        }
+        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items._WaterNut);
+        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.Knot);
+        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.StoneKnife);
+        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.BlastingStoneBombFragment);
     }
 
     public void Awake()
@@ -167,7 +188,6 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
         On.SaveState.AbstractPhysicalObjectFromString += SaveState_AbstractPhysicalObjectFromString;
 
-        // Put your custom hooks here!-在此放置你自己的钩子
         On.Player.ctor += Player_ctor;
         On.Player.Jump += Player_Jump;
         On.Player.Die += Player_Die;
@@ -175,6 +195,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         On.Player.CanIPickThisUp += Player_CanIPickThisUp;
         On.Player.IsObjectThrowable += Player_IsObjectThrowable;
         On.Player.Update += Player_Update;
+        IL.Player.Update += Player_Update_IL;
         On.Player.GrabUpdate += Player_GrabUpdate_On;    //在玩家触发拾取时执行PlayerGrabUpdate
         //IL.PlayerVariables.GrabUpdate += Player_GrabUpdate_IL;    //兼容原版
         On.Player.ThrowObject += Player_ThrowObject;
@@ -283,7 +304,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
         if (!hookedOn.KeyIsValue("ScientistOptionsMenu", true)) { hookedOn["ScientistOptionsMenu"] = true; MachineConnector.SetRegisteredOI(MOD_ID, this.scientistOptions); Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.scientistOptions.OpenScientistPanelKey.Value; }
         if (!hookedOn.KeyIsValue("Player_GrabUpdate_IL", true)) { hookedOn["Player_GrabUpdate_IL"] = true; IL.Player.GrabUpdate += Player_GrabUpdate_IL; }
-        if (!hookedOn.KeyIsValue("MOD_PATH", true)) { hookedOn["MOD_PATH"] = true; ScientistPlugin.MOD_PATH = Path.GetDirectoryName(Path.GetDirectoryName(this.Info.Location)); ScientistLogger.Log("MOD_PATH: " + MOD_PATH); }
+        if (!hookedOn.KeyIsValue("MOD_PATH", true)) { hookedOn["MOD_PATH"] = true; ScientistPlugin.MOD_PATH = this.Info.Location; while (!File.Exists(Path.Combine(ScientistPlugin.MOD_PATH, "modinfo.json"))) { ScientistPlugin.MOD_PATH = Path.GetDirectoryName(ScientistPlugin.MOD_PATH); }  ScientistLogger.Log("MOD_PATH: " + MOD_PATH); }
 
         var list = GameObject.FindObjectsOfType<BaseUnityPlugin>();
         foreach (var plugin in list)
@@ -348,6 +369,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 MultiplayerUnlocks.ItemUnlockList.AddSafe(sduid);
             }
         }
+
+        this.InitApoType();
     }
 
     private void RainWorldGame_Update(On.RainWorldGame.orig_Update orig, RainWorldGame self)
@@ -526,23 +549,15 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (self is Player player)
         {
             player.IsGrabbingItemType(Scientist.Enums.Items.InflatableGlowingShield, Scientist.Enums.Items.InflatableGlowingShield, out bool leftHand, out bool rightHand);
-            if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x < 0 && leftHand)
+            if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x < -5f && leftHand)
             {
-                if (Custom.DistLess(source.pos, (hitChunk ?? self.mainBodyChunk).pos, 5f) && player.grasps.Length > 0 && type == Creature.DamageType.Explosion)
-                {
-                    (player.grasps[0].grabbed as InflatableGlowingShield).Burst();
-                }
                 if (source?.owner is Lizard)
                 {
                     return;
                 }
             }
-            else if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x > 0 && rightHand)
+            else if (source != null && source.pos.x - (hitChunk ?? self.mainBodyChunk).pos.x > 5f && rightHand)
             {
-                if (Custom.DistLess(source.pos, (hitChunk ?? self.mainBodyChunk).pos, 5f) && player.grasps.Length > 1 && type == Creature.DamageType.Explosion)
-                {
-                    (player.grasps[1].grabbed as InflatableGlowingShield).Burst();
-                }
                 if (source?.owner is Lizard)
                 {
                     return;
@@ -674,42 +689,50 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         Vector2 result = orig(self);
         Vector2 a = self.lizard.bodyChunks[0].pos - self.lizard.bodyChunks[1].pos;
-        List<PhysicalObject> list = self.lizard.room.physicalObjects.SelectMany(x => x).Where(x => x is Scientist.Interface.ICanBeamHit).ToList();
-        if (list.Count == 0) { return result; }
+        List<PhysicalObject> poList = self.lizard.room.physicalObjects.SelectMany(x => x).Where(x => x is Scientist.Interface.ICanBeamHit).ToList();
+        if (poList.Count == 0) { return result; }
+        for (int i = 0; i < poList.Count; i++)
+        {
+            if (poList[i] is Interface.ICanBeamHit icbh)
+            {
+                if (!Scientist.Data.Miscellaneous.beamID.ContainsKey(self)) { Scientist.Data.Miscellaneous.beamID.Add(self, Scientist.Data.Miscellaneous.GetNewBeamID()); }
+                icbh.HitBeamID.Remove((int)Scientist.Data.Miscellaneous.beamID[self]);
+            }
+        }
         float kN = a.y / a.x, kV = -a.x / a.y;
         float beamFunc(float x, float k) => k * x + self.lizard.bodyChunks[0].pos.y - k * self.lizard.bodyChunks[0].pos.x; // k = kN 为射线，k = kV 为以过嘴的射线垂线
         PhysicalObject po = null;
         int hitBodyChunkIndex = -1;
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < poList.Count; i++)
         {
-            if (list[i] is Interface.ICanBeamHit icbh && !icbh.CanBlockBeam()) { continue; }
-            for (int j = 0; j < list[i].bodyChunks.Length; j++)
+            if (poList[i] is Interface.ICanBeamHit icbh && !icbh.CanBlockBeam) { continue; }
+            for (int j = 0; j < poList[i].bodyChunks.Length; j++)
             {
-                Vector2 bcPos = list[i].bodyChunks[j].pos;
+                Vector2 bcPos = poList[i].bodyChunks[j].pos;
                 if (Mathf.Abs(a.x) < 1E-05f)
                 {
-                    if (bcPos.y * Mathf.Sign(a.y) > self.lizard.bodyChunks[0].pos.y * Mathf.Sign(a.y) && Mathf.Abs(bcPos.x - self.lizard.bodyChunks[0].pos.x) < list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    if (bcPos.y * Mathf.Sign(a.y) > self.lizard.bodyChunks[0].pos.y * Mathf.Sign(a.y) && Mathf.Abs(bcPos.x - self.lizard.bodyChunks[0].pos.x) < poList[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
                     {
                         result = bcPos;
-                        po = list[i];
+                        po = poList[i];
                         hitBodyChunkIndex = j;
                     }
                 }
                 else if (Mathf.Abs(a.y) < 1E-05f)
                 {
-                    if (bcPos.x * Mathf.Sign(a.x) > self.lizard.bodyChunks[0].pos.x * Mathf.Sign(a.x) && Mathf.Abs(bcPos.y - self.lizard.bodyChunks[0].pos.y) < list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    if (bcPos.x * Mathf.Sign(a.x) > self.lizard.bodyChunks[0].pos.x * Mathf.Sign(a.x) && Mathf.Abs(bcPos.y - self.lizard.bodyChunks[0].pos.y) < poList[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
                     {
                         result = bcPos;
-                        po = list[i];
+                        po = poList[i];
                         hitBodyChunkIndex = j;
                     }
                 }
                 else
                 {
-                    if (bcPos.y * Mathf.Sign(a.y) > beamFunc(bcPos.x, kV) * Mathf.Sign(a.y) && Mathf.Abs(beamFunc(bcPos.x, kN) - bcPos.y) / Mathf.Sqrt(1 + kN * kN) <= list[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
+                    if (bcPos.y * Mathf.Sign(a.y) > beamFunc(bcPos.x, kV) * Mathf.Sign(a.y) && Mathf.Abs(beamFunc(bcPos.x, kN) - bcPos.y) / Mathf.Sqrt(1 + kN * kN) <= poList[i].bodyChunks[j].rad && Custom.Dist(self.lizard.bodyChunks[0].pos, bcPos) < Custom.Dist(self.lizard.bodyChunks[0].pos, result))
                     {
                         result = bcPos;
-                        po = list[i];
+                        po = poList[i];
                         hitBodyChunkIndex = j;
                     }
                 }
@@ -728,11 +751,49 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
             else
             {
-                incidentPointAngle = new Vector2(a.y, -a.x).normalized * (result.y - beamFunc(result.x, kN)) / Mathf.Sqrt(1 + kN * kN)
+                incidentPointAngle = new Vector2(-a.y, a.x).normalized * Mathf.Sign(Vector2.Dot(new Vector2(-a.y, a.x), self.lizard.bodyChunks[0].pos - result)) * Mathf.Abs(result.y - beamFunc(result.x, kN)) / Mathf.Sqrt(1 + kN * kN)
                     - a.normalized * Mathf.Sqrt(Mathf.Pow(po.bodyChunks[hitBodyChunkIndex].rad, 2.00f) - Mathf.Pow(beamFunc(result.x, kN) - result.y, 2.00f) / (1 + kN * kN));
             }
+            if (float.IsNaN(incidentPointAngle.x) || float.IsNaN(incidentPointAngle.y) || float.IsInfinity(incidentPointAngle.x) || float.IsInfinity(incidentPointAngle.y)) { incidentPointAngle = Vector2.zero; ScientistLogger.Warning($"incidentPointAngle is NaN or Inf!"); }
+            if (self.HasBeam)
+            {
+                if (po is Interface.ICanBeamHit icbh)
+                {
+                    icbh.HitBeamID.AddSafe((int)Scientist.Data.Miscellaneous.beamID[self]);
+                    icbh.HitByBeam(incidentPointAngle, a, 1f);
+                }
+                if (po is Interface.IReflectionBeam irb && irb.CanReflect)
+                {
+                    if (!Scientist.Data.Miscellaneous.beInRoom.ContainsKey(self.lizard.room.abstractRoom.name))
+                    {
+                        Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name] = new Handle.BeamExpansion(self.lizard.room);
+                        self.lizard.room.AddObject(Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name]);
+                    }
+                    Vector2[] angles = irb.ReflectionAngles(incidentPointAngle, a, out float[] intensities);
+                    string ft = Scientist.Data.Miscellaneous.beamID[self].ToString();//ScientistTools.FeaturesTypeString(self.lizard);
+                    if (!Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL.ContainsKey(ft))
+                    {
+                        Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft] = new();
+                    }
+                    if (Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft].Count < angles.Length)
+                    {
+                        Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft] = new List<Effects.BlizzardBeamWithoutLizard>();
+                        for (int k = Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft].Count; k < angles.Length; k++)
+                        {
+                            Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft].Add(new Effects.BlizzardBeamWithoutLizard(po, hitBodyChunkIndex, result + incidentPointAngle, angles[k], k, intensities[k]) { topOwner = self.lizard, beamOwnerID = (int)Scientist.Data.Miscellaneous.beamID[self], thisID = Scientist.Data.Miscellaneous.GetNewBeamID() });
+                            self.lizard.room.AddObject(Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft][k]);
+                        }
+                    }
+                    List<Effects.BlizzardBeamWithoutLizard> bblwl = Scientist.Data.Miscellaneous.beInRoom[self.lizard.room.abstractRoom.name].blizzardBeamWL[ft];
+                    for (int k = 0; k < angles.Length; k++)
+                    {
+                        bblwl[k].SetPos = result + incidentPointAngle;
+                        bblwl[k].SetAngle = angles[k];
+                        bblwl[k].SetIntensity = intensities[k];
+                    }
+                }
+            }
         }
-        if (float.IsNaN(incidentPointAngle.x) || float.IsNaN(incidentPointAngle.y) || float.IsInfinity(incidentPointAngle.x) || float.IsInfinity(incidentPointAngle.y)) { incidentPointAngle = Vector2.zero; ScientistLogger.Warning($"incidentPointAngle is NaN or Inf!"); }
         return result + incidentPointAngle;
     }
 
@@ -783,20 +844,21 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     private bool Player_CanIPickThisUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
     {
-        if (obj is Items.SharpSpear)
+        if (obj is Items.SharpSpear iss && iss.stuckInWall != null)
         {
-            if ( (obj as Items.SharpSpear).stuckInWall != null)
+            if (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted)                        //胖猫不力竭时可以拾取插入墙中的尖矛
             {
-                if (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand && !self.gourmandExhausted)                        //胖猫不力竭时可以拾取插入墙中的尖矛
-                {
-                    return true;
-                }
-                if (self.SlugCatClass.value == MOD_ID && /*CanPickupShapespearStuckinwall.TryGet(self, out var canPickup) && canPickup*/false)   //科学家仅在配置允许时可以拾取插入墙中的尖矛
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            if (self.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Artificer)
+            {
+                return true;
+            }
+            if (self.SlugCatClass.value == MOD_ID && /*CanPickupShapespearStuckinwall.TryGet(self, out var canPickup) && canPickup*/false)   //科学家仅在配置允许时可以拾取插入墙中的尖矛
+            {
+                return true;
+            }
+            return false;
         }
         return orig(self, obj);
     }
@@ -917,10 +979,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
         }
         orig(self, eu);
-        if (!self.inShortcut && self.room != null && self.room.waterObject != null && Input.GetKeyDown(KeyCode.LeftControl))
+        /*if (!self.inShortcut && self.room != null && self.room.waterObject != null && Input.GetKeyDown(KeyCode.LeftControl))
         {
             Scientist.ScientistLogger.Log($"self.room.waterObject.fWaterLevel = {self.room.waterObject.fWaterLevel}");
-        }
+        }*/
         if (Input.GetKeyDown(KeyCode.LeftAlt))
         {
             ScientistLogger.Log($"self.mainBodyChunk.pos = {self.mainBodyChunk.pos}, self.room.GetTilePosition(self.mainBodyChunk.pos) = {self.room.GetTilePosition(self.mainBodyChunk.pos)}, self.room.TileWidth = {self.room.TileWidth}, self.room.TileHeight = {self.room.TileHeight}");
@@ -955,7 +1017,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
             {
                 AbstractPhysicalObject apo = ( CraftingResults(self) != null ) ? ScientistSlugcat.CraftingResults(self, self.grasps[0], self.grasps[1]) : Scientist.ScientistSlugcat.GetSpecialCraftingResult(self)[0];
                 IconSymbol.IconSymbolData isd = apo.type != AbstractPhysicalObject.AbstractObjectType.Creature ? (IconSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo) : (IconSymbol.IconSymbolData)CreatureSymbol.SymbolDataFromCreature((apo.realizedObject as Creature).abstractCreature);
-                IconSymbol iconSymbol = IconSymbol.CreateIconSymbol(isd, new FContainer());
+                IconSymbol iconSymbol = IconSymbol.CreateIconSymbol(isd, null);
                 scr = new Effects.ShowCraftingResult(self, iconSymbol.spriteName, iconSymbol.myColor, ScientistTools.RandomAngleVector2(new float[2][] { new float[2] { 0f, 60f }, new float[2] { 120f, 180f } }), 40f);
                 self.room.AddObject(scr);
 
@@ -1004,6 +1066,21 @@ public partial class ScientistPlugin : BaseUnityPlugin
         enteredShortCut = self.inShortcut;
     }
 
+    private void Player_Update_IL(ILContext il)
+    {
+        /*ILCursor cur = new(il);
+        if (cur.TryGotoNext(ins => ins.MatchLdcR4(0.95f), ins => ins.MatchCallOrCallvirt<PhysicalObject>("set_buoyancy")))
+        {
+            //浮力部分，在水中静止。
+            cur.Index += 3;
+            try
+            {
+                cur.EmitDelegate(new Action<PhysicalObject>(player => { player.buoyancy = 0.9f; }));
+                cur.Emit(OpCodes.Ldarg_0);
+            }catch (Exception e) { ScientistLogger.Warning($"Player_Update_IL_1 cannot be hooked: {e}"); }
+        }else { ScientistLogger.Warning($"Player_Update_IL_1 not found."); }*/
+    }
+
     public void Player_ThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
     {
         ScientistLogger.Log($"PlayerThrown  {self.grasps[grasp].grabbed.abstractPhysicalObject}");
@@ -1014,10 +1091,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
     public void Player_ThrownSpear(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
     {
         orig(self, spear);
-        /*if (self.SlugCatClass.value == MOD_ID && Power.TryGet(self, out var power) && power)
+        if (spear is Items.SharpSpear iss)
         {
-            spear.spearDamageBonus = 10000f;
-        }*/
+            iss.bodyChunks[0].vel *= 1.6f;
+        }
     }
 
     private Color Player_ShortCutColor(On.Player.orig_ShortCutColor orig, Player self)
@@ -1181,6 +1258,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             self.realizedObject = new Items.BlastingStoneBombFragment(self, self.world);
         }
+        if (self.type == Enums.Items.StormboltSpear)
+        {
+            self.realizedObject = new Items.StormboltSpear(self is Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract ssa ? ssa : new Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract(self.world, null, self.pos, self.ID), self.world);
+        }
     }
 
     private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -1283,6 +1364,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             return Player.ObjectGrabability.CantGrab;
         }
+        if (obj is Items.StormboltSpear)
+        {
+            return Player.ObjectGrabability.TwoHands;
+        }
         return orig(self, obj);
     }
 
@@ -1359,6 +1444,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (itemType == Scientist.Enums.Items.BlastingStoneBombFragment)
         {
             
+        }
+        if (itemType == Scientist.Enums.Items.StormboltSpear)
+        {
+            return "Symbol_ElectricSpear";
         }
         return orig(itemType, intData);
             
@@ -1438,6 +1527,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             return Color.white;
         }
+        if (itemType == Scientist.Enums.Items.StormboltSpear)
+        {
+            return new Color(0f, 0f, 1f);
+        }
         return orig(itemType, intData);
     }
 
@@ -1460,7 +1553,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void Player_GrabUpdate_On(On.Player.orig_GrabUpdate orig, Player self, bool eu)
     {
-        if (self.SlugCatClass.value == MOD_ID) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate
+        if (self.SlugCatClass.value == MOD_ID) {     //判断是否为科学家，如果是，则执行修改后的GrabUpdate      TODO: 需要更新至夜猫的GrabUpdate
             ScientistGrabUpdate(self, eu);
         }
         else {                                       //不是科学家，则执行原函数（这也会导致其他mod的GrabUpdate钩子在科学家上无法生效）（既然叫科学家，那么能屏蔽外界干扰和更改是很正常的吧~）

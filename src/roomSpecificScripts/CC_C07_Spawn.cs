@@ -59,9 +59,22 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                 if (!this.spawned[index])
                 {
                     this.spawned[index] = true;
-                    p.SuperHardSetPosition(spawnPos);
+                    p.SuperHardSetPosition(new Vector2(spawnPos.x, spawnPos.y - 70));
                     Animations.PlayerAnimations pa = this.animations[index];
-                    this.animations[index].AddAnimationFollow(() => pa.Wait(40));
+                    this.animations[index].AddAnimationFollow(() =>
+                    {
+                        if (this.room.lockedShortcuts.Count == 0)
+                        {
+                            for (int i = 0; i < this.room.shortcutsIndex.Length; i++)
+                            {
+                                this.room.lockedShortcuts.Add(this.room.shortcutsIndex[i]);
+                            }
+                        }
+                        return true;
+                    });
+                    this.animations[index].AddAnimationFollow(() => pa.Wait(60 * index));
+                    this.animations[index].AddAnimationFollow(() => { p.SuperHardSetPosition(spawnPos); return true; });
+                    this.animations[index].AddAnimationFollow(() => pa.Wait(20));
                     this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(spawnPos, 45f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));
                     this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(895.0f, 2240.0f), -1, 20, p.bodyChunks));
@@ -72,6 +85,7 @@ public class CC_C07_Spawn : UpdatableAndDeletable
                     this.animations[index].AddAnimationFollow(() => pa.HorizontallyMove(new Vector2(855.0f, 2270.0f), -485f, p.bodyChunks));
                     this.animations[index].AddAnimationFollow(() => pa.Wait(10));
                     this.animations[index].AddAnimationFollow(() => pa.VerticallyMove(new Vector2(370.0f, 2270.0f), -20f, p.bodyChunks));
+                    this.animations[index].AddAnimationFollow(() => { this.room.lockedShortcuts.Clear(); return true; });
                 }
                 if (index == 0)
                 {

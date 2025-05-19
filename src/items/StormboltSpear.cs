@@ -5,18 +5,21 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using UnityEngine;
+using Scientist.Effects;
 
 namespace Scientist.Items;
 
-sealed class SharpSpear : Spear
+sealed class StormboltSpear : Spear
 {
-    public int ReboundCount = 0;
+    public const float swaMoveDx = 1.00f / 20.00f;
+    public int swaMoveCount = 0;
+    public const int swaMaxMoveCount = 120 * 2;
 
-    public new Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract abstractSpear
+    public new Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract abstractSpear
     {
         get
         {
-            return this.abstractPhysicalObject as SharpSpearAbstract;
+            return this.abstractPhysicalObject as StormboltSpearAbstract;
         }
     }
 
@@ -28,17 +31,17 @@ sealed class SharpSpear : Spear
         }
     }
 
-    public SharpSpear(Scientist.Items.AbstractPhysicalObjects.SharpSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
+    public StormboltSpear(Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract abstractPhysicalObject, World world) : base(abstractPhysicalObject, world)
     {
         base.bodyChunks = new BodyChunk[1];
         base.bodyChunks[0] = new BodyChunk(this, 0, new Vector2(0f, 0f), 5f, 0.05f);
         this.bodyChunkConnections = new PhysicalObject.BodyChunkConnection[0];
-        base.airFriction = 0.999f;
+        base.airFriction = 0.998f;
         base.gravity = 0.9f;
         this.bounce = 0.4f;
         this.surfaceFriction = 0.4f;
         this.collisionLayer = 2;
-        base.waterFriction = 1f;
+        base.waterFriction = 0.95f;
         base.buoyancy = 0.4f;
         this.pivotAtTip = false;
         this.lastPivotAtTip = false;
@@ -53,13 +56,39 @@ sealed class SharpSpear : Spear
         this.spearmasterNeedle_fadecounter = this.spearmasterNeedle_fadecounter_max;
         this.spearmasterNeedleType = UnityEngine.Random.Range(0, 3);
         this.jollyCustomColor = null;
-        this.alwaysStickInWalls = true;
     }
 
     public override void Update(bool eu)
     {
-        base.Update(eu); 
-        if (this.mode == Weapon.Mode.Thrown && Custom.DistLess(this.thrownPos, base.firstChunk.pos, 1200f * Mathf.Max(1f, this.spearDamageBonus)) && base.firstChunk.ContactPoint == this.throwDir && this.room.GetTile(base.firstChunk.pos).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(base.firstChunk.pos + this.throwDir.ToVector2() * 20f).Terrain == Room.Tile.TerrainType.Solid)
+        base.Update(eu);
+        if (this.firstChunk.vel != Vector2.zero && this.grabbedBy.Count == 0)
+        {
+            int count = 0;
+            while (true)
+            {
+                SpiritWithAnimation swa = new Effects.SpiritWithAnimation(
+                    new FSprite("pixel", true) { x = this.firstChunk.lastPos.x + Mathf.Sign(this.firstChunk.pos.x - this.firstChunk.lastPos.x) * swaMoveDx * count, y = Mathf.Lerp(this.firstChunk.lastPos.y, this.firstChunk.pos.y, count / ((this.firstChunk.pos.x - this.firstChunk.lastPos.x) / swaMoveDx)) + this.GetECGsOffset(0, this.swaMoveCount / 20.00f), scale = 2f, alpha = 1, color = Color.blue },
+                    40 * 3,
+                    new Func<SpiritWithAnimation.SwAData, int, int, SpiritWithAnimation.SwAData>((rawData, counter, duration) =>
+                    {
+                        return new SpiritWithAnimation.SwAData(rawData.pos, rawData.rotation, rawData.scale * (1 - (float)counter / duration), rawData.scaleX, rawData.scaleY, 1f, ScientistTools.ColorChangeAlpha(Color.blue, 1 - (float)counter / duration));
+                    }),
+                    this.room?.game?.cameras?[0]?.ReturnFContainer("Water")
+                );
+                this.room?.AddObject(swa);
+                count++;
+                this.swaMoveCount++;
+                if (this.swaMoveCount >= swaMaxMoveCount)
+                {
+                    this.swaMoveCount = 0;
+                }
+                if (Mathf.Abs(this.firstChunk.lastPos.x - this.firstChunk.pos.x) < swaMoveDx * count)
+                {
+                    break;
+                }
+            }
+        }
+        if (this.mode == Weapon.Mode.Thrown && Custom.DistLess(this.thrownPos, base.firstChunk.pos, 1200f * Mathf.Max(1f, this.spearDamageBonus)) && (base.firstChunk.ContactPoint == this.throwDir || base.firstChunk.ContactPoint == new IntVector2(-this.throwDir.x, -this.throwDir.y)) && this.room.GetTile(base.firstChunk.pos).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(base.firstChunk.pos + this.throwDir.ToVector2() * 20f).Terrain == Room.Tile.TerrainType.Solid && (UnityEngine.Random.value < 0.33f || Custom.DistLess(this.thrownPos, base.firstChunk.pos, 280f) || this.alwaysStickInWalls))
         {
             bool flag = true;
             foreach (AbstractWorldEntity abstractWorldEntity in this.room.abstractRoom.entities)
@@ -78,8 +107,24 @@ sealed class SharpSpear : Spear
                     flag = false;
                     flag2 = true;
                 }
+                else
+                {
+                    for (int m = 0; m < this.room.roomSettings.placedObjects.Count; m++)
+                    {
+                        if (this.room.roomSettings.placedObjects[m].type == PlacedObject.Type.NoSpearStickZone && Custom.DistLess(this.room.MiddleOfTile(base.firstChunk.pos), this.room.roomSettings.placedObjects[m].pos, (this.room.roomSettings.placedObjects[m].data as PlacedObject.ResizableObjectData).Rad))
+                        {
+                            flag = false;
+                            flag2 = true;
+                            break;
+                        }
+                    }
+                }
             }
             if (flag && this.room.abstractRoom.shelter && this.room.shelterDoor != null && (this.room.shelterDoor.IsClosing || this.room.shelterDoor.IsOpening))
+            {
+                flag = false;
+            }
+            if (ModManager.MMF && base.firstChunk.vel.magnitude < 10f && !this.alwaysStickInWalls)
             {
                 flag = false;
             }
@@ -101,41 +146,34 @@ sealed class SharpSpear : Spear
                 }
             }
         }
+    }
 
+    public float GetECGsOffset(int functionIndex, float x)
+    {
+        if (functionIndex == 0)
+        {
+            return -3f * 10f * Mathf.Exp(-Mathf.Pow((3f * x - 4.5f) / 1.30f, 2f)) * Mathf.Sin((3f * x - 4.50f) * Mathf.PI) * Mathf.Cos((3f * x - 4.50f) * Mathf.Sqrt(3));
+        }
+        return 0f;
     }
 
     public override void ChangeMode(Mode newMode)
     {
         if (newMode == Weapon.Mode.StuckInWall && this.abstractSpear.stuckInWallCycles == 0)
         {
-            this.abstractSpear.stuckInWallCycles = UnityEngine.Random.Range(8, 13) * ((this.throwDir.y != 0) ? -1 : 1);
+            this.abstractSpear.stuckInWallCycles = UnityEngine.Random.Range(20, 40) * ((this.throwDir.y != 0) ? -1 : 1);
         }
         base.ChangeMode(newMode);
     }
 
     public override bool HitSomething(SharedPhysics.CollisionResult result, bool eu)
     {
-        if (result.obj is Creature)
-        {
-            this.spearDamageBonus *= 1.5f;
-        }
         return base.HitSomething(result, eu);
     }
 
     public override void HitWall()
     {
-        this.bodyChunks[0].vel *= 0.3f;
         base.HitWall();
-        /*try
-        {
-            this.stuckInWall = new Vector2?(this.room.MiddleOfTile(this.abstractPhysicalObject.pos.Tile));
-            this.ChangeMode(Weapon.Mode.StuckInWall);
-        }
-        catch (Exception ex)
-        {
-            Scientist.ScientistLogger.Error($"{ex}, {this.abstractPhysicalObject.pos.Tile}, SharpSpear.HitWall(), line 86, SharpSpear.cs");
-            this.ChangeMode(Weapon.Mode.Free);
-        }*/
     }
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -153,7 +191,6 @@ sealed class SharpSpear : Spear
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         base.AddToContainer(sLeaser, rCam, newContatiner);
-        //rCam.ReturnFContainer("Foreground").AddChild(sLeaser.sprites[1]);
         sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
     }
 

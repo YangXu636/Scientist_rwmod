@@ -35,12 +35,22 @@ public static class PlayerVariables
     public static Dictionary<string, AnesthesiaCreature> anesthesiaCreatures = new Dictionary<string, AnesthesiaCreature>();
 }
 
+public static class Miscellaneous
+{
+    public static Dictionary<string, Handle.BeamExpansion> beInRoom = new();
+    public static int beamAllCounter = 0;
+    public static Hashtable beamID = new Hashtable();
+    public static int GetNewBeamID() { return ++beamAllCounter; }
+}
+
 public static class GolbalVariables
 {
     public static bool SEnableOldPf = false;
     public static bool SEnableTfKeepShaking = false;
     public static bool SEnableOpenPanelPauseGame = true;
     public static KeyCode SOpenScientistPanelKey = KeyCode.E;
+    public static bool SUnlockAllContent = false;
+    public static bool SEnableDebug = false;
 
     public static bool isPanelOpen = false;
     public static bool isPanelChanged = false;
@@ -48,11 +58,13 @@ public static class GolbalVariables
     public static List<AbstractPhysicalObject.AbstractObjectType> apoModTypeList = new();
     public static List<AbstractPhysicalObject.AbstractObjectType> apoAllTypeList = new();
     public static List<AbstractPhysicalObject.AbstractObjectType> apoEnableTypeList = new();
+
+    public static bool BlockBeamObject(object obj) { return false; }
 }
 
 public static class DebugVariables
 {
-    public static bool enable = true;
+    //public static bool enable = true;
 
     public static bool changed = false;
 

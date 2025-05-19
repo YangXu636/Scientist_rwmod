@@ -170,7 +170,8 @@ public static class _ArrayExtensions
                 dict.Add(array[i], 0);
             dict[array[i]]++;
         }
-        return dict.Where(x => x.Value == 1).ToArray().First().Key;
+        dict = dict.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+        return dict.ToArray().First().Key;
     }
 
     public static T[,] SetAll<T>(this T[,] array, T value, int layerIStart = -1, int layerIEnd = -1, int layerJStart = -1, int layerJEnd = -1)
@@ -243,6 +244,21 @@ public static class _DictionaryExtensions
             dict[keys[i]] = item;
         }
         return dict;
+    }
+
+    public static bool RemoveWithValue<K, V>(this Dictionary<K, V> dict, V value)
+    {
+        if (dict == null || dict.Count == 0 || value == null) { return false; }
+        List<K> keys = new(dict.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            if (value != null && keys[i] != null && dict[keys[i]] != null && dict[keys[i]].Equals(value))
+            {
+                dict.Remove(keys[i]);
+                return true;
+            }
+        }
+        return false;
     }
 }
 

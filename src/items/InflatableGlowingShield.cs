@@ -1,8 +1,11 @@
 ﻿using IL.MoreSlugcats;
 using RWCustom;
 using Scientist;
+using Scientist.Chats;
 using Scientist.Interface;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -17,6 +20,9 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable, IReflecti
     public LightSource myLight;
     public float LightCounter;
     public float LightRad;
+    public int timeBeHit = 0;
+
+    public List<int> hitBeamID = new();
 
     public InflatableGlowingShield(AbstractPhysicalObject abstractPhysicalObject, World world) : base(abstractPhysicalObject)
     {
@@ -99,6 +105,15 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable, IReflecti
             {
                 (abstractCreature.realizedCreature as JetFish).AI.goToFood = this;
             }
+        }
+        if (this.timeBeHit > 100)
+        {
+            this.timeBeHit = 0;
+            this.Burst();
+        }
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            ScientistLogger.Log($"{this.abstractPhysicalObject.ID}, {HitBeamID.Count}: {string.Join(" ", HitBeamID)}");
         }
     }
 
@@ -214,14 +229,19 @@ public class InflatableGlowingShield : PlayerCarryableItem, IDrawable, IReflecti
         this.AddToContainer(sLeaser, rCam, null);
     }
 
-    public bool CanBlockBeam() => true;
+    public bool CanBlockBeam => true;
+
+    public List<int> HitBeamID { get => this.hitBeamID; set => this.hitBeamID = value; }
 
     public void HitByBeam(Vector2 hitPointAngle, Vector2 hitAngle, float intensity)
     {
+        this.timeBeHit++;
+        if (this.grabbedBy.Count == 0) { this.bodyChunks[0].vel += hitAngle.normalized * 2f * intensity; }
+        else { this.grabbedBy[0].grabber.mainBodyChunk.vel += hitAngle.normalized * 2f * intensity * intensity; }
         return;
     }
 
-    public bool CanReflect() => true;
+    public bool CanReflect => true;
 
     public Vector2[] ReflectionAngles(Vector2 incidentPointAngle, Vector2 incidentDirection, out float[] intensities)
     {

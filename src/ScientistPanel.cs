@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using BepInEx.Logging;
-using Expedition;
 using Menu;
-using Menu.Remix;
 using Menu.Remix.MixedUI;
-using MonoMod.Utils;
-using MoreSlugcats;
-using RWCustom;
 using UnityEngine;
+using Newtonsoft.Json;
+using static Menu.Remix.MenuModList.ModButton;
 
 namespace Scientist;
 
@@ -47,6 +43,9 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     public string selectedItemType = "";
 
     public Dictionary<string, CheckBox> debugCheckboxes;
+
+    public Dictionary<string, Dictionary<string, string>> TranslatioItemName = new();
+    public Dictionary<string, Dictionary<string, Dictionary<string, string>>> TranslatioItemData = new();
 
     public void WarpPreInit(RainWorldGame game)
     {
@@ -119,18 +118,19 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         }*/
         this.WarpInit(game);
         this.ChangePage(Scientist.ScientistPanel.PageModeIndex.None);
+        this.TranslatioItemName = ScientistPanel.GetObjectNameJsonConvert("items");
     }
 
     public void SetupChangePageButton()
     {
-        this.uselessMessage = new MenuLabel(this, this.pages[0], $"{base.Translate("SCIENCEPANEL_TITLE")}", new Vector2(0f, 0f), new Vector2(300f, 30f), false);
+        this.uselessMessage = new MenuLabel(this, this.pages[0], $"{this.Translate("SCIENCEPANEL_TITLE")}", new Vector2(0f, 0f), new Vector2(300f, 30f), false);
 
-        this.itemsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ITEMS_CHANGEtoPAGE"), "ITEMS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 75f), new Vector2(110f, 30f));
-        this.creaturesPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CREATURES_CHANGEtoPAGE"), "CREATURES_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 115f), new Vector2(110f, 30f));
-        this.craftingtablePageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 155f), new Vector2(110f, 30f));
-        this.advancementsPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 195f), new Vector2(110f, 30f));
-        this.debugPageButton = new SimpleButton(this, this.pages[0], base.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 35f), new Vector2(110f, 30f));
-        this.debugPageButton.buttonBehav.greyedOut = !Scientist.Data.DebugVariables.enable;
+        this.itemsPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_ITEMS_CHANGEtoPAGE"), "ITEMS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 75f), new Vector2(110f, 30f));
+        this.creaturesPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_CREATURES_CHANGEtoPAGE"), "CREATURES_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 115f), new Vector2(110f, 30f));
+        this.craftingtablePageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 155f), new Vector2(110f, 30f));
+        this.advancementsPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 195f), new Vector2(110f, 30f));
+        this.debugPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 40f), new Vector2(110f, 30f));
+        this.debugPageButton.buttonBehav.greyedOut = !Scientist.Data.GolbalVariables.SEnableDebug;
 
         this.itemsPageButton.nextSelectable[1] = this.itemsPageButton.nextSelectable[2] = this.debugPageButton;                  //1:up 2:left 3:down 4:right
         this.itemsPageButton.nextSelectable[3] = this.craftingtablePageButton;
@@ -157,13 +157,10 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.itemsObjectButtonIcons = new();
         this.itemsObjectInfoButtons = new();
         FieldInfo[] fields = typeof(Enums.Items).GetFields(BindingFlags.Public | BindingFlags.Static);
-        foreach (FieldInfo field in fields)
+        foreach (AbstractPhysicalObject.AbstractObjectType apo in /*Scientist.Data.DebugVariables.enable*/Scientist.Data.GolbalVariables.SEnableDebug ? Scientist.Data.GolbalVariables.apoModTypeList : Scientist.Data.GolbalVariables.apoEnableTypeList)
         {
-            AbstractPhysicalObject.AbstractObjectType apo = field.GetValue(null) as AbstractPhysicalObject.AbstractObjectType;
-            if (apo != null)
-            {
-                this.itemsObjectButtonIcons.Add(new KeyValuePair<AbstractPhysicalObject.AbstractObjectType, FSprite>(apo, new FSprite(ItemSymbol.SpriteNameForItem(apo, 0), true) { color = ItemSymbol.ColorForItem(apo, 0) }));
-            }
+            if (apo == null) {  continue; }
+            this.itemsObjectButtonIcons.Add(new KeyValuePair<AbstractPhysicalObject.AbstractObjectType, FSprite>(apo, new FSprite(ItemSymbol.SpriteNameForItem(apo, 0), true) { color = ItemSymbol.ColorForItem(apo, 0) }));
         }
         this.ChangeItemsObjectButtonIcon();
         this.itemsObjectChangeGroupIndexButtons = new() { 
@@ -292,10 +289,11 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     {
         if (itemType == "" || itemType == this.selectedItemType || this.itemsObjectButtonIcons == null || (itemType != "None" && !this.itemsObjectButtonIcons.Select(x => x.Key.value).Contains(itemType))) { return; }
         this.RemoveItemsObjectInfo();
+        this.TranslatioItemData[itemType] = ScientistPanel.GetObjectConfigurationJsonConvert("items", itemType);
         this.itemsObjectInfoButtons = new();
-        this.itemsObjectInfoButtons["objectImage"] = new SimpleButton(this, this.pages[0], "", $"ITEMS_objectImage_{itemType}_CLICK", new Vector2(210f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 190f), new Vector2(170f, 170f));
+        this.itemsObjectInfoButtons["objectImage"] = new SimpleButton(this, this.pages[0], "", $"ITEMS_objectMainImage_{itemType}_CLICK", new Vector2(210f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 190f), new Vector2(170f, 170f));
         this.pages[0].subObjects.AddSafe(this.itemsObjectInfoButtons["objectImage"]);
-        this.itemsObjectInfoButtons["objectDescription"] = new SimpleButton(this, this.pages[0], base.Translate($"ITEMS_objectDescription_{itemType}"), $"ITEMS_objectDescription_{itemType}_CLICK", new Vector2(390f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 190f), new Vector2(820f, 170f));
+        this.itemsObjectInfoButtons["objectDescription"] = new SimpleButton(this, this.pages[0], this.Translate($"ITEMS_objectDescription_{itemType}"), $"ITEMS_objectDescription_{itemType}_CLICK", new Vector2(390f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 190f), new Vector2(820f, 170f));
         this.pages[0].subObjects.AddSafe(this.itemsObjectInfoButtons["objectDescription"]);
         this.selectedItemType = itemType;
     }
@@ -340,20 +338,20 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         if (this.uselessMessageChangeCounter > 0) { this.uselessMessageChangeCounter--; }
         try
         {
-            this.playerOpen = this.game.cameras[0].followAbstractCreature.realizedCreature as Player;
+            this.playerOpen = this?.game?.cameras?[0]?.followAbstractCreature?.realizedCreature as Player;
             if (this.selectedObject is SimpleButton button)
             {
-                this.uselessMessage.text = base.Translate($"{button.signalText}_USELESSMESSAGE");
+                this.uselessMessage.text = this.Translate($"{button.signalText}_USELESSMESSAGE");
                 this.uselessMessageChangeCounter = 20;
             }
             else if (this.selectedObject == null && this.uselessMessageChangeCounter <= 0)
             {
-                this.uselessMessage.text = $"{base.Translate("SCIENCEPANEL_TITLE")} {(this.playerOpen != null && this.playerOpen.room.game.IsStorySession ? "" : "?")}{base.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region")} {base.Translate(this.playerOpen != null ? this.playerOpen.room.abstractRoom.name : "NRE_Room")}  playerNumber = {(this.playerOpen == null ? "NRE_PlayerNumber" : this.playerOpen.playerState.playerNumber)}";
+                this.uselessMessage.text = $"{this.Translate("SCIENCEPANEL_TITLE")} {(this.playerOpen != null && this.playerOpen.room.game.IsStorySession ? "" : "?")}{this.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region")} {this.Translate(this.playerOpen != null ? this.playerOpen.room.abstractRoom.name : "NRE_Room")}  playerNumber = {(this.playerOpen == null ? "NRE_PlayerNumber" : this.playerOpen.playerState.playerNumber)}";
                 this.uselessMessageChangeCounter = 0;
             }
         }
         catch (Exception /*e*/) { /*ScientistLogger.Log(e); e.LogDetailed();*/ }
-        //string regionName = base.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region");
+        //string regionName = this.Translate(this.playerOpen != null && !this.playerOpen.inShortcut ? Region.GetRegionFullName(this.playerOpen.room.world.name, this.playerOpen.room.game.session is StoryGameSession ? this.playerOpen.room.game.GetStorySession.saveState.saveStateNumber : this.playerOpen.playerState.slugcatCharacter) : "NRE_Region");
         //string roomName = this.playerOpen != null ? this.playerOpen.room.abstractRoom.name : "NRE_Room";
         //string playerName = $"{(this.playerOpen != null ? this.playerOpen.playerState.slugcatCharacter.value : "NREPlayerType")}_{(this.playerOpen == null ? "NREPlayerNumber" : this.playerOpen.playerState.playerNumber)}";
         this.uselessMessage.pos = new Vector2((this.manager.rainWorld.options.ScreenSize.x - this.uselessMessage.size.x) / 2.000f, 0f);
@@ -403,6 +401,37 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.isShowing = visible;
         this.container.isVisible = visible;
         if (visible) { this.container.MoveToFront(); base.currentPage = 0; }
+    }
+
+    public new string Translate(string key)
+    {
+        if (key.StartsWith("ITEMS_itemsObjectButtons_") && key.EndsWith("_CHOSEN_USELESSMESSAGE"))
+        {
+            return $"{base.Translate("ITEMS_itemsObjectButtons__CHOSEN_USELESSMESSAGE")} {this.GetObjectName("items", key.Replace("ITEMS_itemsObjectButtons_", "").Replace("_CHOSEN_USELESSMESSAGE", ""), this.game.rainWorld.options.language.value)}";
+        }
+        if (key.StartsWith("ITEMS_objectMainImage_") && key.EndsWith("_CLICK_USELESSMESSAGE"))
+        {
+            return base.Translate("ITEMS_objectMainImage__CLICK_USELESSMESSAGE").Replace("<replace>0</replace>", this.GetObjectName("items", key.Replace("ITEMS_objectMainImage_", "").Replace("_CLICK_USELESSMESSAGE", ""), this.game.rainWorld.options.language.value));
+        }
+        if (key.StartsWith("ITEMS_objectDescription_"))
+        {
+            string itemType = key.Replace("ITEMS_objectDescription_", "");
+            if (key.EndsWith("_CLICK_USELESSMESSAGE"))
+            {
+                itemType = itemType.Replace("_CLICK_USELESSMESSAGE", "");
+                return base.Translate("ITEMS_objectDescription__CLICK_USELESSMESSAGE").Replace("<replace>0</replace>", this.GetObjectName("items", itemType, this.game.rainWorld.options.language.value));
+            }
+            if (this.TranslatioItemData.ContainsKey(itemType))
+            {
+                Dictionary<string, string> data = this.TranslatioItemData[itemType]["Description"];
+                if (data.ContainsKey(this.game.rainWorld.options.language.value)) { return data[this.game.rainWorld.options.language.value]; }
+                else if (data.ContainsKey("Chinese")) { return data["Chinese"]; }
+                else if (data.ContainsKey("English")) { return data["English"]; }
+                else { return $"Falied to get {{ {itemType} }} description. Can't find language: {this.game.rainWorld.options.language.value}"; }
+            }
+            return $"Falied to get {{ {itemType} }} description. TranslatioItemData is null or not contains key";
+        }
+        return base.Translate(key);
     }
 
     public override void ShutDownProcess()
@@ -473,6 +502,43 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         }
     }
 
+    public string GetObjectName(string type, string objectName, string translation)
+    {
+        type = type.ToLower();
+        if (type != "items" && type != "creatures" && type != "craftingtable" && type != "advancements" && type != "debug") { return "Illegal type"; }
+        string result = "";
+        try
+        {
+            if (type == "items")
+                result = this.TranslatioItemName.ContainsKey(objectName) ? (this.TranslatioItemName[objectName].ContainsKey(translation) ? this.TranslatioItemName[objectName][translation] : this.TranslatioItemName[objectName]["Chinese"]) : (this.TranslatioItemName["None"].ContainsKey(translation) ? this.TranslatioItemName["None"][translation] : this.TranslatioItemName["None"]["Chinese"]);
+        } catch (Exception e) { ScientistLogger.Warning(e); result = $"Acquisition failed. Error: {e}"; }
+        return result;
+    }
+
+    public static Dictionary<string, Dictionary<string, string>> GetObjectNameJsonConvert(string type)
+    {
+        string path = Path.Combine(ScientistPlugin.MOD_PATH, "scientistDocs", type + ".json");
+        string result = ReadJson(path);
+        return JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(result);
+    }
+
+    public static Dictionary<string, Dictionary<string, string>> GetObjectConfigurationJsonConvert(string type, string objectName)
+    {
+        string path = Path.Combine(ScientistPlugin.MOD_PATH, "scientistDocs", type);
+        string result = ReadJson(Path.Combine(path, objectName + ".json"));
+        if (result == "") { result = ReadJson(Path.Combine(path, "None.json"));  }
+        return JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(result);
+    }
+
+    public static string ReadJson(string path)
+    {
+        if (!File.Exists(path)) { ScientistLogger.Warning("!!!File.Exists: " + path); return ""; }
+        StreamReader sr = File.OpenText(path);
+        string json = sr.ReadToEnd();
+        sr.Close();
+        return json;
+    }
+
     //以下代码均参考了FakeAchievements
     public static Texture2D LoadTexture(string path)
     {
@@ -521,8 +587,6 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         }
         return result;
     }
-
-    
 
     public class PageModeIndex : ExtEnum<Scientist.ScientistPanel.PageModeIndex>
     {

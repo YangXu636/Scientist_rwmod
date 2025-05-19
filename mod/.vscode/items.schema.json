@@ -1,0 +1,71 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "patternProperties": {
+        "^": {
+            "type": "object",
+            "description": "物品在代码中的注册ID",
+            "properties": {
+                "Chinese": {
+                    "type": "string",
+                    "description": "中文"
+                },
+                "English": {
+                    "type": "string",
+                    "description": "英语"
+                },
+                "French": {
+                    "type": "string",
+                    "description": "法语"
+                },
+                "Italian": {
+                    "type": "string",
+                    "description": "意大利语"
+                },
+                "German": {
+                    "type": "string",
+                    "description": "德语"
+                },
+                "Spanish": {
+                    "type": "string",
+                    "description": "西班牙语"
+                },
+                "Portuguese": {
+                    "type": "string",
+                    "description": "葡萄牙语"
+                },
+                "Japanese": {
+                    "type": "string",
+                    "description": "日语"
+                },
+                "Korean": {
+                    "type": "string",
+                    "description": "韩语"
+                },
+                "Russian": {
+                    "type": "string",
+                    "description": "俄罗斯语"
+                }
+            },
+            "required": [
+                "Chinese"
+            ],
+            "defaultSnippets": {
+                "label": "支持的语言",
+                "description": "支持的语言",
+                "body": [
+                    "Chinese",
+                    "English",
+                    "French",
+                    "Italian",
+                    "German",
+                    "Spanish",
+                    "Portuguese",
+                    "Japanese",
+                    "Korean",
+                    "Russian"
+                ]
+            }
+        }
+    }
+}

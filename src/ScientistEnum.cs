@@ -46,6 +46,7 @@ namespace Scientist.Enums
         public static AbstractPhysicalObject.AbstractObjectType AirBag;
         public static AbstractPhysicalObject.AbstractObjectType BlastingStoneBomb;
         public static AbstractPhysicalObject.AbstractObjectType BlastingStoneBombFragment;
+        public static AbstractPhysicalObject.AbstractObjectType StormboltSpear;
 
         public static void RegisterValues()
         {
@@ -69,6 +70,7 @@ namespace Scientist.Enums
             AirBag = new AbstractPhysicalObject.AbstractObjectType("AirBag", true);
             BlastingStoneBomb = new AbstractPhysicalObject.AbstractObjectType("BlastingStoneBomb", true);
             BlastingStoneBombFragment = new AbstractPhysicalObject.AbstractObjectType("BlastingStoneBombFragment", true);
+            StormboltSpear = new AbstractPhysicalObject.AbstractObjectType("StormboltSpear", true);
         }
 
         public static void UnregisterValues()
@@ -152,6 +154,10 @@ namespace Scientist.Enums
             AbstractPhysicalObject.AbstractObjectType blastingStoneBombFragment = BlastingStoneBombFragment;
             blastingStoneBombFragment?.Unregister();
             BlastingStoneBombFragment = null;
+
+            AbstractPhysicalObject.AbstractObjectType stormboltSpear = StormboltSpear;
+            stormboltSpear?.Unregister();
+            StormboltSpear = null;
         }
     }
 
@@ -165,7 +171,7 @@ namespace Scientist.Enums
         public static MultiplayerUnlocks.SandboxUnlockID AnesthesiaSpear;
         public static MultiplayerUnlocks.SandboxUnlockID AnesthesiaNeedle;
         public static MultiplayerUnlocks.SandboxUnlockID SmallRock;
-        public static MultiplayerUnlocks.SandboxUnlockID Knot;
+        //public static MultiplayerUnlocks.SandboxUnlockID Knot;
         public static MultiplayerUnlocks.SandboxUnlockID StoneKnife;
         public static MultiplayerUnlocks.SandboxUnlockID ExplosivePowder;
         public static MultiplayerUnlocks.SandboxUnlockID ExpansionBomb;
@@ -173,6 +179,8 @@ namespace Scientist.Enums
         public static MultiplayerUnlocks.SandboxUnlockID KongmingLantern;
         public static MultiplayerUnlocks.SandboxUnlockID TremblingFruit;
         public static MultiplayerUnlocks.SandboxUnlockID AirBag;
+        public static MultiplayerUnlocks.SandboxUnlockID BlastingStoneBomb;
+
 
         public static void RegisterValues()
         {
@@ -184,7 +192,7 @@ namespace Scientist.Enums
             AnesthesiaSpear = new MultiplayerUnlocks.SandboxUnlockID("AnesthesiaSpear", true);
             AnesthesiaNeedle = new MultiplayerUnlocks.SandboxUnlockID("AnesthesiaNeedle", true); 
             SmallRock = new MultiplayerUnlocks.SandboxUnlockID("SmallRock", true);
-            Knot = new MultiplayerUnlocks.SandboxUnlockID("Knot", true);
+            //Knot = new MultiplayerUnlocks.SandboxUnlockID("Knot", true);
             StoneKnife = new MultiplayerUnlocks.SandboxUnlockID("StoneKnife", true);
             ExplosivePowder = new MultiplayerUnlocks.SandboxUnlockID("ExplosivePowder", true);
             ExpansionBomb = new MultiplayerUnlocks.SandboxUnlockID("ExpansionBomb", true);
@@ -192,6 +200,7 @@ namespace Scientist.Enums
             KongmingLantern = new MultiplayerUnlocks.SandboxUnlockID("KongmingLantern", true);
             TremblingFruit = new MultiplayerUnlocks.SandboxUnlockID("TremblingFruit", true);
             AirBag = new MultiplayerUnlocks.SandboxUnlockID("AirBag", true);
+            BlastingStoneBomb = new MultiplayerUnlocks.SandboxUnlockID("BlastingStoneBomb", true);
         }
 
         public static void UnregisterValues()
@@ -224,9 +233,9 @@ namespace Scientist.Enums
             smallRock?.Unregister();
             SmallRock = null;
 
-            MultiplayerUnlocks.SandboxUnlockID knot = Knot;
+            /*MultiplayerUnlocks.SandboxUnlockID knot = Knot;
             knot?.Unregister();
-            Knot = null;
+            Knot = null;*/
 
             MultiplayerUnlocks.SandboxUnlockID stoneKnife = StoneKnife;
             stoneKnife?.Unregister();
@@ -255,6 +264,10 @@ namespace Scientist.Enums
             MultiplayerUnlocks.SandboxUnlockID airBag = AirBag;
             airBag?.Unregister();
             AirBag = null;
+
+            MultiplayerUnlocks.SandboxUnlockID blastingStoneBomb = BlastingStoneBomb;
+            blastingStoneBomb?.Unregister();
+            BlastingStoneBomb = null;
         }
     }
 

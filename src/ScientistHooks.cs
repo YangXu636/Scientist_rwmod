@@ -8,7 +8,6 @@ using UnityEngine.PlayerLoop;
 using UnityEngine;
 using ImprovedInput;
 using System.Runtime.CompilerServices;
-using BeastMasters;
 
 namespace Scientist.ScientistHooks;
 
@@ -16,14 +15,14 @@ public static class BeastMasterHooks
 {
     public static Hook hook;
 
-    public static FieldInfo bmsInfo = typeof(BeastMaster).GetField("BMSInstance", BindingFlags.Public | BindingFlags.Instance);
+    public static FieldInfo bmsInfo = typeof(BeastMaster.BeastMaster).GetField("BMSInstance", BindingFlags.Public | BindingFlags.Instance);
 
     public static void HookOn(object bmsInstance)
     {
         bmsInfo = bmsInstance.GetType().GetField("BMSInstance", BindingFlags.Static | BindingFlags.Public);
 
         hook = new Hook(
-            bmsInstance.GetType().GetMethod("BeastMasterInit", BindingFlags.Instance | BindingFlags.Public), 
+            bmsInstance.GetType().GetMethod("BeastMasterInit", BindingFlags.Instance | BindingFlags.Public),
             typeof(Scientist.ScientistHooks.BeastMasterHooks).GetMethod("BeastMaster_BeastMasterInit", BindingFlags.Static | BindingFlags.Public)
             );
     }
@@ -66,9 +65,9 @@ public static class BeastMasterHooks
     public static void BeastMaster_BeastMasterInit(Action<object> orig, object self)
     {
         orig(self);
-        var bms = (BeastMaster)bmsInfo.GetValue(self);
+        var bms = (BeastMaster.BeastMaster)bmsInfo.GetValue(self);
 
-        BeastMaster.RadialItemMenu radialItemMenu = new BeastMaster.RadialItemMenu
+        BeastMaster.BeastMaster.RadialItemMenu radialItemMenu = new BeastMaster.BeastMaster.RadialItemMenu(bms)
         {
             parent = bms.itemMenu,
             bms = bms
@@ -104,7 +103,9 @@ public static class ImprovedInputHooks
     {
         iiAssembly = iiInstance.GetType().Assembly;
         iiPlayerKeybind = iiAssembly.GetType("ImprovedInput.PlayerKeybind");
-        OpenSpIiKeybind = iiPlayerKeybind.GetMethod("Register", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string), typeof(string), typeof(string), typeof(KeyCode), typeof(KeyCode) }, null).Invoke(null, new object[] { $"{Scientist.ScientistPlugin.MOD_ID}:openspiikeybind", "Scientist", "Open Scientist Panel", Scientist.ScientistPlugin.OpenSpKeycode, KeyCode.None });
+        OpenSpIiKeybind = iiPlayerKeybind.GetMethod("Register", BindingFlags.Public | BindingFlags.Static, null, 
+            new Type[] { typeof(string), typeof(string), typeof(string), typeof(KeyCode), typeof(KeyCode) }, null)
+            .Invoke(null, new object[] { $"{Scientist.ScientistPlugin.MOD_ID}:openspiikeybind", "Scientist", "Open Scientist Panel", Scientist.ScientistPlugin.OpenSpKeycode, KeyCode.None });
     }
 
     public static void HookOff()

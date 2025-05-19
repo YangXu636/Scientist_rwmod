@@ -16,7 +16,10 @@ namespace Scientist
         public readonly Configurable<bool> EnableTfKeepShaking;         //tf = trembling fruit
         public readonly Configurable<bool> EnableOpenPanelPauseGame;
         public readonly Configurable<KeyCode> OpenScientistPanelKey;
+        public readonly Configurable<bool> UnlockAllContent;
+        public readonly Configurable<bool> EnableDebug;
         private UIelement[] UIArrPlayerOptions_Sundries;
+        public Color cheatColor = new Color(0.85f, 0.35f, 0.4f);
 
         public ScientistOptions(ScientistPlugin modInstance, ManualLogSource loggerSource)
         {
@@ -25,6 +28,8 @@ namespace Scientist
             this.EnableTfKeepShaking = this.config.Bind("ScientistEnableTfKeepShaking", false);
             this.EnableOpenPanelPauseGame = this.config.Bind("ScientistEnableOpenPanelPauseGame", true);
             this.OpenScientistPanelKey = this.config.Bind("ScientistOpenScientistPanelKey", ScientistPlugin.OpenSpKeycode);
+            this.UnlockAllContent = this.config.Bind("ScientistUnlockAllContent", false);
+            this.EnableDebug = this.config.Bind("ScientistEnableDebug", false);
 
             this.OnConfigChanged += ScientistOptions_OnConfigChanged;
         }
@@ -43,13 +48,17 @@ namespace Scientist
                 {
                     new OpLabel(10f, 550f, OptionInterface.Translate("Sundries"), true),
                     new OpCheckBox(this.EnableOldPf, 10f, 520f),
-                    new OpLabel(40f, 520f, OptionInterface.Translate("Enable old version PainlessFruit"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
+                    new OpLabel(40f, 520f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_EnableOldPf"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
                     new OpCheckBox(this.EnableTfKeepShaking, 10f, 480f),
-                    new OpLabel(40f, 480f, OptionInterface.Translate("Enable TremblingFruit keeps shaking"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
+                    new OpLabel(40f, 480f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_EnableTfKeepShaking"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
                     new OpCheckBox(this.EnableOpenPanelPauseGame, 10f, 440f),
-                    new OpLabel(40f, 440f, OptionInterface.Translate("Pause the game when opening the panel"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
+                    new OpLabel(40f, 440f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_EnableOpenPanelPauseGame"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
                     new OpKeyBinder(this.OpenScientistPanelKey, new Vector2(10f, 400f), new Vector2(150f, 30f), true, OpKeyBinder.BindController.AnyController),
-                    new OpLabel(166f, 400f, OptionInterface.Translate("Key used for opening the menu"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center }
+                    new OpLabel(166f, 400f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_OpenScientistPanelKey"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
+                    new OpCheckBox(this.UnlockAllContent, 10f, 360f) { colorEdge = this.cheatColor },
+                    new OpLabel(40f, 360f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_UnlockAllContent"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center, color = this.cheatColor },
+                    new OpCheckBox(this.EnableDebug, 10f, 320f),
+                    new OpLabel(40f, 320f, OptionInterface.Translate("UIArrPlayerOptions_Sundries_EnableDebug"), false) { verticalAlignment = OpLabel.LabelVAlignment.Center },
                 };
                 opTab.AddItems(this.UIArrPlayerOptions_Sundries);
             }
@@ -117,6 +126,8 @@ namespace Scientist
             Scientist.Data.GolbalVariables.SEnableTfKeepShaking = this.EnableTfKeepShaking.Value;
             Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame = this.EnableOpenPanelPauseGame.Value;
             Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.OpenScientistPanelKey.Value;
+            Scientist.Data.GolbalVariables.SUnlockAllContent = this.UnlockAllContent.Value;
+            Scientist.Data.GolbalVariables.SEnableDebug = this.EnableDebug.Value;
         }
     }
 }

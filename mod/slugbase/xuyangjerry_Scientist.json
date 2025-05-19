@@ -1,7 +1,7 @@
 {
 	"id": "XuYangJerry.Scientist",
 	"name": "Scientist",
-	"description": "Having strong knowledge and thirst for knowledge, but...",
+	"description": "Scientist_Description",
 	"features": {
 		"color": "7fffd4",
 		"custom_colors": [

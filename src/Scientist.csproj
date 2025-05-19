@@ -6,6 +6,10 @@
     </PropertyGroup>
     
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+    
+    <ItemGroup>
         <Reference Include="..\lib\Assembly-CSharp-firstpass.dll">
           <Private>false</Private>
         </Reference>
@@ -34,7 +38,7 @@
           <Private>false</Private>
         </Reference>
         <Reference Include="BeastMaster">
-          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\StreamingAssets\mods\BeastMaster_2920903670\plugins\BeastMaster.dll</HintPath>
+          <HintPath>..\..\..\..\Download\Steam\steamapps\workshop\content\312520\2920903670\plugins\BeastMaster.dll</HintPath>
         </Reference>
         <Reference Include="EmgTx">
           <HintPath>..\lib\EmgTx.dll</HintPath>
