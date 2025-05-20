@@ -68,6 +68,10 @@ public class SpiritWithAnimation : UpdatableAndDeletable, IDrawable
         sprite.scaleY = data.Value.scaleY;
         sprite.alpha = data.Value.alpha;
         sprite.color = data.Value.color;
+        if (base.slatedForDeletetion || this.room != rCam.room)
+        {
+            sLeaser.CleanSpritesAndRemove();
+        }
     }
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)

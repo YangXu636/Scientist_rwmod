@@ -11,9 +11,8 @@ namespace Scientist.Items;
 
 sealed class StormboltSpear : Spear
 {
-    public const float swaMoveDx = 1.00f / 20.00f;
     public int swaMoveCount = 0;
-    public const int swaMaxMoveCount = 120 * 2;
+    public const int swaMaxMoveCount = 120 * 10;
 
     public new Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract abstractSpear
     {
@@ -61,14 +60,22 @@ sealed class StormboltSpear : Spear
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (this.firstChunk.vel != Vector2.zero && this.grabbedBy.Count == 0)
+        if (this.firstChunk.vel != Vector2.zero && this.grabbedBy.Count == 0 && this.stuckInObject == null && !this.onPlayerBack)
         {
-            int count = 0;
-            while (true)
+            if (this.firstChunk.vel.magnitude > 3f)
             {
+                this.rotation = this.firstChunk.vel.normalized;
+            }
+            int count = 0;
+            Vector2 vector = this.firstChunk.pos - this.firstChunk.lastPos;
+            Vector2 vectorN = vector.normalized * 0.40f;
+            Vector2 vertical = new Vector2(-vector.y, vector.x).normalized;
+            for (float i = 0f; i < vector.magnitude; i += 0.40f)
+            {
+                float offect = this.GetECGsOffset(0, this.swaMoveCount * 0.05f * 0.40f /* / 40.00f*/);
                 SpiritWithAnimation swa = new Effects.SpiritWithAnimation(
-                    new FSprite("pixel", true) { x = this.firstChunk.lastPos.x + Mathf.Sign(this.firstChunk.pos.x - this.firstChunk.lastPos.x) * swaMoveDx * count, y = Mathf.Lerp(this.firstChunk.lastPos.y, this.firstChunk.pos.y, count / ((this.firstChunk.pos.x - this.firstChunk.lastPos.x) / swaMoveDx)) + this.GetECGsOffset(0, this.swaMoveCount / 20.00f), scale = 2f, alpha = 1, color = Color.blue },
-                    40 * 3,
+                    new FSprite("pixel", true) { x = this.firstChunk.lastPos.x + vectorN.x * count + vertical.x * offect, y = this.firstChunk.lastPos.y + vectorN.y * count + vertical.y * offect, scale = 3f, alpha = 1, color = Color.blue },
+                    6,
                     new Func<SpiritWithAnimation.SwAData, int, int, SpiritWithAnimation.SwAData>((rawData, counter, duration) =>
                     {
                         return new SpiritWithAnimation.SwAData(rawData.pos, rawData.rotation, rawData.scale * (1 - (float)counter / duration), rawData.scaleX, rawData.scaleY, 1f, ScientistTools.ColorChangeAlpha(Color.blue, 1 - (float)counter / duration));
@@ -81,10 +88,6 @@ sealed class StormboltSpear : Spear
                 if (this.swaMoveCount >= swaMaxMoveCount)
                 {
                     this.swaMoveCount = 0;
-                }
-                if (Mathf.Abs(this.firstChunk.lastPos.x - this.firstChunk.pos.x) < swaMoveDx * count)
-                {
-                    break;
                 }
             }
         }
@@ -152,7 +155,7 @@ sealed class StormboltSpear : Spear
     {
         if (functionIndex == 0)
         {
-            return -3f * 10f * Mathf.Exp(-Mathf.Pow((3f * x - 4.5f) / 1.30f, 2f)) * Mathf.Sin((3f * x - 4.50f) * Mathf.PI) * Mathf.Cos((3f * x - 4.50f) * Mathf.Sqrt(3));
+            return -3f * 30f * Mathf.Exp(-Mathf.Pow((x - 3.5f) / 1.30f, 2f)) * Mathf.Sin((x - 3.50f) * Mathf.PI) * Mathf.Cos((x - 3.50f) * Mathf.Sqrt(3));
         }
         return 0f;
     }
