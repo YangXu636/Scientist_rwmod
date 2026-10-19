@@ -6,6 +6,9 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using UnityEngine;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
 
 namespace Scientist.Items;
 
@@ -79,7 +82,7 @@ sealed class AnesthesiaNeedle : Spear
                 c.Stun(200);
                 if (c is not Player)
                 {
-                    Scientist.Data.PlayerVariables.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y && ((1600.00f / x) * Mathf.Sin(x / 40.00f)) > 0, 800);
+                    SDPV.anesthesiaCreatures[Scientist.ScientistTools.FeaturesTypeString(c)] = new Scientist.Data.AnesthesiaCreature((x, y) => x < y && ((1600.00f / x) * Mathf.Sin(x / 40.00f)) > 0, 800);
                 }
             }
         }

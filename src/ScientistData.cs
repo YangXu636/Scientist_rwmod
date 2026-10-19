@@ -18,9 +18,6 @@ public static class PlayerVariables
     public static int offlineTime = 0;
 
     //pf = painlessfruit
-    //public static int[] pfEatTimesInACycle;
-    //public static int[] pfTime;
-    //public static bool[] pfAfterActiveDie;
     public static Dictionary<string, int> pfEatTimesInACycle = new();
     public static Dictionary<string, int> pfTime = new();
     public static Dictionary<string, int> pfDieInActive = new();
@@ -43,7 +40,7 @@ public static class Miscellaneous
     public static int GetNewBeamID() { return ++beamAllCounter; }
 }
 
-public static class GolbalVariables
+public static class GlobalVariables
 {
     public static bool SEnableOldPf = false;
     public static bool SEnableTfKeepShaking = false;
@@ -60,6 +57,8 @@ public static class GolbalVariables
     public static List<AbstractPhysicalObject.AbstractObjectType> apoEnableTypeList = new();
 
     public static bool BlockBeamObject(object obj) { return false; }
+
+    public static CacheData<KeyValuePair<int, float>, float> CD_SbS_GetECGsOffset = new(100000);
 }
 
 public static class DebugVariables
@@ -80,6 +79,64 @@ public static class DebugVariables
 
     public static bool playerNoDie = false;
     public static bool logWhenPlayerDie = false;
+    public static bool playerNoStun = false;
+    public static bool logWhenPlayerStun = false;
+
+    public static bool NofriendInjuries = false;
+}
+
+public struct SmoothTransform
+{
+    public const int frameRate = 40;            //
+    public SmoothChange tp = new();  //timePercent
+    public Func<float, float> func = new Func<float, float>(x => x);
+
+    public SmoothTransform()
+    {
+
+    }
+}
+
+public struct SmoothChange
+{
+    public float value;
+    public float destination;
+    public float delta;
+    public bool ing = false;
+
+    public SmoothChange(float value = 0f, float destination = 0, float delta = 0.01f)
+    {
+        this.value = value;
+        this.destination = destination;
+        this.delta = delta;
+    }
+
+    public void Update()
+    {
+        if (!this.ing) return;
+        int sign = Math.Sign(this.destination - this.value);
+        this.value += sign * this.delta;
+        if (this.value * sign > this.destination * sign)
+        {
+            this.value = this.destination;
+            this.ing = false;
+        }
+    }
+
+    public void SetDelta(float delta)
+    {
+        this.delta = delta;
+    }
+
+    public void GotoF(float destination)
+    {
+        this.destination = destination;
+        this.ing = true;
+    }
+
+    public float gvFolat { get { return this.value; } }
+    public int gvInt { get { return (int)this.value; } }
+    public double gvDouble { get { return (double)this.value; } }
 }
 
 public class ColorfulSprite
@@ -233,5 +290,45 @@ public class AnesthesiaCreature
     public override string ToString()
     {
         return $"{this.counterTotal}<>{this.counter}<>{this.enabled}";
+    }
+}
+
+
+public struct CacheData<T, K>
+{
+    public int _maxSize;
+    public Dictionary<T, K> _cache;
+
+    public CacheData(int maxSize)
+    {
+        _maxSize = maxSize;
+        _cache = new Dictionary<T, K>();
+    }
+
+    public readonly void ClearCache()
+    {
+        lock (_cache)
+        {
+            _cache.Clear();
+        }
+    }
+
+    public void AddToCache(T key, K value)
+    {
+        lock (_cache)
+        {
+            if (_cache.Count < _maxSize)
+            {
+                _cache.Add(key, value);
+            }
+        }
+    }
+
+    public bool TryGetFromCache(T key, out K value)
+    {
+        lock (_cache)
+        {
+            return _cache.TryGetValue(key, out value);
+        }
     }
 }

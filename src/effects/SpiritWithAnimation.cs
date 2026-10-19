@@ -24,7 +24,7 @@ public class SpiritWithAnimation : UpdatableAndDeletable, IDrawable
         this.duration = duration;
         this.counter = 0;
         this.animation = animation;
-        this.rawData = new SwAData(sprite.GetPosition(), ScientistTools.AngleToVector2(sprite.rotation), sprite.scale, sprite.scaleX, sprite.scaleY, sprite.alpha, sprite.color);
+        this.rawData = new SwAData(sprite.GetPosition(), ScientistTools.AngleToVector2(sprite.rotation), sprite.scaleX, sprite.scaleY, sprite.alpha, sprite.color);
         this.contatiner = contatiner;
     }
 
@@ -59,15 +59,13 @@ public class SpiritWithAnimation : UpdatableAndDeletable, IDrawable
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        SwAData? data = this.animation?.Invoke(rawData, counter, duration);
-        if (!data.HasValue) { return; }
-        sprite.SetPosition(data.Value.pos - camPos);
-        sprite.rotation = Custom.VecToDeg(data.Value.rotation);
-        sprite.scale = data.Value.scale;
-        sprite.scaleX = data.Value.scaleX;
-        sprite.scaleY = data.Value.scaleY;
-        sprite.alpha = data.Value.alpha;
-        sprite.color = data.Value.color;
+        SwAData data = this.animation.Invoke(rawData, counter, duration);
+        sLeaser.sprites[0].SetPosition(data.pos - camPos);
+        sLeaser.sprites[0].rotation = Custom.VecToDeg(data.rotation);
+        sLeaser.sprites[0].scaleX = data.scaleX;
+        sLeaser.sprites[0].scaleY = data.scaleY;
+        sLeaser.sprites[0].alpha = data.alpha;
+        sLeaser.sprites[0].color = data.color;
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();
@@ -84,17 +82,15 @@ public class SpiritWithAnimation : UpdatableAndDeletable, IDrawable
     {
         public Vector2 pos;
         public Vector2 rotation;
-        public float scale;
         public float scaleX;
         public float scaleY;
         public float alpha;
         public Color color;
 
-        public SwAData(Vector2 pos, Vector2 rotation, float scale, float scaleX, float scaleY, float alpha, Color color)
+        public SwAData(Vector2 pos, Vector2 rotation, float scaleX, float scaleY, float alpha, Color color)
         {
             this.pos = pos;
             this.rotation = rotation;
-            this.scale = scale;
             this.scaleX = scaleX;
             this.scaleY = scaleY;
             this.alpha = alpha;

@@ -40,6 +40,10 @@
         <Reference Include="BeastMaster">
           <HintPath>..\..\..\..\Download\Steam\steamapps\workshop\content\312520\2920903670\plugins\BeastMaster.dll</HintPath>
         </Reference>
+        <Reference Include="DevConsole">
+          <HintPath>..\..\..\..\Download\Steam\steamapps\workshop\content\312520\2920528044\plugins\DevConsole.dll</HintPath>
+          <Private>false</Private>
+        </Reference>
         <Reference Include="EmgTx">
           <HintPath>..\lib\EmgTx.dll</HintPath>
         </Reference>
@@ -64,11 +68,20 @@
         <Reference Include="Unity.Mathematics">
           <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Unity.Mathematics.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.AssetBundleModule">
+          <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+        </Reference>
     </ItemGroup>
     
     <ItemGroup>
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>..\..\..\..\Download\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.InputLegacyModule">
         <HintPath>..\..\..\Tools\Unity\UnityEngine.InputLegacyModule.dll</HintPath>
@@ -115,7 +128,7 @@
     </Target>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.dll&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\newest\plugins&quot; /Y /L&#xD;&#xA;copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\newest\plugins&quot; /Y /L&#xD;&#xA;" />
+      <Exec Command="copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.dll&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;copy &quot;D:\MakeMods\Rain World\Scientist_rwmod\src\bin\Debug\net48\Scientist.pdb&quot; &quot;D:\MakeMods\Rain World\Scientist_rwmod\mod\plugins&quot; /Y /L&#xD;&#xA;" />
     </Target>
     
 </Project>

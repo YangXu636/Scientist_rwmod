@@ -29,15 +29,10 @@ using MonoMod.Utils;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Unity.Mathematics;
-
-// TODO 属性比起黄猫还要略低
-// TODO 随身携带一只拾荒者精英保镖 已废除
-// TODO 比起普通的阔鱼猫有着更多的手指
-// TODO 可以骑乘在拾荒者上以操控
-// TODO 不可以吃肉 OK!
-// TODO 能从特定生物的尸体或物品中获得素材和灵感，每触摸到一个新的物品就可以获得相关敏感和制造物品
-// TODO 初始自带三个制造：尖矛、绳矛、尖绳矛
-
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
+using Scientist.Enums;
 
 namespace Scientist;
 
@@ -46,11 +41,6 @@ public partial class ScientistPlugin : BaseUnityPlugin
 {
     public const string MOD_ID = "XuYangJerry.Scientist";
     public static string MOD_PATH = "";
-
-    //public static readonly PlayerFeature<bool> IsScientist = PlayerBool("scientist/is_scientist");
-    //public static readonly PlayerFeature<bool> Power = PlayerBool("temp/power");
-    //public static readonly PlayerFeature<float> LowerJump = PlayerFloat("scientist/lower_jump");
-    //public static readonly PlayerFeature<bool> CanPickupShapespearStuckinwall = PlayerBool("scientist/can_pickup_shapespear_stuckinwall");
 
     public static readonly PlayerColor HatColor = new PlayerColor("Hat");
     public static readonly PlayerColor GlassesColor = new PlayerColor("Glasses");
@@ -91,23 +81,23 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void InitApoType()
     {
-        Scientist.Data.GolbalVariables.apoAllTypeList = new();
+        SDGV.apoAllTypeList = new();
         foreach (string value2 in ExtEnum<AbstractPhysicalObject.AbstractObjectType>.values.entries)
         {
-            Scientist.Data.GolbalVariables.apoAllTypeList.Add((AbstractPhysicalObject.AbstractObjectType)ExtEnumBase.Parse(typeof(AbstractPhysicalObject.AbstractObjectType), value2, false));
+            SDGV.apoAllTypeList.Add((AbstractPhysicalObject.AbstractObjectType)ExtEnumBase.Parse(typeof(AbstractPhysicalObject.AbstractObjectType), value2, false));
         }
-        Scientist.Data.GolbalVariables.apoModTypeList = new();
-        Scientist.Data.GolbalVariables.apoEnableTypeList = new();
+        SDGV.apoModTypeList = new();
+        SDGV.apoEnableTypeList = new();
         FieldInfo[] fields = typeof(Enums.Items).GetFields(BindingFlags.Public | BindingFlags.Static);
         foreach (FieldInfo field in fields)
         {
             AbstractPhysicalObject.AbstractObjectType apo = field.GetValue(null) as AbstractPhysicalObject.AbstractObjectType;
-            if (apo != null) { Scientist.Data.GolbalVariables.apoModTypeList.Add(apo); Scientist.Data.GolbalVariables.apoEnableTypeList.Add(apo); }
+            if (apo != null) { SDGV.apoModTypeList.Add(apo); SDGV.apoEnableTypeList.Add(apo); }
         }
-        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items._WaterNut);
-        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.Knot);
-        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.StoneKnife);
-        Scientist.Data.GolbalVariables.apoEnableTypeList.Remove(Scientist.Enums.Items.BlastingStoneBombFragment);
+        SDGV.apoEnableTypeList.Remove(Scientist.Enums.Items._WaterNut);
+        SDGV.apoEnableTypeList.Remove(Scientist.Enums.Items.Knot);
+        SDGV.apoEnableTypeList.Remove(Scientist.Enums.Items.StoneKnife);
+        SDGV.apoEnableTypeList.Remove(Scientist.Enums.Items.BlastingStoneBombFragment);
     }
 
     public void Awake()
@@ -153,7 +143,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 this.scientistOptions.OpenScientistPanelKey.Value = oldOspikKeycode[0];
                 this.scientistOptions.OpenScientistPanelKey.BoxedValue = oldOspikKeycode[0];
                 this.scientistOptions.OpenScientistPanelKey._typedValue = oldOspikKeycode[0];
-                Scientist.Data.GolbalVariables.SOpenScientistPanelKey = oldOspikKeycode[0];
+                SDGV.SOpenScientistPanelKey = oldOspikKeycode[0];
                 this.scientistOptions.SynchronousVariable();
             }
             if (ScientistPlugin.OspKeycodeChangedByConfig)
@@ -171,6 +161,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
         On.RainWorld.Update += RainWorld_Update;
         On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
         On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+
+        // 初始化界面的"Downloading Workshop Content"可能因 0 字节订阅项永远卡住：加一个跳过按钮
+        On.Menu.InitializationScreen.Update += InitializationScreen_Update;
+        On.Menu.Menu.Singal += Menu_Singal;
+        On.Menu.MenuObject.Singal += MenuObject_Singal;
 
         On.RainWorldGame.Update += RainWorldGame_Update;
         On.RainWorldGame.GrafUpdate += RainWorldGame_GrafUpdate;
@@ -200,6 +195,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         //IL.PlayerVariables.GrabUpdate += Player_GrabUpdate_IL;    //兼容原版
         On.Player.ThrowObject += Player_ThrowObject;
         On.Player.ThrownSpear += Player_ThrownSpear;
+        On.Player.TossObject += Player_TossObject;
         On.Player.ShortCutColor += Player_ShortCutColor;
 
         //On.PlayerGraphics.Update += PlayerGraphics_Update;
@@ -272,29 +268,34 @@ public partial class ScientistPlugin : BaseUnityPlugin
         // 开关面板
         if (Input.GetKeyDown(this.scientistOptions.OpenScientistPanelKey.Value))
         {
-            Scientist.Data.GolbalVariables.isPanelOpen = !Scientist.Data.GolbalVariables.isPanelOpen;
-            Scientist.Data.GolbalVariables.isPanelChanged = true;
+            SDGV.isPanelOpen = !SDGV.isPanelOpen;
+            SDGV.isPanelChanged = true;
         }
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.BackQuote))  //按下ESC、Backspace、Delete、BackQuote(`)关闭面板
         {
-            Scientist.Data.GolbalVariables.isPanelOpen = false;
-            Scientist.Data.GolbalVariables.isPanelChanged = true;
+            SDGV.isPanelOpen = false;
+            SDGV.isPanelChanged = true;
         }
 
-        if (Scientist.Data.GolbalVariables.isPanelOpen && this.scientistPanel != null)
+        if (SDGV.isPanelOpen && this.scientistPanel != null)
         {
             this.scientistPanel.Update();
-            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame && !Scientist.Data.GolbalVariables.isPanelChanged)
+            if (SDGV.SEnableOpenPanelPauseGame && !SDGV.isPanelChanged)
             {
                 this.scientistPanel.GrafUpdate(ScientistTools.GetFractionalPart(Time.deltaTime * 40f));
                 return;
             }
         }
-        if (!Scientist.Data.GolbalVariables.isPanelOpen && Scientist.Data.GolbalVariables.isPanelChanged)
+        if (!SDGV.isPanelOpen && SDGV.isPanelChanged)
         {
             this.scientistPanel?.SetVisible(false);
-            Scientist.Data.GolbalVariables.isPanelChanged = false;
+            SDGV.isPanelChanged = false;
         }
+
+        /*if (Input.GetKeyDown(KeyCode.RightShift))   //获取游戏贴图。 TODO 移除
+        {
+            ScientistPanel.GetAllTextures.ExtractTexture();
+        }*/
         orig(self);
     }
 
@@ -302,7 +303,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self);
 
-        if (!hookedOn.KeyIsValue("ScientistOptionsMenu", true)) { hookedOn["ScientistOptionsMenu"] = true; MachineConnector.SetRegisteredOI(MOD_ID, this.scientistOptions); Scientist.Data.GolbalVariables.SOpenScientistPanelKey = this.scientistOptions.OpenScientistPanelKey.Value; }
+        if (!hookedOn.KeyIsValue("ScientistOptionsMenu", true)) { hookedOn["ScientistOptionsMenu"] = true; MachineConnector.SetRegisteredOI(MOD_ID, this.scientistOptions); SDGV.SOpenScientistPanelKey = this.scientistOptions.OpenScientistPanelKey.Value; }
         if (!hookedOn.KeyIsValue("Player_GrabUpdate_IL", true)) { hookedOn["Player_GrabUpdate_IL"] = true; IL.Player.GrabUpdate += Player_GrabUpdate_IL; }
         if (!hookedOn.KeyIsValue("MOD_PATH", true)) { hookedOn["MOD_PATH"] = true; ScientistPlugin.MOD_PATH = this.Info.Location; while (!File.Exists(Path.Combine(ScientistPlugin.MOD_PATH, "modinfo.json"))) { ScientistPlugin.MOD_PATH = Path.GetDirectoryName(ScientistPlugin.MOD_PATH); }  ScientistLogger.Log("MOD_PATH: " + MOD_PATH); }
 
@@ -371,35 +372,38 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
 
         this.InitApoType();
+
+        // DevConsole 软依赖：注册 spawn_rope 命令（没装 DevConsole 会自动跳过）
+        ScientistHooks.DevConsoleHooks.Register();
     }
 
     private void RainWorldGame_Update(On.RainWorldGame.orig_Update orig, RainWorldGame self)
     {
-        if (Scientist.Data.GolbalVariables.isPanelOpen && Scientist.Data.GolbalVariables.isPanelChanged)
+        if (SDGV.isPanelOpen && SDGV.isPanelChanged)
         {
             Scientist.ScientistLogger.Log("ScientistPanel created");
             this.scientistPanel ??= new Scientist.ScientistPanel(self.manager, self);
             this.scientistPanel.SetVisible(true);
-            Scientist.Data.GolbalVariables.isPanelChanged = false;
-            if (Scientist.Data.GolbalVariables.SEnableOpenPanelPauseGame)
+            SDGV.isPanelChanged = false;
+            if (SDGV.SEnableOpenPanelPauseGame)
             {
                 return;
             }
         }
         orig(self);
-        if (self.cameras[0].room != null && Scientist.Data.DebugVariables.showBodyChunks)
+        if (self.cameras[0].room != null && SDDV.showBodyChunks)
         {
-            if (self.cameras[0].room.abstractRoom.name != Scientist.Data.DebugVariables.ShowbodychunksRoomName)
+            if (self.cameras[0].room.abstractRoom.name != SDDV.ShowbodychunksRoomName)
             {
-                List<string> keys = Scientist.Data.DebugVariables.ShowbodychunksList.Keys.ToList();
+                List<string> keys = SDDV.ShowbodychunksList.Keys.ToList();
                 for (int i = 0; i < keys.Count; i++)
                 {
-                    Scientist.Data.DebugVariables.ShowbodychunksList[keys[i]].RemoveSprites();
-                    Scientist.Data.DebugVariables.ShowbodychunksList[keys[i]] = null;
+                    SDDV.ShowbodychunksList[keys[i]].RemoveSprites();
+                    SDDV.ShowbodychunksList[keys[i]] = null;
                 }
-                Scientist.Data.DebugVariables.ShowbodychunksList.Clear();
-                Scientist.Data.DebugVariables.ShowbodychunksGrid = new bool[Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.x / 20.00f) - 4, Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.y / 20.00f) - 4].SetAll(false);
-                Scientist.Data.DebugVariables.ShowbodychunksRoomName = self.cameras[0].room.abstractRoom.name;
+                SDDV.ShowbodychunksList.Clear();
+                SDDV.ShowbodychunksGrid = new bool[Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.x / 20.00f) - 4, Mathf.FloorToInt(self.manager.rainWorld.options.ScreenSize.y / 20.00f) - 4].SetAll(false);
+                SDDV.ShowbodychunksRoomName = self.cameras[0].room.abstractRoom.name;
             }
             if (this.scientistDebugContainer == null)
             {
@@ -408,7 +412,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 this.scientistDebugContainer.MoveToFront();
             }
             this.scientistDebugContainer.RemoveAllChildren();
-            Scientist.Data.DebugVariables.ShowbodychunksGrid.SetAll(false);
+            SDDV.ShowbodychunksGrid.SetAll(false);
             List<string> ftss = new();
             for (int i = 0; i < self.cameras[0].room.physicalObjects.Length; i++)
             {
@@ -419,7 +423,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                     {
                         if (self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1] == null) { continue; }
                         FSprite sprite = new FSprite("Circle20", true) { alpha = 0.7f };
-                        //Scientist.Data.DebugVariables.showBodyChunkSprites.Add(self.room.physicalObjects[i][j].bodyChunks[k1], sprite);
+                        //SDDV.showBodyChunkSprites.Add(self.room.physicalObjects[i][j].bodyChunks[k1], sprite);
                         this.scientistDebugContainer.AddChild(sprite);
                         Vector2 vector = self.cameras[0].room.physicalObjects[i][j].bodyChunks[k1].pos - self.cameras[0].room.world.game.cameras[0].pos;
                         sprite.x = vector.x;
@@ -441,32 +445,32 @@ public partial class ScientistPlugin : BaseUnityPlugin
                         this.scientistDebugContainer.AddChild(fLabel2);
                     }*/
                     string fts = ScientistTools.FeaturesTypeString(self.cameras[0].room.physicalObjects[i][j]);
-                    if (!Scientist.Data.DebugVariables.ShowbodychunksList.ContainsKey(fts))
+                    if (!SDDV.ShowbodychunksList.ContainsKey(fts))
                     {
-                        Scientist.Data.DebugVariables.ShowbodychunksList.Add(fts, new Scientist.Debug.ShowBodychunk(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos));
+                        SDDV.ShowbodychunksList.Add(fts, new Scientist.Debug.ShowBodychunk(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos));
                     }
-                    Scientist.Data.DebugVariables.ShowbodychunksList[fts].AddSpritesToContainer(this.scientistDebugContainer);
-                    Scientist.Data.DebugVariables.ShowbodychunksList[fts].Update(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos);
+                    SDDV.ShowbodychunksList[fts].AddSpritesToContainer(this.scientistDebugContainer);
+                    SDDV.ShowbodychunksList[fts].Update(self.cameras[0].room.physicalObjects[i][j].bodyChunks, self.cameras[0].pos);
                     ftss.Add(fts);
                 }
             }
-            List<string> keys2 = Scientist.Data.DebugVariables.ShowbodychunksList.Keys.ToList();
+            List<string> keys2 = SDDV.ShowbodychunksList.Keys.ToList();
             for (int i = 0; i < keys2.Count; i++)
             {
                 if (!ftss.Contains(keys2[i]))
                 {
-                    Scientist.Data.DebugVariables.ShowbodychunksList.Remove(keys2[i]);
+                    SDDV.ShowbodychunksList.Remove(keys2[i]);
                 }
             }
 
-            /*if (Scientist.Data.DebugVariables.addPhysicsobjectInRoom)
+            /*if (SDDV.addPhysicsobjectInRoom)
             {
 
             }*/
         }
-        else if (Scientist.Data.DebugVariables.changed)
+        else if (SDDV.changed)
         {
-            Scientist.Data.DebugVariables.changed = false;
+            SDDV.changed = false;
             this.scientistDebugContainer?.RemoveAllChildren();
             this.scientistDebugContainer?.RemoveFromContainer();
             this.scientistDebugContainer = null;
@@ -476,15 +480,152 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void RainWorldGame_GrafUpdate(On.RainWorldGame.orig_GrafUpdate orig, RainWorldGame self, float timeStacker)
     {
         orig(self, timeStacker);
-        if (Scientist.Data.GolbalVariables.isPanelOpen && this.scientistPanel != null)
+        if (SDGV.isPanelOpen && this.scientistPanel != null)
         {
             this.scientistPanel.GrafUpdate(timeStacker);
         }
     }
 
+    // ==================== 跳过 Workshop 下载 ====================
+    // RainWorldSteamManager（internal）里的 currentlyDownloading 只在 DownloadItemResult_t 回调中被移除；
+    // 若 Steam 端某项永远不开始/不回调（典型是 0 字节或队列卡死的订阅项），进度就会停在
+    // （已完成项 / 总项数）且界面永远等下去。这里在对话框下方放一个"跳过下载"按钮，点了直接清空列表。
+    private static readonly FieldInfo INIT_SteamManagerField = typeof(ProcessManager).GetField("mySteamManager", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo INIT_DownloadingField = typeof(ProcessManager).Assembly.GetType("RainWorldSteamManager")?.GetField("currentlyDownloading", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+    private Menu.SimpleButton skipWorkshopButton;
+    private double lastWorkshopProgress = -1.0;
+    private float lastWorkshopProgressChangeTime = -1f;
+
+    private void InitializationScreen_Update(On.Menu.InitializationScreen.orig_Update orig, Menu.InitializationScreen self)
+    {
+        orig(self);
+        try
+        {
+            FieldInfo dialogField = typeof(Menu.InitializationScreen).GetField("downloadingWorkshopItemsDialog", BindingFlags.Instance | BindingFlags.NonPublic);
+            bool dialogOpen = dialogField != null && dialogField.GetValue(self) != null;
+
+            if (!dialogOpen)
+            {
+                if (this.skipWorkshopButton != null)
+                {
+                    self.pages[0].subObjects.Remove(this.skipWorkshopButton);
+                    this.skipWorkshopButton.RemoveSprites();
+                    this.skipWorkshopButton = null;
+                }
+                return;
+            }
+            if (this.skipWorkshopButton == null)
+            {
+                Vector2 screen = self.manager.rainWorld.options.ScreenSize;
+                // 与游戏创建该对话框时相同的居中公式，按钮放在对话框内部偏下
+                float left = screen.x / 2f - 240f + (1366f - screen.x) / 2f;
+                Vector2 size = new Vector2(160f, 30f);
+                Vector2 pos = new Vector2(left + (480f - size.x) / 2f, 224f + 26f);
+                this.skipWorkshopButton = new Menu.SimpleButton(self, self.pages[0], self.Translate("跳过下载 (Skip)"), "SKIP_WORKSHOP_DOWNLOAD", pos, size);
+                self.pages[0].subObjects.Add(this.skipWorkshopButton);
+                ScientistLogger.Log("Workshop 下载跳过按钮已添加");
+            }
+
+            // 兜底：进度 45 秒没有任何变化就直接跳过，避免完全卡死
+            object steam = INIT_SteamManagerField?.GetValue(self.manager);
+            MethodInfo progressMethod = steam?.GetType().GetMethod("GetWorkshopDownloadProgress", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (progressMethod != null)
+            {
+                double progress = Convert.ToDouble(progressMethod.Invoke(steam, null));
+                if (this.lastWorkshopProgress < 0.0 || Math.Abs(progress - this.lastWorkshopProgress) > 0.0001)
+                {
+                    this.lastWorkshopProgress = progress;
+                    this.lastWorkshopProgressChangeTime = Time.realtimeSinceStartup;
+                }
+                else if (this.lastWorkshopProgressChangeTime > 0f && Time.realtimeSinceStartup - this.lastWorkshopProgressChangeTime > 45f)
+                {
+                    ScientistLogger.Warning($"Workshop 下载进度 {progress * 100.0:0.00}% 已停住 45 秒，自动跳过");
+                    this.lastWorkshopProgress = -1.0;
+                    this.lastWorkshopProgressChangeTime = -1f;
+                    this.SkipWorkshopDownload(self);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            ScientistLogger.Warning($"InitializationScreen_Update failed: {e.Message}");
+        }
+    }
+
+    private void Menu_Singal(On.Menu.Menu.orig_Singal orig, Menu.Menu self, Menu.MenuObject sender, string message)
+    {
+        if (message == "SKIP_WORKSHOP_DOWNLOAD" && self is Menu.InitializationScreen)
+        {
+            this.SkipWorkshopDownload(self);
+            return;
+        }
+        orig(self, sender, message);
+    }
+
+    /// <summary>SimpleButton.Clicked 的第一跳就是 MenuObject.Singal，在这里拦截最可靠。</summary>
+    private void MenuObject_Singal(On.Menu.MenuObject.orig_Singal orig, Menu.MenuObject self, Menu.MenuObject sender, string message)
+    {
+        if (message == "SKIP_WORKSHOP_DOWNLOAD")
+        {
+            Menu.Menu menu = self != null ? self.menu : (sender != null ? sender.menu : null);
+            if (menu is Menu.InitializationScreen && this.SkipWorkshopDownload(menu))
+            {
+                return;
+            }
+        }
+        orig(self, sender, message);
+    }
+
+    private bool SkipWorkshopDownload(Menu.Menu screen)
+    {
+        bool ok = false;
+        try
+        {
+            // 1) 清空 Steam 侧的等待列表（internal，只能反射）
+            object steam = INIT_SteamManagerField?.GetValue(screen.manager);
+            if (steam != null)
+            {
+                System.Collections.IList downloading = INIT_DownloadingField?.GetValue(steam) as System.Collections.IList;
+                int count = downloading?.Count ?? 0;
+                downloading?.Clear();
+                steam.GetType().GetMethod("ResetDownloadBatch", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.Invoke(steam, null);
+                ScientistLogger.Log($"Workshop 下载已跳过（清空 {count} 项）");
+                ok = true;
+            }
+            else
+            {
+                ScientistLogger.Warning("SkipWorkshopDownload: mySteamManager 反射失败");
+            }
+        }
+        catch (Exception e)
+        {
+            ScientistLogger.Warning($"SkipWorkshopDownload 清空失败: {e.Message}");
+        }
+        try
+        {
+            // 2) 兜底：直接隐藏对话框并把初始化步骤推进到下一步，避免这一帧之后又卡回去
+            Type screenType = typeof(Menu.InitializationScreen);
+            screenType.GetMethod("HideWorkshopDownloadingDialog", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(screen, null);
+            FieldInfo stepField = screenType.GetField("currentStep", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (stepField != null)
+            {
+                object next = Enum.Parse(stepField.FieldType, "VALIDATE_WORKSHOP_CONTENT");
+                stepField.SetValue(screen, next);
+                ScientistLogger.Log("初始化步骤已推进到 VALIDATE_WORKSHOP_CONTENT");
+                ok = true;
+            }
+        }
+        catch (Exception e)
+        {
+            ScientistLogger.Warning($"SkipWorkshopDownload 推进步骤失败: {e.Message}");
+        }
+        return ok;
+    }
+
     private void RainWorldGameOnShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)
     {
         orig(self);
+        Scientist.Items.RopePathSolver.ClearCache();   // 换关/退出时清掉路径推断的房间位图
         this.ClearMemory();
     }
 
@@ -531,9 +672,9 @@ public partial class ScientistPlugin : BaseUnityPlugin
     private void AbstractCreature_Move(On.AbstractCreature.orig_Move orig, AbstractCreature self, WorldCoordinate newCoord)
     {
         string acin = Scientist.ScientistTools.FeaturesTypeString(self);
-        if (Scientist.Data.PlayerVariables.anesthesiaCreatures.ContainsKey(acin) && Scientist.Data.PlayerVariables.anesthesiaCreatures[acin].IsEnabled())
+        if (SDPV.anesthesiaCreatures.ContainsKey(acin) && SDPV.anesthesiaCreatures[acin].IsEnabled())
         {
-            Scientist.Data.PlayerVariables.anesthesiaCreatures[acin].AddCounter(Mathf.FloorToInt(self.realizedObject.TotalMass));
+            SDPV.anesthesiaCreatures[acin].AddCounter(Mathf.FloorToInt(self.realizedObject.TotalMass));
             return;
         }
         orig(self, newCoord);
@@ -589,27 +730,26 @@ public partial class ScientistPlugin : BaseUnityPlugin
             }
             else if (self is PoleMimic)
             {
-                Scientist.Items.AbstractPhysicalObjects.KnotAbstract knot1 = new(self.room.world, null, (self as PoleMimic).abstractCreature.pos, self.room.world.game.GetNewID());
-                Scientist.Items.AbstractPhysicalObjects.KnotAbstract knot2 = new(self.room.world, null, (self as PoleMimic).abstractCreature.pos, self.room.world.game.GetNewID());
-
+                // 拟态草死亡 → 掉落绳子（两个绳结 + 一段绳身）。两个绳结各自记录"对端 ID + 绳长"，
+                // 绳身会在它们进房（PlaceInRoom）时自动接回来，跨房间时两侧各接半截绳。
+                float ropeLength = Mathf.Max(20f, (self as PoleMimic).length / 4f);
+                Scientist.Items.AbstractPhysicalObjects.KnotAbstract knot1 = new(self.room.world, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
+                Scientist.Items.AbstractPhysicalObjects.KnotAbstract knot2 = new(self.room.world, null, self.abstractPhysicalObject.pos, self.room.world.game.GetNewID());
                 knot1.position = (self as PoleMimic).rootPos;
                 knot2.position = (self as PoleMimic).tipPos;
-
-                Items.StringShort stringshort = new(self.room, (self as PoleMimic).length / 4f, knot1, knot2);
-
-                knot1.ss.Add(stringshort);
-                knot2.ss.Add(stringshort);
+                knot1.hasRopePartner = true;
+                knot1.ropePartnerID = knot2.ID;
+                knot1.ropeLength = ropeLength;
+                knot2.hasRopePartner = true;
+                knot2.ropePartnerID = knot1.ID;
+                knot2.ropeLength = ropeLength;
 
                 self.room.abstractRoom.AddEntity(knot1);
                 self.room.abstractRoom.AddEntity(knot2);
-
                 knot1.RealizeInRoom();
                 knot2.RealizeInRoom();
-
-                knot1.realizedObject.bodyChunks[0].pos = (self as PoleMimic).rootPos;
-                knot2.realizedObject.bodyChunks[0].pos = (self as PoleMimic).tipPos;
-
-                self.room.AddObject(stringshort);
+                if (knot1.realizedObject != null) { knot1.realizedObject.bodyChunks[0].HardSetPosition((self as PoleMimic).rootPos); }
+                if (knot2.realizedObject != null) { knot2.realizedObject.bodyChunks[0].HardSetPosition((self as PoleMimic).tipPos); }
             }
         }
     }
@@ -618,16 +758,16 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self);
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
-        if (Scientist.Data.PlayerVariables.colorfulCreatures.ContainsKey(fts))
+        if (SDPV.colorfulCreatures.ContainsKey(fts))
         {
-            if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].enabled)
+            if (SDPV.colorfulCreatures[fts].enabled)
             {
-                Scientist.Data.PlayerVariables.colorfulCreatures[fts].AddCounter(UnityEngine.Random.Range(1, 41));
-                Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetLightSource();
+                SDPV.colorfulCreatures[fts].AddCounter(UnityEngine.Random.Range(1, 41));
+                SDPV.colorfulCreatures[fts].SetLightSource();
             }
             else
             {
-                Scientist.Data.PlayerVariables.colorfulCreatures.Remove(fts);
+                SDPV.colorfulCreatures.Remove(fts);
             }
         }
     }
@@ -643,20 +783,20 @@ public partial class ScientistPlugin : BaseUnityPlugin
             sLeaser.RemoveAllSpritesFromContainer();
         }
         string fts = Scientist.ScientistTools.FeaturesTypeString(self.owner);
-        if (Scientist.Data.PlayerVariables.colorfulCreatures.ContainsKey(fts))
+        if (SDPV.colorfulCreatures.ContainsKey(fts))
         {
-            Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetOriginalColors(sLeaser);
-            if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].enabled)
+            SDPV.colorfulCreatures[fts].SetOriginalColors(sLeaser);
+            if (SDPV.colorfulCreatures[fts].enabled)
             {
-                if (Scientist.Data.PlayerVariables.colorfulCreatures[fts].lightSource == null)
+                if (SDPV.colorfulCreatures[fts].lightSource == null)
                 {
-                    Scientist.Data.PlayerVariables.colorfulCreatures[fts].SetLightSource();
+                    SDPV.colorfulCreatures[fts].SetLightSource();
                 }
                 for (int i = 0; i < sLeaser.sprites.Length; i++)
                 {
                     if (sLeaser.sprites[i] != null)
                     {
-                        sLeaser.sprites[i].color = Scientist.Data.PlayerVariables.colorfulCreatures[fts].lightSource.color;
+                        sLeaser.sprites[i].color = SDPV.colorfulCreatures[fts].lightSource.color;
                     }
                 }
             }
@@ -801,15 +941,17 @@ public partial class ScientistPlugin : BaseUnityPlugin
     {
         orig(self, abstractCreature, world);
         string pin = ScientistTools.FeaturesTypeString(self);
-        Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] = 0;
-        Scientist.Data.PlayerVariables.pfTime[pin] = 0;
-        Scientist.Data.PlayerVariables.pfDieInActive[pin] = 0;
+        SDPV.pfEatTimesInACycle[pin] = 0;
+        SDPV.pfTime[pin] = 0;
+        SDPV.pfDieInActive[pin] = 0;
     }
 
     private void Player_Stun(On.Player.orig_Stun orig, Player self, int st)
     {
+        if (SDDV.logWhenPlayerStun) { ScientistLogger.Log("Player Stun. \n", true); }
+        if (SDDV.playerNoStun) { return; }
         string pin = ScientistTools.FeaturesTypeString(self);
-        if (this.scientistOptions.EnableOldPf.Value && Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time) && time > 0)
+        if (this.scientistOptions.EnableOldPf.Value && SDPV.pfTime.TryGetValue(pin, out int time) && time > 0)
         {
             return;
         }
@@ -818,27 +960,21 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     private void Player_Die(On.Player.orig_Die orig, Player self)
     {
+        if (SDDV.logWhenPlayerDie) { ScientistLogger.Log("Player Die.\n", true); }
         string pin = ScientistTools.FeaturesTypeString(self);
-        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time) && time > 0 && Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] < 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/ && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && Scientist.Data.PlayerVariables.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
+        if (SDPV.pfTime.TryGetValue(pin, out int time) && time > 0 && SDPV.pfEatTimesInACycle[pin] < 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/ && (this.scientistOptions.EnableOldPf.Value || (!this.scientistOptions.EnableOldPf.Value && SDPV.pfDieInActive.TryGetValue(pin, out int count) && count < 6)))
         {
-            Scientist.Data.PlayerVariables.pfDieInActive[pin]++;
+            SDPV.pfDieInActive[pin]++;
             self.Stun(4);
             return;
         }
-        if (Scientist.Data.DebugVariables.playerNoDie)
-        {
-            if (Scientist.Data.DebugVariables.logWhenPlayerDie)
-            {
-                ScientistLogger.Log("PlayerVariables Die, but not really~\n", true);
-            }
-            return;
-        }
+        if (SDDV.playerNoDie) { return; }
         orig(self);
-        if (Scientist.Data.PlayerVariables.pfTime.ContainsKey(pin))
+        if (SDPV.pfTime.ContainsKey(pin))
         {
-            Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] = 0;
-            Scientist.Data.PlayerVariables.pfTime[pin] = 0;
-            Scientist.Data.PlayerVariables.pfDieInActive[pin] = 0;
+            SDPV.pfEatTimesInACycle[pin] = 0;
+            SDPV.pfTime[pin] = 0;
+            SDPV.pfDieInActive[pin] = 0;
         }
     }
 
@@ -946,6 +1082,17 @@ public partial class ScientistPlugin : BaseUnityPlugin
             {
                 return new Scientist.Items.AbstractPhysicalObjects.TremblingFruitAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]), new Color[2] { ScientistTools.ColorFromHex(data[3]) , ScientistTools.ColorFromHex(data[4]) }) { rippleLayer = rippleLayer };
             }
+            else if (data[1] == "Knot" && data.Length == 5)
+            {
+                // 绳结：data[3] = 对端绳结 ID，data[4] = 绳长。绳身在 Knot.PlaceInRoom 里按这条信息重建。
+                return new Scientist.Items.AbstractPhysicalObjects.KnotAbstract(world, null, WorldCoordinate.FromString(data[2]), EntityID.FromString(data[0]))
+                {
+                    rippleLayer = rippleLayer,
+                    hasRopePartner = true,
+                    ropePartnerID = EntityID.FromString(data[3]),
+                    ropeLength = float.TryParse(data[4], NumberStyles.Any, CultureInfo.InvariantCulture, out float ropeLength) ? ropeLength : 60f
+                };
+            }
         }
         catch (Exception e) { ScientistLogger.Warning(e); e.LogDetailed(); return null; }
         return orig(world, objString);
@@ -958,7 +1105,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
 
     public void Player_Update(On.Player.orig_Update orig, Player self, bool eu) 
     {
-        Scientist.Data.PlayerVariables.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : Scientist.Data.PlayerVariables.offlineTime + 1;
+        SDPV.offlineTime = self.input[0].AnyInput || self.input[1].AnyInput ?  0 : SDPV.offlineTime + 1;
         int playerIndex = ScientistTools.PlayerIndex(self);
         string pin = ScientistTools.FeaturesTypeString(self);
         if (!self.inShortcut && enteredShortCut)
@@ -978,7 +1125,17 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 }
             }
         }
-        orig(self, eu);
+        // 攀爬查询上下文：原版在 Player.Update 内部通过 room.climbableVines.VineOverlap 查找可攀爬物，
+        // 这里把"发起查询的玩家"记下来，StringShort.CurrentlyClimbable 才能判断"这绳是不是正被自己拿着"。
+        Items.StringShort.climbQueryPlayer = self;
+        try
+        {
+            orig(self, eu);
+        }
+        finally
+        {
+            Items.StringShort.climbQueryPlayer = null;
+        }
         /*if (!self.inShortcut && self.room != null && self.room.waterObject != null && Input.GetKeyDown(KeyCode.LeftControl))
         {
             Scientist.ScientistLogger.Log($"self.room.waterObject.fWaterLevel = {self.room.waterObject.fWaterLevel}");
@@ -1006,12 +1163,12 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         dfsStringshortVisited.Clear();
         dfsSsAndKaVisited.Clear();
-        if (self.SlugCatClass.value == MOD_ID && (Scientist.Data.PlayerVariables.offlineTime <= 10 || Scientist.Data.PlayerVariables.offlineTime > 640) && scr != null)
+        if (self.SlugCatClass.value == MOD_ID && (SDPV.offlineTime <= 10 || SDPV.offlineTime > 640) && scr != null)
         {
             scr.Destroy();
             scr = null;
         }
-        if (Scientist.Data.PlayerVariables.offlineTime > 320 && Scientist.Data.PlayerVariables.offlineTime <= 640)
+        if (SDPV.offlineTime > 320 && SDPV.offlineTime <= 640)
         {
             if (self.SlugCatClass.value == MOD_ID  && (CraftingResults(self) != null || Scientist.ScientistSlugcat.GetSpecialCraftingResult(self) != null) && scr == null)
             {
@@ -1025,14 +1182,14 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 ScientistLogger.Log($"isd = {isd}");
             }
         }
-        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time1) && time1 > 0)   //无痛果效果
+        if (SDPV.pfTime.TryGetValue(pin, out int time1) && time1 > 0)   //无痛果效果
         {
             if (!self.inShortcut)
             {
-                Scientist.Data.PlayerVariables.pfTime[pin]--;
-                if (Scientist.Data.PlayerVariables.pfTime[pin] == 0)
+                SDPV.pfTime[pin]--;
+                if (SDPV.pfTime[pin] == 0)
                 {
-                    Scientist.Data.PlayerVariables.pfTime[pin]--;
+                    SDPV.pfTime[pin]--;
                 }
             }
             //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 1f, 0.05f, 0.025f);
@@ -1055,11 +1212,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
         }
         //self.mushroomEffect = Custom.LerpAndTick(self.mushroomEffect, 0f, 0.025f, 0.014285714f);
         IL_1S:
-        if (Scientist.Data.PlayerVariables.pfTime.TryGetValue(pin, out int time2) && time2 < 0 && Scientist.Data.PlayerVariables.pfDieInActive[pin] > 0)
+        if (SDPV.pfTime.TryGetValue(pin, out int time2) && time2 < 0 && SDPV.pfDieInActive[pin] > 0)
         {
             self.Die();
         }
-        if (Scientist.Data.PlayerVariables.pfTime.ContainsKey(pin) && Scientist.Data.PlayerVariables.pfEatTimesInACycle[pin] >= 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/)
+        if (SDPV.pfTime.ContainsKey(pin) && SDPV.pfEatTimesInACycle[pin] >= 3/*2 + this.scientistOptions.EnableOldPf.Value.ToInt()*/)
         {
             self.Die();
         }
@@ -1094,6 +1251,20 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (spear is Items.SharpSpear iss)
         {
             iss.bodyChunks[0].vel *= 1.6f;
+        }
+        else if (spear is Items.StormboltSpear iss2)
+        {
+            iss2.bodyChunks[0].vel *= 1.4f;
+        }
+    }
+
+    private void Player_TossObject(On.Player.orig_TossObject orig, Player self, int grasp, bool eu)
+    {
+        orig(self, grasp, eu);
+        PhysicalObject grabbed = self.grasps[grasp].grabbed;
+        if (grabbed is RockJellyfish)
+        {
+            (grabbed as RockJellyfish).Tossed(self);
         }
     }
 
@@ -1153,6 +1324,9 @@ public partial class ScientistPlugin : BaseUnityPlugin
         Futile.atlasManager.LoadAtlas("atlases/textures/TremblingFruit");
         Futile.atlasManager.LoadAtlas("atlases/textures/BlastingStoneBomb");
         Futile.atlasManager.LoadAtlas("atlases/textures/BlastingStoneBombFragment");
+
+
+        Shaders.Init();
     }
 
     private void RainWorld_OnModsEnabled(On.RainWorld.orig_OnModsEnabled orig, RainWorld self, ModManager.Mod[] newlyEnabledMods)
@@ -1262,6 +1436,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             self.realizedObject = new Items.StormboltSpear(self is Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract ssa ? ssa : new Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract(self.world, null, self.pos, self.ID), self.world);
         }
+        if (self.type == Enums.Items.RockJellyfish)
+        {
+            self.realizedObject = new Items.RockJellyfish(self, self.world);
+        }
     }
 
     private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -1368,6 +1546,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         {
             return Player.ObjectGrabability.TwoHands;
         }
+        if (obj is Items.RockJellyfish)
+        {
+            return Player.ObjectGrabability.OneHand;
+        }
         return orig(self, obj);
     }
 
@@ -1448,6 +1630,10 @@ public partial class ScientistPlugin : BaseUnityPlugin
         if (itemType == Scientist.Enums.Items.StormboltSpear)
         {
             return "Symbol_ElectricSpear";
+        }
+        if (itemType == Scientist.Enums.Items.RockJellyfish)
+        {
+            //return "Symbol_RockJellyfish";
         }
         return orig(itemType, intData);
             
@@ -1712,7 +1898,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
         player.objectInStomach.RealizeInRoom();
         if (ModManager.MMF && MMF.cfgKeyItemTracking.Value && AbstractPhysicalObject.UsesAPersistantTracker(player.objectInStomach) && player.room.game.IsStorySession)
         {
-            (player.room.game.session as StoryGameSession).AddNewPersistentTracker(player.objectInStomach);
+            (player.room.game.session as StoryGameSession).AddNewPersistentTracker(player.objectInStomach, player.room.world);
             if (player.room.abstractRoom.NOTRACKERS)
             {
                 player.objectInStomach.tracker.lastSeenRegion = player.lastGoodTrackerSpawnRegion;
@@ -2021,7 +2207,7 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 {
                     (player.graphicsModule as PlayerGraphics).LookAtObject(player.grasps[num5].grabbed);
                 }
-                if (ModManager.MSC && player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Saint && (player.KarmaCap == 9 || (player.room.game.IsArenaSession && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.gameType != MoreSlugcatsEnums.GameTypeID.Challenge) || (player.room.game.session is ArenaGameSession && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.gameType == MoreSlugcatsEnums.GameTypeID.Challenge && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.challengeMeta.ascended)) && player.grasps[num5].grabbed is Fly && player.eatCounter < 1)
+                if (ModManager.MSC && player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Saint && (player.KarmaCap == 9 || (player.room.game.IsArenaSession && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.gameType != DLCSharedEnums.GameTypeID.Challenge) || (player.room.game.session is ArenaGameSession && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.gameType == DLCSharedEnums.GameTypeID.Challenge && player.room.game.GetArenaGameSession.arenaSitting.gameTypeSetup.challengeMeta.ascended)) && player.grasps[num5].grabbed is Fly && player.eatCounter < 1)
                 {
                     player.room.PlaySound(SoundID.Snail_Pop, player.mainBodyChunk, false, 1f, 1.5f + UnityEngine.Random.value);
                     player.eatCounter = 30;
@@ -2098,11 +2284,11 @@ public partial class ScientistPlugin : BaseUnityPlugin
                 player.spearOnBack.increment = true;
             }
         }
-        if (Scientist.Data.PlayerVariables.craftingTime.TryGetValue(pin, out int numCt) && numCt == 280 && player.input[0].x != 0)
+        if (SDPV.craftingTime.TryGetValue(pin, out int numCt) && numCt == 280 && player.input[0].x != 0)
         {
             player.swallowAndRegurgitateCounter = 0;
-            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
-                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
+            if (SDPV.craftingTime.ContainsKey(pin))
+                SDPV.craftingTime.Remove(pin);
             player.craftingObject = false;
             AbstractPhysicalObject apo1 = player.grasps[0].grabbed.abstractPhysicalObject;
             AbstractPhysicalObject apo2 = player.grasps[1].grabbed.abstractPhysicalObject;
@@ -2281,13 +2467,13 @@ public partial class ScientistPlugin : BaseUnityPlugin
             if (player.craftingObject)                          //合成
             {
                 player.swallowAndRegurgitateCounter++;
-                if (!Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
-                    Scientist.Data.PlayerVariables.craftingTime[pin] = CraftingTime(player);
-                if (player.swallowAndRegurgitateCounter > Scientist.Data.PlayerVariables.craftingTime[pin])
+                if (!SDPV.craftingTime.ContainsKey(pin))
+                    SDPV.craftingTime[pin] = CraftingTime(player);
+                if (player.swallowAndRegurgitateCounter > SDPV.craftingTime[pin])
                 {
                     SpitUpCraftedObject(player);                //使用修改后的SpitUpCraftedObject
                     player.swallowAndRegurgitateCounter = 0;
-                    Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
+                    SDPV.craftingTime.Remove(pin);
                     faas.craftingCount++;
                     if (hookedOn.KeyIsValue("FakeAchievements", true))
                     {
@@ -2344,8 +2530,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                         player.slugOnBack.interactionLocked = true;
                     }
                     player.swallowAndRegurgitateCounter = 0;
-                    if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
-                        Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
+                    if (SDPV.craftingTime.ContainsKey(pin))
+                        SDPV.craftingTime.Remove(pin);
                 }
                 else if (false && player.objectInStomach == null && player.swallowAndRegurgitateCounter > 90)   //禁止使用胃袋存储
                 {
@@ -2364,8 +2550,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
                                 player.slugOnBack.interactionLocked = true;
                             }
                             player.swallowAndRegurgitateCounter = 0;
-                            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
-                                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
+                            if (SDPV.craftingTime.ContainsKey(pin))
+                                SDPV.craftingTime.Remove(pin);
                             (player.graphicsModule as PlayerGraphics).swallowing = 20;
                             break;
                         }
@@ -2387,8 +2573,8 @@ public partial class ScientistPlugin : BaseUnityPlugin
         else
         {
             player.swallowAndRegurgitateCounter = 0;
-            if (Scientist.Data.PlayerVariables.craftingTime.ContainsKey(pin))
-                Scientist.Data.PlayerVariables.craftingTime.Remove(pin);
+            if (SDPV.craftingTime.ContainsKey(pin))
+                SDPV.craftingTime.Remove(pin);
         }
         for (int num14 = 0; num14 < player.grasps.Length; num14++)
         {
@@ -2882,19 +3068,19 @@ public partial class ScientistPlugin : BaseUnityPlugin
         this.scientistPanel?.ShutDownProcess();
         this.scientistPanel = null;
 
-        Scientist.Data.PlayerVariables.pfEatTimesInACycle.SetAll(0);
-        Scientist.Data.PlayerVariables.pfDieInActive.SetAll(0);
-        Scientist.Data.PlayerVariables.pfTime.SetAll(0);
+        SDPV.pfEatTimesInACycle.SetAll(0);
+        SDPV.pfDieInActive.SetAll(0);
+        SDPV.pfTime.SetAll(0);
 
-        Scientist.Data.PlayerVariables.craftingTime.Clear();
+        SDPV.craftingTime.Clear();
 
-        foreach (var item in Scientist.Data.PlayerVariables.colorfulCreatures)
+        foreach (var item in SDPV.colorfulCreatures)
         {
             item.Value.SetEnabled(false);
         }
-        Scientist.Data.PlayerVariables.colorfulCreatures.Clear();
+        SDPV.colorfulCreatures.Clear();
 
-        Scientist.Data.PlayerVariables.anesthesiaCreatures.Clear();
+        SDPV.anesthesiaCreatures.Clear();
 
         this.scientistDebugContainer?.RemoveAllChildren();
         this.scientistDebugContainer?.RemoveFromContainer();
@@ -2932,7 +3118,6 @@ public static class ScientistLogger
 
     public static void Warning<T>(T msg, Exception e, bool getCallChain = false)
     {
-        if (!Enabled) { return; }
         if (!EnabledWarning) { return; }
         UnityEngine.Debug.LogWarning($" [Scientist]: {msg}");
         e.LogDetailed();
@@ -2945,7 +3130,6 @@ public static class ScientistLogger
 
     public static void Error(string msg, bool getCallChain = false)
     {
-        if (!Enabled) { return; }
         if (!EnabledError) { return; }
         UnityEngine.Debug.LogError($" [Scientist]: {msg}");
         if (getCallChain)

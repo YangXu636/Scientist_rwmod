@@ -67,6 +67,8 @@ public class Knot : PlayerCarryableItem, IDrawable
         base.firstChunk.HardSetPosition(placeRoom.MiddleOfTile(this.abstractPhysicalObject.pos));
         this.rotation = Custom.RNV();
         this.lastRotation = this.rotation;
+        // 进房后按存档里记录的"对端 ID + 绳长"把绳身接回来（跨房间时接出半截绳）
+        Items.StringShort.TryRebuildFor(this.knotAbstract);
     }
 
     public override void Destroy()

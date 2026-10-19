@@ -95,7 +95,7 @@ public class KongmingLantern : PlayerCarryableItem, IDrawable
         }
         if (this.lightSource == null)
         {
-            this.lightSource = new LightSource(base.firstChunk.pos, false, Color.Lerp(Color.red, Color.yellow, 0.5f), this);
+            this.lightSource ??= new LightSource(base.firstChunk.pos, false, Color.Lerp(Color.red, Color.yellow, 0.5f), this);
             this.lightSource.affectedByPaletteDarkness = 0.5f;
             this.room.AddObject(this.lightSource);
         }

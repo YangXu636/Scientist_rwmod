@@ -8,6 +8,16 @@ using Menu.Remix.MixedUI;
 using UnityEngine;
 using Newtonsoft.Json;
 using static Menu.Remix.MenuModList.ModButton;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
+using UnityEditor.PackageManager;
+using Scientist.Data;
+
+// TODO 物品版面设计实装
+// TODO 生物、成就、合成表版面设计
+// TODO Json的跳转文本实现
+// TODO 历史记录（预定快捷键: Ctrl + - (向后导航), Ctrl + Shift + - (向前导航)）
 
 namespace Scientist;
 
@@ -15,6 +25,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
 {
     public RainWorldGame game;
     public FSprite[] blackSprite;
+    public float[] blackSpriteAlpha = new float[2] { 0.5f, 0.4f };
     public float blackFade;
     public float lastBlackFade;
     public float[,] micVolumes;
@@ -22,6 +33,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     public int counter;
 
     public bool isShowing = false;
+    public SmoothChange sc = new SmoothChange();
     public Player playerOpen;
     public MenuLabel uselessMessage;
     public int uselessMessageChangeCounter = 0;
@@ -33,7 +45,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     public SimpleButton debugPageButton;
 
     public List<SimpleButton> itemsObjectButtons;
-    public List<KeyValuePair<AbstractPhysicalObject.AbstractObjectType, FSprite>> itemsObjectButtonIcons;
+    public List<KeyValuePair<AbstractPhysicalObject.AbstractObjectType, FSprite> > itemsObjectButtonIcons;
     public List<SimpleButton> itemsObjectChangeGroupIndexButtons;
     public List<FSprite> itemsObjectChangeGroupIndexButtonIcons;
     public const int itemsObjectGroupCount = 11;
@@ -72,7 +84,10 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.WarpPreInit(game);
         this.game = game;
         this.pages.Add(new Page(this, null, "Main", 0));
-        this.blackSprite = new FSprite[2] { new FSprite("pixel", true) { color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black), scaleX = 1400f, scaleY = 800f, alpha = 0.5f, x = this.manager.rainWorld.options.ScreenSize.x / 2f, y = this.manager.rainWorld.options.ScreenSize.y / 2f }, new FSprite("pixel", true) { color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black), scaleX = 1100f, scaleY = 720f, alpha = 0.4f, x = this.manager.rainWorld.options.ScreenSize.x / 2f, y = this.manager.rainWorld.options.ScreenSize.y / 2f } };
+        this.blackSprite = new FSprite[2] { 
+            new FSprite("pixel", true) { color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black), scaleX = 1400f, scaleY = 800f, alpha = this.blackSpriteAlpha[0], x = this.manager.rainWorld.options.ScreenSize.x / 2f, y = this.manager.rainWorld.options.ScreenSize.y / 2f }, 
+            new FSprite("pixel", true) { color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black), scaleX = 1100f, scaleY = 720f, alpha = this.blackSpriteAlpha[1], x = this.manager.rainWorld.options.ScreenSize.x / 2f, y = this.manager.rainWorld.options.ScreenSize.y / 2f } 
+        };
         this.pages[0].Container.AddChild(this.blackSprite[0]);
         this.pages[0].Container.AddChild(this.blackSprite[1]);
         this.SetupChangePageButton();
@@ -119,6 +134,8 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.WarpInit(game);
         this.ChangePage(Scientist.ScientistPanel.PageModeIndex.None);
         this.TranslatioItemName = ScientistPanel.GetObjectNameJsonConvert("items");
+        this.sc = new();
+        this.sc.GotoF(1f);
     }
 
     public void SetupChangePageButton()
@@ -130,7 +147,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.craftingtablePageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_CRAFTINGTABLE_CHANGEtoPAGE"), "CRAFTINGTABLE_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 155f), new Vector2(110f, 30f));
         this.advancementsPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_ADVANCEMENTS_CHANGEtoPAGE"), "ADVANCEMENTS_CHANGEtoPAGE", new Vector2(10f, manager.rainWorld.options.ScreenSize.y - 195f), new Vector2(110f, 30f));
         this.debugPageButton = new SimpleButton(this, this.pages[0], this.Translate("SCIENCEPANEL_DEBUG_CHANGEtoPAGE"), "DEBUG_CHANGEtoPAGE", new Vector2(10f, 40f), new Vector2(110f, 30f));
-        this.debugPageButton.buttonBehav.greyedOut = !Scientist.Data.GolbalVariables.SEnableDebug;
+        this.debugPageButton.buttonBehav.greyedOut = !SDGV.SEnableDebug;
 
         this.itemsPageButton.nextSelectable[1] = this.itemsPageButton.nextSelectable[2] = this.debugPageButton;                  //1:up 2:left 3:down 4:right
         this.itemsPageButton.nextSelectable[3] = this.craftingtablePageButton;
@@ -157,7 +174,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.itemsObjectButtonIcons = new();
         this.itemsObjectInfoButtons = new();
         FieldInfo[] fields = typeof(Enums.Items).GetFields(BindingFlags.Public | BindingFlags.Static);
-        foreach (AbstractPhysicalObject.AbstractObjectType apo in /*Scientist.Data.DebugVariables.enable*/Scientist.Data.GolbalVariables.SEnableDebug ? Scientist.Data.GolbalVariables.apoModTypeList : Scientist.Data.GolbalVariables.apoEnableTypeList)
+        foreach (AbstractPhysicalObject.AbstractObjectType apo in /*SDDV.enable*/SDGV.SEnableDebug ? SDGV.apoModTypeList : SDGV.apoEnableTypeList)
         {
             if (apo == null) {  continue; }
             this.itemsObjectButtonIcons.Add(new KeyValuePair<AbstractPhysicalObject.AbstractObjectType, FSprite>(apo, new FSprite(ItemSymbol.SpriteNameForItem(apo, 0), true) { color = ItemSymbol.ColorForItem(apo, 0) }));
@@ -238,6 +255,10 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         this.pages[0].subObjects.AddSafe(this.debugCheckboxes["playerNoDie"]);
         this.debugCheckboxes["logWhenPlayerDie"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 130f), -30f, this.Translate("DEBUG_logWhenPlayerDie"), "DEBUG_logWhenPlayerDie", false);
         this.pages[0].subObjects.AddSafe(this.debugCheckboxes["logWhenPlayerDie"]);
+        this.debugCheckboxes["playerNoStun"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 160f), -30f, this.Translate("DEBUG_playerNoStun"), "DEBUG_playerNoStun", false);
+        this.pages[0].subObjects.AddSafe(this.debugCheckboxes["playerNoStun"]);
+        this.debugCheckboxes["logWhenPlayerStun"] = new CheckBox(this, this.pages[0], this, new Vector2(150f, (manager.rainWorld.options.ScreenSize.y + 720f) / 2f - 190f), -30f, this.Translate("DEBUG_logWhenPlayerStun"), "DEBUG_logWhenPlayerStun", false);
+        this.pages[0].subObjects.AddSafe(this.debugCheckboxes["logWhenPlayerStun"]);
     }
 
     public void RemoveDebugPage()
@@ -317,6 +338,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
     public override void Update()
     {
         this.counter++;
+        this.sc.Update();
         if (this.game.IsArenaSession && this.game.GetArenaGameSession is SandboxGameSession && (this.game.GetArenaGameSession as SandboxGameSession).overlay != null)
         {
             (this.game.GetArenaGameSession as SandboxGameSession).overlay.Update();
@@ -366,6 +388,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         {
             sgs.overlay.GrafUpdate(timeStacker);
         }
+        this.blackSprite[0].alpha = this.blackSpriteAlpha[0] * this.sc.gvFolat;
         for (int i = 0; i < this.game.cameras.Length; i++)
         {
             this.game.cameras[i].virtualMicrophone.DrawUpdate(timeStacker, 1f - 0.3f * Mathf.Lerp(this.lastBlackFade, this.blackFade, timeStacker));
@@ -496,7 +519,7 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
                 if (b != null && field.Name == box.IDString.Replace("DEBUG_", ""))
                 {
                     field.SetValue(null, c);
-                    Scientist.Data.DebugVariables.changed = true;
+                    SDDV.changed = true;
                 }
             }
         }
@@ -587,6 +610,59 @@ public class ScientistPanel : Menu.Menu, CheckBox.IOwnCheckBox
         }
         return result;
     }
+
+    /*public static class GetAllTextures
+    {
+        public static void ExtractTexture()
+        {
+            foreach (var fAtlas in Futile.atlasManager._atlases)
+            {
+                SaveTextureAsPNG(TextureToTexture2D(fAtlas.texture, new Rect(0, 0, fAtlas.texture.width, fAtlas.texture.height), new Rect(0, 0, fAtlas.texture.width, fAtlas.texture.height)), "AllAtlases\\" + fAtlas.name + ".png");
+            }
+            foreach (var kvp in Futile.atlasManager._allElementsByName)
+            {
+                SaveTextureAsPNG(TextureToTexture2D(kvp.Value.atlas.texture, UVRectToFrame(kvp.Value.uvRect, kvp.Value.atlas._textureSize), kvp.Value.sourceRect), kvp.Value.atlas.name + "\\" + kvp.Key + ".png");
+            }
+        }
+
+        private static Texture2D TextureToTexture2D(Texture texture, Rect frameRect = default(Rect), Rect sourceRect = default(Rect))
+        {
+            Texture2D texture2D = new Texture2D(Mathf.CeilToInt(sourceRect.width), Mathf.CeilToInt(sourceRect.height), TextureFormat.RGBA32, false);
+            RenderTexture currentRT = RenderTexture.active;
+            RenderTexture renderTexture = RenderTexture.GetTemporary(texture.width, texture.height, 32);
+            Graphics.Blit(texture, renderTexture);
+
+            RenderTexture.active = renderTexture;
+            texture2D.ReadPixels(new Rect(frameRect.x, frameRect.y, sourceRect.width, sourceRect.height), 0, 0);
+            texture2D.Apply();
+
+            RenderTexture.active = currentRT;
+            RenderTexture.ReleaseTemporary(renderTexture);
+
+            return texture2D;
+        }
+
+        public static void SaveTextureAsPNG(Texture2D texture2D, string fileName)
+        {
+            byte[] bytes = texture2D.EncodeToPNG();
+            string path = Path.Combine("D:\\MakeMods\\Rain World\\RainWorld官方贴图\\FromMyself", fileName);
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            }
+            File.WriteAllBytes(path, bytes);
+        }
+
+        public static Rect UVRectToFrame(Rect uvrect, Vector2 atlasSize)
+        {
+            return new Rect(
+                uvrect.x * atlasSize.x,
+                -(uvrect.y - 1 + uvrect.height) * atlasSize.y,
+                uvrect.width * atlasSize.x,
+                uvrect.height * atlasSize.y
+            );
+        }
+    }*/
 
     public class PageModeIndex : ExtEnum<Scientist.ScientistPanel.PageModeIndex>
     {

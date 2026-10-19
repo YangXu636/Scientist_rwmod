@@ -6,6 +6,7 @@ namespace Scientist.Items.AbstractPhysicalObjects
 {
 	internal sealed class StormboltSpearAbstract : AbstractSpear
 	{
+		public int stormboltCharge = 0;
 
 		public StormboltSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID) : base(world, realizedObject, pos, ID, false)
 		{
@@ -22,9 +23,19 @@ namespace Scientist.Items.AbstractPhysicalObjects
 			}
 		}
 
-		public override void Realize()
+		public StormboltSpearAbstract(World world, Spear realizedObject, WorldCoordinate pos, EntityID ID, int stormboltCharge) : this(world, realizedObject, pos, ID)
+		{
+			this.stormboltCharge = stormboltCharge;
+		}
+
+        public override void Realize()
 		{
             this.realizedObject ??= new Items.StormboltSpear(this, this.world);
 		}
-	}
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}<oA>{this.stormboltCharge}";
+        }
+    }
 }

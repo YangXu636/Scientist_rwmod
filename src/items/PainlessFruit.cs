@@ -3,6 +3,9 @@ using RWCustom;
 using Scientist;
 using System;
 using UnityEngine;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
 
 
 namespace Scientist.Items;
@@ -94,8 +97,8 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             (grasp.grabber as Player).ObjectEaten(this);
             grasp.Release();
-            Scientist.Data.PlayerVariables.pfTime.AddAll(3200);
-            Scientist.Data.PlayerVariables.pfEatTimesInACycle[ScientistTools.FeaturesTypeString(grasp.grabber as Player)] += 1;
+            SDPV.pfTime.AddAll(3200);
+            SDPV.pfEatTimesInACycle[ScientistTools.FeaturesTypeString(grasp.grabber as Player)] += 1;
             this.Destroy();
         }
     }
@@ -112,7 +115,7 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        if (SDGV.SEnableOldPf)
         {
             sLeaser.sprites[0].color = new Color(0.87f, 1f, 0.9f);
             sLeaser.sprites[1].color = new Color(0.95f, 0.85f, 1f);
@@ -144,7 +147,7 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
         {
             this.ApplyPalette(sLeaser, rCam, rCam.currentPalette);
         }
-        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        if (SDGV.SEnableOldPf)
         {
             sLeaser.sprites[0].color = sLeaser.sprites[0].color.ColorChangeAlpha((this.bites >= 3) ? 1f : 0f);
             sLeaser.sprites[1].color = sLeaser.sprites[1].color.ColorChangeAlpha((this.bites >= 2) ? 1f : 0f);
@@ -176,7 +179,7 @@ public class PainlessFruit : PlayerCarryableItem, IDrawable, IPlayerEdible
 
     public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        if (Scientist.Data.GolbalVariables.SEnableOldPf)
+        if (SDGV.SEnableOldPf)
         {
             sLeaser.sprites = new FSprite[3];
             sLeaser.sprites[0] = new FSprite("old_PainlessFruitLeft", true);

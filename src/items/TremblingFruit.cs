@@ -8,6 +8,9 @@ using System.Diagnostics;
 using UnityEngine;
 using Smoke;
 using Noise;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
 
 namespace Scientist.Items;
 
@@ -81,7 +84,7 @@ public class TremblingFruit : Weapon
                 this.lastRotationAsSwing = this.rotation;
             }
         }
-        else if (Scientist.Data.GolbalVariables.SEnableTfKeepShaking)
+        else if (SDGV.SEnableTfKeepShaking)
         {
             this.Shake(1f, 1f);
         }

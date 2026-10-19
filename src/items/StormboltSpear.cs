@@ -6,13 +6,19 @@ using System.Data;
 using System.Diagnostics;
 using UnityEngine;
 using Scientist.Effects;
+using System.Collections.Generic;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
 
 namespace Scientist.Items;
 
 sealed class StormboltSpear : Spear
 {
     public int swaMoveCount = 0;
-    public const int swaMaxMoveCount = 120 * 10;
+    public const int swaMaxMoveCount = 120 * 10 * 2;
+
+    public int hitCount = 0;
 
     public new Scientist.Items.AbstractPhysicalObjects.StormboltSpearAbstract abstractSpear
     {
@@ -60,31 +66,43 @@ sealed class StormboltSpear : Spear
     public override void Update(bool eu)
     {
         base.Update(eu);
+        if (SDGV.SEnableDebug && this.room.game.devToolsActive && Input.GetKey(KeyCode.L))
+        {
+            this.firstChunk.vel += new Vector2(Input.mousePosition.x - this.firstChunk.pos.x, Input.mousePosition.y - this.firstChunk.pos.y).normalized * 5f;
+        }
         if (this.firstChunk.vel != Vector2.zero && this.grabbedBy.Count == 0 && this.stuckInObject == null && !this.onPlayerBack)
         {
-            if (this.firstChunk.vel.magnitude > 3f)
+            if (this.firstChunk.vel.magnitude > 1f)
             {
                 this.rotation = this.firstChunk.vel.normalized;
             }
             int count = 0;
             Vector2 vector = this.firstChunk.pos - this.firstChunk.lastPos;
-            Vector2 vectorN = vector.normalized * 0.40f;
+            Vector2 vectorN = vector.normalized * 0.20f;
             Vector2 vertical = new Vector2(-vector.y, vector.x).normalized;
-            for (float i = 0f; i < vector.magnitude; i += 0.40f)
+            float lastOffect = 0f;
+            for (float i = 0f; i < vector.magnitude; i += 0.20f)
             {
-                float offect = this.GetECGsOffset(0, this.swaMoveCount * 0.05f * 0.40f /* / 40.00f*/);
+                float offect = this.GetECGsOffset(0, this.swaMoveCount * 0.05f * 0.20f /* / 40.00f*/);
                 SpiritWithAnimation swa = new Effects.SpiritWithAnimation(
                     new FSprite("pixel", true) { x = this.firstChunk.lastPos.x + vectorN.x * count + vertical.x * offect, y = this.firstChunk.lastPos.y + vectorN.y * count + vertical.y * offect, scale = 3f, alpha = 1, color = Color.blue },
                     6,
                     new Func<SpiritWithAnimation.SwAData, int, int, SpiritWithAnimation.SwAData>((rawData, counter, duration) =>
                     {
-                        return new SpiritWithAnimation.SwAData(rawData.pos, rawData.rotation, rawData.scale * (1 - (float)counter / duration), rawData.scaleX, rawData.scaleY, 1f, ScientistTools.ColorChangeAlpha(Color.blue, 1 - (float)counter / duration));
+                        return new SpiritWithAnimation.SwAData(rawData.pos, rawData.rotation, rawData.scaleX * (1 - (float)counter / duration), rawData.scaleY * (1 - (float)counter / duration), 1f, ScientistTools.ColorChangeAlpha(Color.Lerp(rawData.color, Color.cyan, (float)counter / duration), 1 - (float)counter / duration));
                     }),
                     this.room?.game?.cameras?[0]?.ReturnFContainer("Water")
                 );
                 this.room?.AddObject(swa);
                 count++;
                 this.swaMoveCount++;
+                if (Mathf.Abs(offect) < 0.01f && Mathf.Abs(lastOffect) < 0.01f)
+                {
+                    i += 2.40f;
+                    count += 12;
+                    this.swaMoveCount += 12;
+                }
+                lastOffect = offect;
                 if (this.swaMoveCount >= swaMaxMoveCount)
                 {
                     this.swaMoveCount = 0;
@@ -155,16 +173,36 @@ sealed class StormboltSpear : Spear
     {
         if (functionIndex == 0)
         {
-            return -3f * 30f * Mathf.Exp(-Mathf.Pow((x - 3.5f) / 1.30f, 2f)) * Mathf.Sin((x - 3.50f) * Mathf.PI) * Mathf.Cos((x - 3.50f) * Mathf.Sqrt(3));
+            if (SDGV.CD_SbS_GetECGsOffset.TryGetFromCache(new KeyValuePair<int, float>(functionIndex, x), out float ans)) { return ans; }
+            ans = -3f * 30f * Mathf.Exp(-Mathf.Pow((x - 3.5f) / 1.30f, 2f)) * Mathf.Sin((x - 3.50f) * Mathf.PI) * Mathf.Cos((x - 3.50f) * Mathf.Sqrt(3));
+            SDGV.CD_SbS_GetECGsOffset.AddToCache(new KeyValuePair<int, float>(functionIndex, x), ans);
+            return ans;
         }
         return 0f;
     }
 
     public override void ChangeMode(Mode newMode)
     {
-        if (newMode == Weapon.Mode.StuckInWall && this.abstractSpear.stuckInWallCycles == 0)
+        if (newMode == Weapon.Mode.StuckInWall)
         {
-            this.abstractSpear.stuckInWallCycles = UnityEngine.Random.Range(20, 40) * ((this.throwDir.y != 0) ? -1 : 1);
+            if (this.hitCount < 3)
+            {
+                this.hitCount++;
+                return;
+            }
+            if (this.abstractSpear.stuckInWallCycles == 0)
+            {
+                this.abstractSpear.stuckInWallCycles = UnityEngine.Random.Range(20, 40) * ((this.throwDir.y != 0) ? -1 : 1);
+            }
+        }
+        if (newMode == Weapon.Mode.StuckInCreature)
+        {
+            if (this.hitCount < 3)
+            {
+                this.PulledOutOfStuckObject();
+                this.hitCount++;
+                return;
+            }
         }
         base.ChangeMode(newMode);
     }
@@ -179,15 +217,25 @@ sealed class StormboltSpear : Spear
         base.HitWall();
     }
 
-    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)  // TODO 动画未完成
     {
         if (this.stuckIns != null)
         {
             rCam.ReturnFContainer("HUD").AddChild(this.stuckIns.label);
         }
-        sLeaser.sprites = new FSprite[2];
+        sLeaser.sprites = new FSprite[6];
         sLeaser.sprites[0] = new FSprite("SmallSharpSpear", true);
         sLeaser.sprites[1] = new FSprite("SmallSharpSpearHead", true);
+        sLeaser.sprites[2] = new FSprite("pixel", true);
+        sLeaser.sprites[2].shader = Custom.rainWorld.Shaders["LightningRandomInCircle"];
+        sLeaser.sprites[2].scale = 11;
+        sLeaser.sprites[3] = new FSprite("EndGameCircle", true);
+        sLeaser.sprites[3].scale = 11f / sLeaser.sprites[3].width;
+        sLeaser.sprites[4] = new FSprite("pixel", true);
+        sLeaser.sprites[4].shader = Custom.rainWorld.Shaders["LightningRandomInCircle"];
+        sLeaser.sprites[4].scale = 11;
+        sLeaser.sprites[5] = new FSprite("EndGameCircle", true);
+        sLeaser.sprites[5].scale = 11f / sLeaser.sprites[5].width;
         this.AddToContainer(sLeaser, rCam, null);
     }
 
@@ -195,6 +243,10 @@ sealed class StormboltSpear : Spear
     {
         base.AddToContainer(sLeaser, rCam, newContatiner);
         sLeaser.sprites[1].MoveInFrontOfOtherNode(sLeaser.sprites[0]);
+        sLeaser.sprites[2].MoveInFrontOfOtherNode(sLeaser.sprites[1]);
+        sLeaser.sprites[3].MoveInFrontOfOtherNode(sLeaser.sprites[2]);
+        sLeaser.sprites[4].MoveInFrontOfOtherNode(sLeaser.sprites[1]);
+        sLeaser.sprites[5].MoveInFrontOfOtherNode(sLeaser.sprites[4]);
     }
 
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -218,12 +270,13 @@ sealed class StormboltSpear : Spear
                 this.stuckIns.label.y = this.stuckIns.pos.y;
             }
         }
-        Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);
+        Vector2 vector = Vector2.Lerp(base.firstChunk.lastPos, base.firstChunk.pos, timeStacker);   //位置插值
         if (this.vibrate > 0)
         {
             vector += Custom.DegToVec(UnityEngine.Random.value * 360f) * 2f * UnityEngine.Random.value;
         }
-        Vector3 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker);
+        float halflength = sLeaser.sprites[0].height / 2.000f;
+        Vector3 vector2 = Vector3.Slerp(this.lastRotation, this.rotation, timeStacker); //方向插值
         for (int i = 0; i <= 1; i++)
         {
             sLeaser.sprites[i].x = vector.x - camPos.x;
@@ -233,6 +286,19 @@ sealed class StormboltSpear : Spear
         }
         sLeaser.sprites[0].color = (this.blink > 0 && UnityEngine.Random.value < 0.5f) ? base.blinkColor : this.color;
         sLeaser.sprites[1].color = Scientist.ScientistTools.ColorFromHex("4f4f4f");
+
+        Vector2 sptip = vector2.ToV2xy().normalized * halflength;
+        for (int i = 2; i <= 3; i++)
+        {
+            sLeaser.sprites[i].x = vector.x + sptip.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y + sptip.y - camPos.y;
+        }
+        for (int i = 4; i <= 5; i++)
+        {
+            sLeaser.sprites[i].x = vector.x - sptip.x - camPos.x;
+            sLeaser.sprites[i].y = vector.y - sptip.y - camPos.y;
+        }
+
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
             sLeaser.CleanSpritesAndRemove();

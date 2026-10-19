@@ -111,11 +111,11 @@ public class ScientistTools
 
     public static string ExtenumTypeString(AbstractCreature ac) => ac.type.value;
 
-    public static string FeaturesTypeString(AbstractPhysicalObject apo) => apo.type == AbstractPhysicalObject.AbstractObjectType.Creature ? FeaturesTypeString(apo.realizedObject as Creature) : $"{apo.ID}_{apo.type.value}";
+    public static string FeaturesTypeString(AbstractPhysicalObject apo) => apo.type == AbstractPhysicalObject.AbstractObjectType.Creature ? FeaturesTypeString(apo?.realizedObject as Creature) : $"{apo.ID}_{apo.type.value}";
 
     public static string FeaturesTypeString(PhysicalObject po) => FeaturesTypeString(po.abstractPhysicalObject);
 
-    public static string FeaturesTypeString(Creature c) => FeaturesTypeString(c.abstractCreature);
+    public static string FeaturesTypeString(Creature c) => c != null ? FeaturesTypeString(c.abstractCreature) : "NullReferenceException";
 
     public static string FeaturesTypeString(AbstractCreature ac) =>$"{ac.ID}_{ac.creatureTemplate.name}";
 }
@@ -316,6 +316,14 @@ public static class _Vector2Extensions
     public static Vector2 VerticalNormalized(this Vector2 vector)
     {
         return new Vector2(vector.y, -vector.x).normalized;
+    }
+}
+
+public static class _Vector3Extensions
+{
+    public static Vector2 ToV2xy(this Vector3 vector)
+    {
+        return new Vector2(vector.x, vector.y);
     }
 }
 

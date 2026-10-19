@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Permissions;
 using UnityEngine;
+using SDPV = Scientist.Data.PlayerVariables;
+using SDGV = Scientist.Data.GlobalVariables;
+using SDDV = Scientist.Data.DebugVariables;
 
 namespace Scientist.Debug;
 
@@ -54,7 +57,7 @@ public class ShowBodychunk
             int xxMax = Mathf.RoundToInt((this.bodychunkSprites[i].x + bodychunks[i].rad) / 20.00f);
             int yyMin = Mathf.RoundToInt((this.bodychunkSprites[i].y - bodychunks[i].rad) / 20.00f);
             int yyMax = Mathf.RoundToInt((this.bodychunkSprites[i].y + bodychunks[i].rad) / 20.00f);
-            Scientist.Data.DebugVariables.ShowbodychunksGrid.SetAll(true, xxMin, xxMax, yyMin, yyMax);
+            SDDV.ShowbodychunksGrid.SetAll(true, xxMin, xxMax, yyMin, yyMax);
             xMin = Math.Min(xMin, xxMin); xMax = Math.Max(xMax, xxMax); yMin = Math.Min(yMin, yyMin); yMax = Math.Max(yMax, yyMax);
             this.bodychunkSprites[i].scale = bodychunks[i].rad / 10.00f;
             this.indexLabel[i].x = bodychunks[i].pos.x - rCamPos.x;
@@ -64,8 +67,8 @@ public class ShowBodychunk
         this.sizeInt = new IntVector2(Mathf.RoundToInt(this.posLabel.textRect.size.x / 20.00f), Mathf.RoundToInt(this.posLabel.textRect.size.y / 20.00f));
         //ScientistLogger.Log($"sizeInt = {sizeInt}");
         //×ó
-        this.posLabel.x = Mathf.Clamp(xMin - this.sizeInt.x + 2, 0, Scientist.Data.DebugVariables.ShowbodychunksGrid.GetLength(0) - this.sizeInt.x) * 20f;
-        this.posLabel.y = Mathf.Clamp(yMin + 1, 0, Scientist.Data.DebugVariables.ShowbodychunksGrid.GetLength(1) - this.sizeInt.y) * 20f;
+        this.posLabel.x = Mathf.Clamp(xMin - this.sizeInt.x + 2, 0, SDDV.ShowbodychunksGrid.GetLength(0) - this.sizeInt.x) * 20f;
+        this.posLabel.y = Mathf.Clamp(yMin + 1, 0, SDDV.ShowbodychunksGrid.GetLength(1) - this.sizeInt.y) * 20f;
     }
 
     public void RemoveSprites()
